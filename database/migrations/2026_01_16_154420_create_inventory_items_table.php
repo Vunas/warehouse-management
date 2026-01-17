@@ -10,15 +10,15 @@ return new class extends Migration
     {
         Schema::create('inventory_items', function (Blueprint $table) {
             $table->id();
-            $table->integer('warehouse_id')->unsigned();
+            $table->foreignId('block_id')->constrained('storage_blocks');
             $table->integer('product_id')->unsigned();
             $table->foreignId('calc_id')->nullable()->constrained('calculated_slots');
+            $table->integer('slot_used');
             $table->dateTime('imported_at');
             $table->integer('current_quantity')->default(0);
             $table->timestamps();
             $table->softDeletes();
 
-            $table->foreign('warehouse_id')->references('id')->on('warehouses');
             $table->foreign('product_id')->references('id')->on('products');
         });
     }

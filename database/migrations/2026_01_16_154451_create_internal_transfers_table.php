@@ -10,14 +10,11 @@ return new class extends Migration
     {
         Schema::create('internal_transfers', function (Blueprint $table) {
             $table->id();
-            $table->integer('from_warehouse_id')->unsigned();
-            $table->integer('to_warehouse_id')->unsigned();
+            $table->foreignId('from_block_id')->constrained('storage_blocks');
+            $table->foreignId('to_block_id')->constrained('storage_blocks');
             $table->string('trigger_reason')->nullable();
-            $table->enum('status', ['pending', 'in_transit', 'completed'])->default('pending');
+            $table->string('status')->default('pending');
             $table->timestamps();
-
-            $table->foreign('from_warehouse_id')->references('id')->on('warehouses');
-            $table->foreign('to_warehouse_id')->references('id')->on('warehouses');
         });
     }
 

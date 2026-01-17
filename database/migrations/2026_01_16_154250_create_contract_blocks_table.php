@@ -8,22 +8,22 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('contract_rents', function (Blueprint $table) {
+        Schema::create('contract_blocks', function (Blueprint $table) {
             $table->id();
             $table->integer('contract_id')->unsigned();
-            $table->integer('type_id')->unsigned();
-            $table->integer('slot_quantity');
-            $table->decimal('price_per_slot', 15, 2);
-            $table->text('note')->nullable();
+            $table->foreignId('block_id')->constrained('storage_blocks'); 
+            $table->integer('slots_committed')->default(0);
+            $table->dateTime('rented_from');
+            $table->dateTime('rented_to');
+            $table->decimal('rental_price', 15, 2);
             $table->timestamps();
 
             $table->foreign('contract_id')->references('id')->on('contracts')->onDelete('cascade');
-            $table->foreign('type_id')->references('id')->on('warehouse_types');
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('contract_rents');
+        Schema::dropIfExists('contract_blocks');
     }
 };

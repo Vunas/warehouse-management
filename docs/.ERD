@@ -1,0 +1,267 @@
+erDiagram
+%% =========================================================
+%% 1. AUTH & RBAC (CHỈ DÙNG CHO NHÂN VIÊN)
+%% =========================================================
+USERS {
+    bigint user_id PK
+    string username
+    string password_hash
+    string full_name
+    string email
+    boolean is_active
+    datetime created_at
+    datetime deleted_at
+}
+
+ROLES {
+    int role_id PK
+    string role_name        "Admin, Manager, Staff"
+    string guard_name
+}
+
+PERMISSIONS {
+    int permission_id PK
+    string permission_code  "contract.approve, inventory.move"
+    string guard_name
+}
+
+EMPLOYEES {
+    bigint employee_id PK
+    bigint user_id FK
+    string position
+    int warehouse_id FK     "Kho làm việc chính"
+    datetime hired_at
+    datetime deleted_at
+}
+
+EMPLOYEE_ROLES {
+    bigint employee_id PK, FK
+    int role_id PK, FK
+}
+
+ROLE_PERMISSIONS {
+    int role_id PK, FK
+    int permission_id PK, FK
+}
+
+%% =========================================================
+%% 2. CUSTOMER & CONTRACT
+%% =========================================================
+CUSTOMERS {
+    int customer_id PK
+    bigint user_id FK
+    string company_name
+    string tax_code
+    string billing_phone
+    string address
+    datetime deleted_at
+}
+
+CONTRACTS {
+    int contract_id PK
+    int customer_id FK
+    string contract_code
+    datetime start_date
+    datetime end_date
+    decimal penalty_markup  "Phạt vi phạm hợp đồng"
+    string status           "Active, Expired, Suspended"
+    datetime deleted_at
+}
+
+%% =========================================================
+%% 3. PRODUCT & SIZE RULE (QUY ĐỔI SLOT)
+%% =========================================================
+CATEGORIES {
+    int category_id PK
+    string name
+}
+
+PRODUCTS {
+    int product_id PK
+    int category_id FK
+    string sku
+    string name
+    string description
+}
+
+SIZE_CONVERSION_RULES {
+    int rule_id PK
+    string rule_name        "Small, Medium, Large"
+    float max_length
+    float max_width
+    float max_height
+    int slot_cost           "Số slot quy đổi"
+    int priority_level
+    boolean is_active
+}
+
+%% =========================================================
+%% 4. WAREHOUSE SYSTEM
+%% =========================================================
+WAREHOUSE_TYPES {
+    int type_id PK
+    string type_code        "TOTAL | SMALL | TRANSIT"
+    boolean rentable        "TRANSIT = false"
+    boolean single_contract "SMALL = true"
+    int priority_rule       "0: FIFO, 1: Total-first"
+    string description
+}
+
+WAREHOUSES {
+    int warehouse_id PK
+    int type_id FK
+    string name
+    int total_blocks
+    int total_slots
+    string status           "Active, Maintenance, Locked"
+    int paired_warehouse_id FK "Cặp kho trung chuyển"
+    datetime deleted_at
+}
+
+STORAGE_BLOCKS {
+    bigint block_id PK
+    int warehouse_id FK
+    string block_code
+    int total_slots
+    string status           "Available, Rented, Locked"
+}
+
+%% =========================================================
+%% 5. CONTRACT RENT (THUÊ THEO LÔ)
+%% =========================================================
+CONTRACT_BLOCKS {
+    bigint contract_block_id PK
+    int contract_id FK
+    bigint block_id FK
+    int slots_committed     "Số slot cam kết"
+    datetime rented_from
+    datetime rented_to
+    decimal rental_price
+}
+
+%% =========================================================
+%% 6. INBOUND (NHẬP KHO)
+%% =========================================================
+INBOUND_TICKETS {
+    bigint inbound_id PK
+    int contract_id FK
+    datetime expected_date
+    string status           "Pending, Approved, Rejected"
+    datetime deleted_at
+}
+
+INBOUND_DETAILS {
+    bigint detail_id PK
+    bigint inbound_id FK
+    int product_id FK
+    float input_length
+    float input_width
+    float input_height
+    int quantity
+}
+
+CALCULATED_SLOTS {
+    bigint calc_id PK
+    bigint inbound_detail_id FK
+    int rule_id FK
+    float final_length
+    float final_width
+    float final_height
+    int final_slot_cost
+    boolean is_violation
+}
+
+%% =========================================================
+%% 7. INVENTORY (LOGIC SLOT, KHÔNG HÌNH HỌC)
+%% =========================================================
+INVENTORY_ITEMS {
+    bigint item_id PK
+    bigint block_id FK
+    int product_id FK
+    bigint calc_id FK
+    int slot_used
+    datetime imported_at
+    int current_quantity
+    datetime deleted_at
+}
+
+INVENTORY_TRANSACTIONS {
+    bigint transaction_id PK
+    bigint item_id FK
+    string transaction_type "IN, OUT, TRANSFER"
+    int quantity
+    bigint reference_id
+    string reference_type
+    datetime created_at
+}
+
+%% =========================================================
+%% 8. OUTBOUND & INTERNAL TRANSFER
+%% =========================================================
+OUTBOUND_TICKETS {
+    bigint outbound_id PK
+    int contract_id FK
+    datetime requested_date
+    string status
+    datetime deleted_at
+}
+
+OUTBOUND_DETAILS {
+    bigint out_detail_id PK
+    bigint outbound_id FK
+    int product_id FK
+    int quantity
+}
+
+INTERNAL_TRANSFERS {
+    bigint transfer_id PK
+    bigint from_block_id FK
+    bigint to_block_id FK
+    string trigger_reason   "FIFO / Optimize"
+    string status
+    datetime created_at
+}
+
+TRANSFER_ITEMS {
+    bigint transfer_item_id PK
+    bigint transfer_id FK
+    bigint item_id FK
+    int quantity
+}
+
+%% =========================================================
+%% RELATIONSHIPS
+%% =========================================================
+
+USERS ||--|| EMPLOYEES : "is"
+USERS ||--|| CUSTOMERS : "is"
+
+EMPLOYEES ||--o{ EMPLOYEE_ROLES : assigned
+ROLES ||--o{ EMPLOYEE_ROLES : includes
+ROLES ||--o{ ROLE_PERMISSIONS : grants
+PERMISSIONS ||--o{ ROLE_PERMISSIONS : contains
+
+CUSTOMERS ||--o{ CONTRACTS : signs
+CONTRACTS ||--o{ CONTRACT_BLOCKS : rents
+STORAGE_BLOCKS ||--o{ CONTRACT_BLOCKS : allocated
+
+WAREHOUSE_TYPES ||--o{ WAREHOUSES : defines
+WAREHOUSES ||--o{ STORAGE_BLOCKS : contains
+WAREHOUSES ||--o{ EMPLOYEES : works_at
+
+CATEGORIES ||--o{ PRODUCTS : categorizes
+SIZE_CONVERSION_RULES ||--o{ CALCULATED_SLOTS : applies
+
+CONTRACTS ||--o{ INBOUND_TICKETS : allows
+INBOUND_TICKETS ||--|{ INBOUND_DETAILS : contains
+INBOUND_DETAILS ||--|| CALCULATED_SLOTS : calculates
+
+STORAGE_BLOCKS ||--o{ INVENTORY_ITEMS : stores
+PRODUCTS ||--o{ INVENTORY_ITEMS : stocked
+INVENTORY_ITEMS ||--o{ INVENTORY_TRANSACTIONS : logs
+
+CONTRACTS ||--o{ OUTBOUND_TICKETS : requests
+OUTBOUND_TICKETS ||--|{ OUTBOUND_DETAILS : contains
+
+INTERNAL_TRANSFERS ||--|{ TRANSFER_ITEMS : moves
+INVENTORY_ITEMS ||--o{ TRANSFER_ITEMS : source

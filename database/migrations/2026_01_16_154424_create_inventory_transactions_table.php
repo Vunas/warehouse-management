@@ -12,8 +12,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('item_id')->constrained('inventory_items')->onDelete('cascade');
             $table->enum('transaction_type', ['inbound', 'outbound', 'transfer', 'adjustment']);
-            $table->integer('quantity'); 
-            $table->nullableMorphs('reference'); 
+            $table->integer('quantity');
+            $table->nullableMorphs('reference');
             $table->timestamps();
         });
     }

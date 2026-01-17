@@ -12,11 +12,10 @@ return new class extends Migration
             $table->increments('id');
             $table->integer('type_id')->unsigned();
             $table->string('name');
+            $table->integer('total_blocks')->default(0);
             $table->integer('total_slots')->default(0);
             $table->enum('status', ['active', 'maintenance', 'locked'])->default('active');
-            
             $table->integer('paired_warehouse_id')->unsigned()->nullable();
-            
             $table->timestamps();
             $table->softDeletes();
 

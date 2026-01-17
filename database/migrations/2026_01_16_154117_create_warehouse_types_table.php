@@ -10,7 +10,9 @@ return new class extends Migration
     {
         Schema::create('warehouse_types', function (Blueprint $table) {
             $table->increments('id');
-            $table->string('code')->unique();
+            $table->string('type_code')->unique(); 
+            $table->boolean('rentable')->default(true);
+            $table->boolean('single_contract')->default(false); 
             $table->integer('priority_rule')->default(1);
             $table->text('description')->nullable();
             $table->timestamps();

@@ -15,7 +15,7 @@ return new class extends Migration
             $table->dateTime('start_date');
             $table->dateTime('end_date');
             $table->decimal('penalty_markup', 5, 2)->default(0.00);
-            $table->enum('status', ['active', 'expired', 'terminated'])->default('active');
+            $table->enum('status', ['active', 'expired', 'suspended'])->default('active');
             $table->timestamps();
             $table->softDeletes();
 
