@@ -48,13 +48,15 @@ class AuthController extends Controller
                 Auth::logout();
                 return back()->withErrors(['username' => 'Tài khoản đã bị khóa.']);
             }
-            return redirect()->intended(route('dashboard'));
 
+            return redirect()->intended(route('admin.dashboard'));
         }
 
-        return back()->withErrors([
-            'username' => 'Thông tin đăng nhập không chính xác.',
-        ]);
+        return back()
+            ->withErrors([
+                'username' => 'Thông tin đăng nhập không chính xác.',
+            ])
+            ->withInput($request->only('username'));
     }
 
     //------Login cho khách
@@ -122,6 +124,6 @@ class AuthController extends Controller
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        return redirect('/login');
+        return redirect('/');
     }
 }
