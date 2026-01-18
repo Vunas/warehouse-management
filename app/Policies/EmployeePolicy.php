@@ -9,8 +9,11 @@ class EmployeePolicy
 {
     public function viewAny(User $user)
     {
-        return $user->employee->hasPermission('employee.view'); 
+        if (!$user->employee) {
+            return false; // customer thì cấm
         }
+        return $user->employee->hasPermission('employee.view');
+    }
 
     public function create(User $user)
     {

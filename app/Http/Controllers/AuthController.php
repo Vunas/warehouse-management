@@ -70,7 +70,7 @@ class AuthController extends Controller
 
         // Thử đăng nhập
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
-
+            $request->session()->regenerate();
             // Nếu là nhân viên → chặn
             if (Auth::user()->employee) {
                 Auth::logout();
@@ -129,7 +129,7 @@ class AuthController extends Controller
 
 
 
-    //------LogOUT
+    //------Logout
     public function logout(Request $request)
     {
         Auth::logout();
@@ -137,4 +137,9 @@ class AuthController extends Controller
         $request->session()->regenerateToken();
         return redirect('/');
     }
+
+
+
+
+
 }

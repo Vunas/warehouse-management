@@ -30,7 +30,7 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 | 2. AUTH – GUEST
 |--------------------------------------------------------------------------
 */
-Route::middleware('guest')->group(function () {
+Route::middleware('redirect.login')->group(function () {
 
     // Employee login
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
