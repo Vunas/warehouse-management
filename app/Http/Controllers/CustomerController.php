@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Customer\StoreCustomerRequest;
-use App\Http\Requests\Customer\UpdateCustomerRequest; // Bạn tự tạo file này tương tự Store
+use App\Http\Requests\Customer\UpdateCustomerRequest;
 use App\Services\CustomerService;
 
 class CustomerController extends Controller
@@ -14,7 +14,7 @@ class CustomerController extends Controller
     public function __construct(CustomerService $customerService)
     {
         $this->customerService = $customerService;
-        // $this->authorizeResource(Customer::class, 'customer'); // Đăng ký Policy nếu cần
+        // $this->authorizeResource(Customer::class, 'customer'); 
     }
 
     public function index()

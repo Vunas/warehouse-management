@@ -32,11 +32,11 @@
         }
     </style>
 </head>
-<body class="bg-slate-50 max-h-screen flex items-center justify-center p-4 lg:p-0">
+<body class="bg-slate-50 max-h-screen w-screen flex items-center justify-center p-4 lg:p-0">
 
-    <div class="w-full max-w-350 h-screen max-h-225 bg-white  overflow-hidden flex flex-col lg:flex-row m-auto lg:my-8 lg:mx-8 border border-slate-100 relative">
+    <div class="w-screen h-screen bg-white overflow-hidden flex flex-col lg:flex-row border border-slate-100 relative">
         
-        <div class="hidden lg:flex lg:w-6/12 relative bg-slate-900 overflow-hidden flex-col justify-between p-12 text-white">
+        <div class="hidden  lg:w-6/12 lg:flex relative bg-slate-900 overflow-hidden flex-col justify-between p-12 text-white">
             
             <div class="absolute inset-0 z-0">
                 <img src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80" 

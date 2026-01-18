@@ -22,7 +22,6 @@ class AuthController extends Controller
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
 
-            // Kiểm tra active một lần nữa cho chắc
             if (!Auth::user()->is_active) {
                 Auth::logout();
                 return back()->withErrors(['username' => 'Tài khoản đã bị khóa.']);

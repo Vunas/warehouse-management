@@ -16,8 +16,8 @@ class UserSeeder extends Seeder
         if (!$existingAdmin) {
             
             $adminId = DB::table('users')->insertGetId([
-                'username' => 'admin',
-                'password' => Hash::make('password'), 
+                'username' => 'admin@gmail.com',
+                'password' => Hash::make('123456'), 
                 'full_name' => 'System Administrator',
                 'email' => 'admin@warehouse.com',
                 'is_active' => true,

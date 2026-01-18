@@ -7,13 +7,8 @@ use App\Models\Employee;
 
 class EmployeePolicy
 {
-    // Chỉ Admin hoặc Manager có quyền xem danh sách
     public function viewAny(User $user)
     {
-        // Giả sử logic check role của bạn:
-        // return $user->employee->hasRole('Admin') || $user->employee->hasRole('Manager');
-        
-        // Hoặc check permission (nếu dùng Spatie hoặc bảng Permissions tự build)
         return $user->employee->hasPermission('employee.view'); 
         }
 

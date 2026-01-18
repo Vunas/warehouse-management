@@ -23,12 +23,10 @@ class EmployeeService
         return $this->employeeRepo->getAllPaginated();
     }
 
-    // --- FIX: Thêm method này để Controller gọi ---
     public function getEmployeeById($id)
     {
         return $this->employeeRepo->findById($id);
     }
-    // ---------------------------------------------
 
     public function createEmployee(array $data)
     {

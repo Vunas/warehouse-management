@@ -26,7 +26,6 @@ class DashboardController extends Controller
         $freeSlots = $totalSlots - $usedSlots;
 
         // 5. Doanh thu dự kiến (Tổng giá trị thuê của các Hợp đồng Active)
-        // Lưu ý: Đây là logic đơn giản, thực tế cần tính theo tháng
         $activeContractsCount = Contract::where('status', 'active')->count();
 
         // 6. Lấy 5 phiếu nhập mới nhất để hiển thị ra bảng
@@ -35,7 +34,6 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        // Gom dữ liệu vào mảng stats
         $stats = [
             'pending_inbound' => $pendingInboundCount,
             'total_slots' => $totalSlots,
