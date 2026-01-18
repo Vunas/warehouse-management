@@ -19,20 +19,31 @@ Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [AuthController::class, 'login']);
 });
+// 2:CustomerRoutes
+Route::middleware('guest')->group(function () {
 
-// 2. Authenticated Routes
+    // LOGIN KHÁCH
+    Route::get('/customer/login',[AuthController::class,'showCustomerLogin']);
+    Route::post('/customer/login',[AuthController::class,'customerLogin']);
+
+    // REGISTER KHÁCH
+    Route::get('/customer/register',[AuthController::class,'showRegisterForm']);
+    Route::post('/customer/register',[AuthController::class,'register']);
+});
+
+// 3. Authenticated Routes
 Route::middleware(['auth', 'active_employee'])->group(function () {
-    
+
     // Auth Actions
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-    
+
     // Dashboard
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
     // === IAM MODULE ===
     Route::resource('employees', EmployeeController::class);
     // Chỉ Admin mới can thiệp Role (đã check trong Controller nhưng thêm middleware càng tốt)
-    Route::resource('roles', RoleController::class); 
+    Route::resource('roles', RoleController::class);
     Route::resource('customers', CustomerController::class);
 
     // === CORE WAREHOUSE MODULE ===
@@ -55,7 +66,7 @@ Route::middleware(['auth', 'active_employee'])->group(function () {
     // === INVENTORY & TRANSFER ===
     Route::post('transfers/{internal_transfer}/complete', [InternalTransferController::class, 'complete'])->name('transfers.complete');
     Route::resource('transfers', InternalTransferController::class);
-    
+
     // Báo cáo tồn kho (Read-only)
     Route::get('inventory', [InventoryController::class, 'index'])->name('inventory.index');
 });
