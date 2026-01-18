@@ -109,7 +109,7 @@
         </div>
         <form method="POST" action="{{ route('logout') }}">
             @csrf
-            <button class="w-full text-red-400 hover:text-white">
+            <button type="submit" class="w-full text-red-400 hover:text-white">
                 Đăng xuất
             </button>
         </form>

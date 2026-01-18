@@ -51,16 +51,19 @@
             </div>
 
             <div class="relative z-10">
-                <div class="flex items-center gap-3">
-                    <div
-                        class="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30">
-                        <i class="fa-solid fa-boxes-stacked text-2xl text-white"></i>
+                <a href="/">
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30">
+                            <i class="fa-solid fa-boxes-stacked text-2xl text-white"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-2xl font-bold tracking-tight text-white">WMS PRO</h1>
+                            <p class="text-xs text-blue-200 uppercase tracking-widest font-semibold">Logistics Solution
+                            </p>
+                        </div>
                     </div>
-                    <div>
-                        <h1 class="text-2xl font-bold tracking-tight text-white">WMS PRO</h1>
-                        <p class="text-xs text-blue-200 uppercase tracking-widest font-semibold">Logistics Solution</p>
-                    </div>
-                </div>
+                </a>
             </div>
 
             <div class="relative z-10 mb-10">

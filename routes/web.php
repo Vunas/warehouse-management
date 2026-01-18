@@ -16,18 +16,38 @@ use App\Http\Controllers\OutboundTicketController;
 use App\Http\Controllers\InternalTransferController;
 use App\Http\Controllers\InventoryController;
 
+/*
+|--------------------------------------------------------------------------
+| 1. PUBLIC
+|--------------------------------------------------------------------------
+*/
+
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
-// 2. AUTH (GUEST ONLY)
-
+/*
+|--------------------------------------------------------------------------
+| 2. AUTH – GUEST
+|--------------------------------------------------------------------------
+*/
 Route::middleware('guest')->group(function () {
+
+    // Employee login
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [AuthController::class, 'login'])->name('login.submit');
+
+    // Customer auth
+    Route::get('/customer/login', [AuthController::class, 'showCustomerLogin']);
+    Route::post('/customer/login', [AuthController::class, 'customerLogin']);
+
+    Route::get('/customer/register', [AuthController::class, 'showRegisterForm']);
+    Route::post('/customer/register', [AuthController::class, 'register']);
 });
 
-
-// 3. AUTH ACTIONS (LOGOUT)
-
+/*
+|--------------------------------------------------------------------------
+| 3. AUTH ACTIONS
+|--------------------------------------------------------------------------
+*/
 Route::post('/logout', [AuthController::class, 'logout'])
     ->middleware('auth')
     ->name('logout');
@@ -37,7 +57,7 @@ Route::post('/logout', [AuthController::class, 'logout'])
 | 4. ADMIN PANEL
 |--------------------------------------------------------------------------
 | URL: /admin/*
-| Middleware: auth + active_employee
+|--------------------------------------------------------------------------
 */
 Route::prefix('admin')
     ->middleware(['auth', 'active_employee'])
@@ -47,27 +67,19 @@ Route::prefix('admin')
         Route::get('/', [DashboardController::class, 'index'])
             ->name('admin.dashboard');
 
-
-        // IAM MODULE
-
+        // IAM
         Route::resource('employees', EmployeeController::class);
         Route::resource('roles', RoleController::class);
         Route::resource('customers', CustomerController::class);
 
-
-        // CORE WAREHOUSE
-
+        // Warehouse core
         Route::resource('warehouses', WarehouseController::class);
         Route::resource('products', ProductController::class);
 
-
-        // CONTRACT
-
+        // Contracts
         Route::resource('contracts', ContractController::class);
 
-
-        // INBOUND
-
+        // Inbound
         Route::post(
             'inbound-tickets/{inbound_ticket}/approve',
             [InboundTicketController::class, 'approve']
@@ -80,9 +92,7 @@ Route::prefix('admin')
 
         Route::resource('inbound_tickets', InboundTicketController::class);
 
-
-        // OUTBOUND
-
+        // Outbound
         Route::post(
             'outbound-tickets/{outbound_ticket}/process',
             [OutboundTicketController::class, 'process']
@@ -90,9 +100,7 @@ Route::prefix('admin')
 
         Route::resource('outbound_tickets', OutboundTicketController::class);
 
-
-        // INTERNAL TRANSFER
-
+        // Internal transfer
         Route::post(
             'transfers/{internal_transfer}/complete',
             [InternalTransferController::class, 'complete']
@@ -100,9 +108,7 @@ Route::prefix('admin')
 
         Route::resource('transfers', InternalTransferController::class);
 
-
-        // INVENTORY (READ ONLY)
-
+        // Inventory (read only)
         Route::get('inventory', [InventoryController::class, 'index'])
             ->name('inventory.index');
     });
