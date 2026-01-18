@@ -27,12 +27,14 @@ class AuthController extends Controller
                 return back()->withErrors(['username' => 'Tài khoản đã bị khóa.']);
             }
 
-            return redirect()->intended(route('dashboard'));
+            return redirect()->intended(route('admin.dashboard'));
         }
 
-        return back()->withErrors([
-            'username' => 'Thông tin đăng nhập không chính xác.',
-        ]);
+        return back()
+            ->withErrors([
+                'username' => 'Thông tin đăng nhập không chính xác.',
+            ])
+            ->withInput($request->only('username'));
     }
 
     public function logout(Request $request)
