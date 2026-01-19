@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Contract extends Model
@@ -33,5 +34,15 @@ class Contract extends Model
     public function contractBlocks()
     {
         return $this->hasMany(ContractBlock::class);
+    }
+
+    public function inboundTickets(): HasMany
+    {
+        return $this->hasMany(InboundTicket::class);
+    }
+
+    public function outboundTickets(): HasMany
+    {
+        return $this->hasMany(OutboundTicket::class);
     }
 }

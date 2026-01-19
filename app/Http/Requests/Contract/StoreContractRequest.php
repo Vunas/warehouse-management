@@ -8,7 +8,7 @@ class StoreContractRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('contract.create');
+        return true;
     }
 
     public function rules(): array
@@ -24,7 +24,6 @@ class StoreContractRequest extends FormRequest
             'blocks' => ['required', 'array', 'min:1'],
             'blocks.*.id' => ['required', 'exists:storage_blocks,id'],
             'blocks.*.price' => ['required', 'numeric', 'min:0'],
-            'blocks.*.slots_committed' => ['required', 'integer', 'min:1'],
         ];
     }
 

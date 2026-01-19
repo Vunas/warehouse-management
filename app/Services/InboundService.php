@@ -2,37 +2,59 @@
 
 namespace App\Services;
 
-use App\Models\InboundTicket;
-use App\Models\InboundDetail;
-use App\Models\CalculatedSlot;
+use App\Repositories\Interfaces\InboundTicketRepositoryInterface;
+use App\Repositories\Interfaces\InventoryRepositoryInterface;
+use App\Repositories\Interfaces\WarehouseRepositoryInterface;
 use App\Models\SizeConversionRule;
-use App\Models\InventoryItem;
-use App\Models\InventoryTransaction;
-use App\Models\StorageBlock;
 use Illuminate\Support\Facades\DB;
 use Exception;
 
 class InboundService
 {
-    // 1. Tạo phiếu nhập (Draft)
+    protected $inboundRepo;
+    protected $inventoryRepo;
+    protected $warehouseRepo;
+
+    public function __construct(
+        InboundTicketRepositoryInterface $inboundRepo,
+        InventoryRepositoryInterface $inventoryRepo,
+        WarehouseRepositoryInterface $warehouseRepo
+    ) {
+        $this->inboundRepo = $inboundRepo;
+        $this->inventoryRepo = $inventoryRepo;
+        $this->warehouseRepo = $warehouseRepo;
+    }
+
+    public function getInboundHistory()
+    {
+        return $this->inboundRepo->paginate();
+    }
+
+    public function getTicketById($id)
+    {
+        return $this->inboundRepo->findById($id);
+    }
+
     public function createTicket(array $data)
     {
         DB::beginTransaction();
         try {
-            $ticket = InboundTicket::create([
+            $ticket = $this->inboundRepo->create([
                 'contract_id' => $data['contract_id'],
+                'order_number' => $data['order_number'] ?? 'IN-' . time(),
                 'expected_date' => $data['expected_date'],
-                'status' => 'pending'
+                'status' => 'PENDING'
             ]);
 
             foreach ($data['products'] as $item) {
-                InboundDetail::create([
+                // Sử dụng hàm createDetail của Repo
+                $this->inboundRepo->createDetail([
                     'inbound_id' => $ticket->id,
                     'product_id' => $item['product_id'],
-                    'input_length' => $item['input_length'],
-                    'input_width' => $item['input_width'],
-                    'input_height' => $item['input_height'],
                     'quantity' => $item['quantity'],
+                    'input_length' => $item['input_length'] ?? 0,
+                    'input_width' => $item['input_width'] ?? 0,
+                    'input_height' => $item['input_height'] ?? 0,
                 ]);
             }
 
@@ -44,116 +66,123 @@ class InboundService
         }
     }
 
-    // 2. Duyệt phiếu & Tính toán Slot (Core Logic)
     public function approveAndCalculateSlots($ticketId)
     {
         DB::beginTransaction();
         try {
-            $ticket = InboundTicket::with('details')->findOrFail($ticketId);
-            $rules = SizeConversionRule::where('is_active', true)
-                        ->orderBy('priority_level', 'desc') // Check từ lớn xuống nhỏ
-                        ->get();
+            $ticket = $this->inboundRepo->findById($ticketId);
+            $rules = SizeConversionRule::where('is_active', true)->orderBy('priority', 'desc')->get();
 
             foreach ($ticket->details as $detail) {
-                // Logic tìm Rule phù hợp
                 $appliedRule = null;
-                $isViolation = true; // Mặc định là vi phạm nếu không khớp rule nào
+                $isViolation = true;
 
                 foreach ($rules as $rule) {
-                    // Kiểm tra kích thước có nằm trong giới hạn của Rule không
-                    if ($detail->input_length <= $rule->max_length &&
-                        $detail->input_width <= $rule->max_width &&
-                        $detail->input_height <= $rule->max_height) {
-                        
+                    if (
+                        $detail->measured_length <= $rule->max_length &&
+                        $detail->measured_width <= $rule->max_width &&
+                        $detail->measured_height <= $rule->max_height
+                    ) {
                         $appliedRule = $rule;
                         $isViolation = false;
-                        
-                        // Rule được sắp xếp ưu tiên, khớp cái nào lấy cái đó (Smallest Fit)
-                        // Tuy nhiên logic ở đây đang là check từ Lớn -> Nhỏ để tìm Max Limit
-                        // Nếu muốn tối ưu  sort ASC và lấy cái đầu tiên vừa vặn.
+                        break;
                     }
                 }
-                
-                // Fallback: Nếu vẫn chưa tìm được (nhỏ hơn cả min), lấy rule nhỏ nhất
+
                 if ($isViolation && $rules->isNotEmpty()) {
-                     // Logic xử lý vi phạm hoặc gán mặc định rule lớn nhất
-                     $appliedRule = $rules->first(); // Lấy rule lớn nhất để tính phí phạt
+                    $appliedRule = $rules->first();
                 }
 
-                CalculatedSlot::create([
-                    'inbound_detail_id' => $detail->id,
-                    'rule_id' => $appliedRule ? $appliedRule->id : null,
-                    'final_length' => $detail->input_length, // Có thể làm tròn
-                    'final_width' => $detail->input_width,
-                    'final_height' => $detail->input_height,
-                    'final_slot_cost' => $appliedRule ? $appliedRule->slot_cost : 0,
+                // Sử dụng createCalculatedSlot của Repo
+                $this->inboundRepo->createCalculatedSlot([
+                    'inbound_detail_id' => $detail->detail_id ?? $detail->id,
+                    'rule_id' => $appliedRule ? $appliedRule->rule_id : null,
+                    'final_length' => $detail->measured_length,
+                    'final_width' => $detail->measured_width,
+                    'final_height' => $detail->measured_height,
+                    'slots_per_unit' => $appliedRule ? $appliedRule->slot_cost : 0,
+                    'total_slots_required' => ($appliedRule ? $appliedRule->slot_cost : 0) * $detail->planned_quantity,
                     'is_violation' => $isViolation
                 ]);
             }
 
-            $ticket->update(['status' => 'approved']);
+            $this->inboundRepo->updateStatus($ticketId, 'APPROVED');
             DB::commit();
-
         } catch (Exception $e) {
             DB::rollBack();
             throw $e;
         }
     }
 
-    // 3. Thực hiện nhập kho (Tạo Inventory Item)
     public function processReception($ticketId)
     {
         DB::beginTransaction();
         try {
-            $ticket = InboundTicket::with(['details.calculatedSlot', 'contract.contractBlocks.storageBlock'])->findOrFail($ticketId);
+            $ticket = $this->inboundRepo->findById($ticketId);
 
             foreach ($ticket->details as $detail) {
-                // Logic đơn giản: Tìm Block đầu tiên còn chỗ trong hợp đồng để nhét vào
-                // Thực tế cần thuật toán Bin Packing phức tạp hơn
-                $targetBlock = $this->findAvailableBlock($ticket->contract, $detail->calculatedSlot->final_slot_cost * $detail->quantity);
+                $calcSlot = $detail->calculatedSlot;
+                $slotsNeeded = $calcSlot->total_slots_required;
+
+                $targetBlock = $this->findAvailableBlock($ticket->contract, $slotsNeeded);
 
                 if (!$targetBlock) {
-                    throw new Exception("Không tìm thấy Lô/Kệ trống phù hợp cho sản phẩm " . $detail->product_id);
+                    throw new Exception("Không tìm thấy Block trống.");
                 }
 
-                // Tạo Inventory Item
-                $inventoryItem = InventoryItem::create([
+                // Dùng InventoryRepo để tạo Item
+                $inventoryItem = $this->inventoryRepo->createItem([
                     'block_id' => $targetBlock->id,
                     'product_id' => $detail->product_id,
-                    'calc_id' => $detail->calculatedSlot->id,
-                    'slot_used' => $detail->calculatedSlot->final_slot_cost * $detail->quantity,
+                    'inbound_detail_id' => $detail->id,
+                    'slots_occupied' => $slotsNeeded,
+                    'quantity_on_hand' => $detail->planned_quantity,
                     'imported_at' => now(),
-                    'current_quantity' => $detail->quantity,
                 ]);
 
-                // Log Transaction
-                InventoryTransaction::create([
+                // Dùng InventoryRepo để log
+                $this->inventoryRepo->logTransaction([
                     'item_id' => $inventoryItem->id,
-                    'transaction_type' => 'inbound',
-                    'quantity' => $detail->quantity,
+                    'transaction_type' => 'INBOUND',
+                    'quantity_change' => $detail->planned_quantity,
+                    'balance_before' => 0,
+                    'balance_after' => $detail->planned_quantity,
                     'reference_id' => $ticket->id,
-                    'reference_type' => InboundTicket::class
+                    'reference_type' => 'INBOUND_ORDER'
+                ]);
+
+                // Update Block usage
+                $this->warehouseRepo->updateBlock($targetBlock->id, [
+                    'used_slots' => $targetBlock->used_slots + $slotsNeeded
                 ]);
             }
 
-            $ticket->update(['status' => 'received']);
+            $this->inboundRepo->updateStatus($ticketId, 'COMPLETED');
             DB::commit();
-
         } catch (Exception $e) {
             DB::rollBack();
             throw $e;
         }
     }
 
+    // Helper function giữ nguyên logic
     private function findAvailableBlock($contract, $requiredSlots)
     {
-        // Lấy danh sách các Block mà khách hàng này đã thuê
         foreach ($contract->contractBlocks as $cb) {
             $block = $cb->storageBlock;
-            if ($block->available_slots >= $requiredSlots) {
+            if (($block->total_slots - $block->used_slots) >= $requiredSlots) {
                 return $block;
             }
         }
         return null;
+    }
+    public function countPending()
+    {
+        return $this->inboundRepo->countByStatus('pending');
+    }
+
+    public function getLatest($limit = 5)
+    {
+        return $this->inboundRepo->getLatest($limit);
     }
 }

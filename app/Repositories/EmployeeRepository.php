@@ -14,38 +14,70 @@ class EmployeeRepository implements EmployeeRepositoryInterface
         $this->model = $model;
     }
 
-    public function getAllPaginated($perPage = 10)
+    public function paginate($perPage = 10)
     {
         return $this->model->with(['user', 'warehouse', 'roles'])->latest()->paginate($perPage);
     }
 
     public function findById($id)
     {
-        return $this->model->with(['user', 'roles'])->findOrFail($id);
+        return $this->model->with(['user', 'roles', 'warehouse'])->findOrFail($id);
     }
 
-    public function create(array $data)
+    public function create($data)
     {
-        return $this->model->create($data);
+        $employee = $this->model->create($data);
+        
+        // Nếu có role_ids thì sync luôn
+        if (isset($data['role_ids'])) {
+            $employee->roles()->sync($data['role_ids']);
+        }
+
+        return $employee;
     }
 
-    public function update($id, array $data)
+    public function update($id, $data)
     {
-        $record = $this->findById($id);
-        $record->update($data);
-        return $record;
+        $employee = $this->findById($id);
+        $employee->update($data);
+
+        if (isset($data['role_ids'])) {
+            $employee->roles()->sync($data['role_ids']);
+        }
+
+        return $employee;
     }
 
     public function delete($id)
     {
-        $record = $this->findById($id);
-        // Soft delete user liên quan nếu cần
-        $record->user()->delete(); 
-        return $record->delete();
+        $employee = $this->findById($id);
+        
+        // Logic xóa user đi kèm nếu cần, hoặc chỉ soft delete employee
+        if ($employee->user) {
+            $employee->user()->delete(); 
+        }
+
+        return $employee->delete();
+    }
+
+    public function getSelectable()
+    {
+        // Trả về danh sách rút gọn cho dropdown select box
+        return $this->model->select('id', 'employee_code', 'user_id')
+                    ->with('user:id,full_name') // Giả sử User có full_name
+                    ->get()
+                    ->map(function($item) {
+                        return [
+                            'id' => $item->id,
+                            'name' => $item->employee_code . ' - ' . ($item->user->full_name ?? 'N/A')
+                        ];
+                    });
     }
 
     public function getByWarehouse($warehouseId)
     {
-        return $this->model->where('warehouse_id', $warehouseId)->get();
+        return $this->model->where('warehouse_id', $warehouseId)
+                           ->with('user')
+                           ->get();
     }
 }

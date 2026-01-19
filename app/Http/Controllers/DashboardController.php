@@ -3,44 +3,44 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Models\InboundTicket;
-use App\Models\StorageBlock;
-use App\Models\InventoryItem;
-use App\Models\Contract;
-use Illuminate\Http\Request;
+use App\Services\InboundService;
+use App\Services\WarehouseService;
+use App\Services\ContractService;
+use App\Services\InventoryService;
 
 class DashboardController extends Controller
 {
+    protected $inboundService;
+    protected $warehouseService;
+    protected $contractService;
+    protected $inventoryService;
+
+    public function __construct(
+        InboundService $inboundService,
+        WarehouseService $warehouseService,
+        ContractService $contractService,
+        InventoryService $inventoryService
+    ) {
+        $this->inboundService = $inboundService;
+        $this->warehouseService = $warehouseService;
+        $this->contractService = $contractService;
+        $this->inventoryService = $inventoryService;
+    }
+
     public function index()
     {
-        // 1. Thống kê Phiếu nhập đang chờ (Pending)
-        $pendingInboundCount = InboundTicket::where('status', 'pending')->count();
-
-        // 2. Thống kê Sức chứa toàn hệ thống
-        $totalSlots = StorageBlock::sum('total_slots');
-        
-        // 3. Tính số slot đã sử dụng (dựa trên Inventory Items)
-        $usedSlots = InventoryItem::sum('slot_used');
-        
-        // 4. Tính slot trống
-        $freeSlots = $totalSlots - $usedSlots;
-
-        // 5. Doanh thu dự kiến (Tổng giá trị thuê của các Hợp đồng Active)
-        $activeContractsCount = Contract::where('status', 'active')->count();
-
-        // 6. Lấy 5 phiếu nhập mới nhất để hiển thị ra bảng
-        $latestInbounds = InboundTicket::with('contract.customer.user')
-            ->latest()
-            ->take(5)
-            ->get();
-
+        // Bạn cần bổ sung các hàm thống kê này vào Service tương ứng
         $stats = [
-            'pending_inbound' => $pendingInboundCount,
-            'total_slots' => $totalSlots,
-            'used_slots' => $usedSlots,
-            'free_slots' => $freeSlots,
-            'active_contracts' => $activeContractsCount,
+            'pending_inbound' => $this->inboundService->countPending(),
+            'total_slots' => $this->warehouseService->getTotalCapacity(),
+            'used_slots' => $this->inventoryService->getTotalUsedSlots(),
+            // free_slots = total - used (tính ở view hoặc controller)
+            'active_contracts' => $this->contractService->countActive(),
         ];
+        
+        $stats['free_slots'] = $stats['total_slots'] - $stats['used_slots'];
+
+        $latestInbounds = $this->inboundService->getLatest(5);
 
         return view('admin.dashboard', compact('stats', 'latestInbounds'));
     }

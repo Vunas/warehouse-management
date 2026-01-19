@@ -24,15 +24,26 @@ class RoleRepository implements RoleRepositoryInterface
         return $this->model->with('permissions')->findOrFail($id);
     }
 
-    public function create(array $data)
+    public function create($data)
     {
-        return $this->model->create($data);
+        $role = $this->model->create($data);
+        
+        if (isset($data['permissions'])) {
+            $role->permissions()->sync($data['permissions']);
+        }
+
+        return $role;
     }
 
-    public function update($id, array $data)
+    public function update($id, $data)
     {
         $role = $this->findById($id);
         $role->update($data);
+
+        if (isset($data['permissions'])) {
+            $role->permissions()->sync($data['permissions']);
+        }
+
         return $role;
     }
 
@@ -40,9 +51,13 @@ class RoleRepository implements RoleRepositoryInterface
     {
         return $this->model->destroy($id);
     }
-    
-    // Hàm đặc thù: Đồng bộ quyền cho vai trò
-    public function syncPermissions($roleId, array $permissionIds)
+
+    public function getSelectable()
+    {
+        return $this->model->select('id', 'role_name as name')->get();
+    }
+
+    public function syncPermissions($roleId, $permissionIds)
     {
         $role = $this->findById($roleId);
         return $role->permissions()->sync($permissionIds);

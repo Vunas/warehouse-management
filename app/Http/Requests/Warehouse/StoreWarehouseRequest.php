@@ -8,26 +8,19 @@ class StoreWarehouseRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('warehouse.create');
+        return true;
     }
 
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255', 'unique:warehouses,name'],
+            'name' => ['required', 'string', 'max:255'],
+            'warehouse_code' => ['required', 'string', 'max:20', 'unique:warehouses,warehouse_code'],
             'type_id' => ['required', 'exists:warehouse_types,id'],
+            'address' => ['nullable', 'string'],
             
-            // Logic tạo nhanh Block
-            'total_blocks' => ['required', 'integer', 'min:1', 'max:50'],
-            'slots_per_block' => ['required', 'integer', 'min:10', 'max:1000'],
-        ];
-    }
-
-    public function messages(): array
-    {
-        return [
-            'type_id.exists' => 'Loại kho không hợp lệ.',
-            'total_blocks.max' => 'Số lượng kệ/lô tối đa cho phép tạo nhanh là 50.',
+            'total_blocks' => ['required', 'integer', 'min:1'],
+            'slots_per_block' => ['required', 'integer', 'min:1'],
         ];
     }
 }

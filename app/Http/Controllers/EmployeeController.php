@@ -7,33 +7,37 @@ use App\Http\Requests\Employee\StoreEmployeeRequest;
 use App\Http\Requests\Employee\UpdateEmployeeRequest;
 use App\Models\Employee;
 use App\Services\EmployeeService;
-use App\Models\Role;
-use App\Models\Warehouse;
-use Illuminate\Support\Facades\Log;
-
-use function Illuminate\Log\log;
+use App\Services\RoleService;
+use App\Services\WarehouseService;
 
 class EmployeeController extends Controller
 {
     protected $employeeService;
+    protected $roleService;
+    protected $warehouseService;
 
-    public function __construct(EmployeeService $employeeService)
-    {
+    public function __construct(
+        EmployeeService $employeeService,
+        RoleService $roleService,
+        WarehouseService $warehouseService
+    ) {
         $this->employeeService = $employeeService;
+        $this->roleService = $roleService;
+        $this->warehouseService = $warehouseService;
         $this->authorizeResource(Employee::class, 'employee');
     }
 
     public function index()
     {
-        $employees = $this->employeeService->getAllEmployees();
+        $employees = $this->employeeService->getEmployeesPaginated();
         return view('admin.employees.index', compact('employees'));
     }
 
     public function create()
     {
+        $roles = $this->roleService->getAllRoles(); 
+        $warehouses = $this->warehouseService->getWarehouseSelection(); 
 
-        $roles = Role::all();
-        $warehouses = Warehouse::all();
         return view('admin.employees.create', compact('roles', 'warehouses'));
     }
 
@@ -47,12 +51,14 @@ class EmployeeController extends Controller
 
     public function edit(Employee $employee)
     {
-        $employee->load(['user', 'roles', 'warehouse']);
-        $roles = Role::all();
-        $warehouses = Warehouse::all();
+        $employee = $this->employeeService->getEmployeeById($employee->id);
+        
+        $roles = $this->roleService->getAllRoles();
+        $warehouses = $this->warehouseService->getWarehouseSelection();
 
         return view('admin.employees.edit', compact('employee', 'roles', 'warehouses'));
     }
+
     public function update(UpdateEmployeeRequest $request, Employee $employee)
     {
         $this->employeeService->updateEmployee($employee->id, $request->validated());

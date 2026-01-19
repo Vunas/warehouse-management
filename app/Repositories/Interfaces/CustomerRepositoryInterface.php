@@ -4,9 +4,12 @@ namespace App\Repositories\Interfaces;
 
 interface CustomerRepositoryInterface
 {
-    public function getAllPaginated($perPage = 10);
+    // Cơ bản
+    public function paginate($perPage = 10);
     public function findById($id);
-    public function create(array $data);
-    public function update($id, array $data);
+    public function create($data);
+    public function update($id, $data);
     public function delete($id);
+    public function getSelectable();
+    public function findByUserId($userId);
 }

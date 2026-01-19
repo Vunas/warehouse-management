@@ -2,29 +2,41 @@
 
 namespace App\Services;
 
-use App\Models\InternalTransfer;
-use App\Models\TransferItem;
-use App\Models\InventoryItem;
-use App\Models\InventoryTransaction;
-use App\Models\StorageBlock;
+use App\Repositories\Interfaces\InventoryRepositoryInterface;
+use App\Repositories\Interfaces\WarehouseRepositoryInterface;
 use Illuminate\Support\Facades\DB;
 use Exception;
 
 class InventoryService
 {
+    protected $inventoryRepo;
+    protected $warehouseRepo;
+
+    public function __construct(
+        InventoryRepositoryInterface $inventoryRepo,
+        WarehouseRepositoryInterface $warehouseRepo
+    ) {
+        $this->inventoryRepo = $inventoryRepo;
+        $this->warehouseRepo = $warehouseRepo;
+    }
+
+    public function getTransfersPaginated($perPage= 10){
+        return $this->inventoryRepo->getTransfersPaginated($perPage);
+    }
+
     public function createTransfer(array $data)
     {
         DB::beginTransaction();
         try {
-            $transfer = InternalTransfer::create([
+            $transfer = $this->inventoryRepo->createTransfer([
                 'from_block_id' => $data['from_block_id'],
                 'to_block_id' => $data['to_block_id'],
                 'trigger_reason' => $data['trigger_reason'],
-                'status' => 'pending'
+                'status' => 'PENDING'
             ]);
 
             foreach ($data['items'] as $item) {
-                TransferItem::create([
+                $this->inventoryRepo->createTransferItem([
                     'transfer_id' => $transfer->id,
                     'item_id' => $item['inventory_item_id'],
                     'quantity' => $item['quantity']
@@ -43,68 +55,74 @@ class InventoryService
     {
         DB::beginTransaction();
         try {
-            $transfer = InternalTransfer::with('items.inventoryItem')->findOrFail($transferId);
-            $targetBlock = StorageBlock::findOrFail($transfer->to_block_id);
+            // Lấy transfer kèm items
+            $transfer = $this->inventoryRepo->findTransferById($transferId);
+            $targetBlock = $this->warehouseRepo->findBlockById($transfer->to_block_id);
 
             foreach ($transfer->items as $tItem) {
                 $sourceItem = $tItem->inventoryItem;
                 $moveQty = $tItem->quantity;
 
                 // 1. Trừ kho nguồn
-                if ($sourceItem->current_quantity < $moveQty) {
+                if ($sourceItem->quantity_on_hand < $moveQty) {
                     throw new Exception("Không đủ hàng để chuyển tại nguồn.");
                 }
 
-                $sourceItem->current_quantity -= $moveQty;
-                // Cập nhật slot used nguồn (tạm tính logic đơn giản)
-                $sourceItem->slot_used = ceil($sourceItem->slot_used * ($sourceItem->current_quantity / ($sourceItem->current_quantity + $moveQty)));
-                
-                if ($sourceItem->current_quantity == 0) {
-                    $sourceItem->delete();
-                } else {
-                    $sourceItem->save();
-                }
+                $newSourceQty = $sourceItem->quantity_on_hand - $moveQty;
+                // Tính lại slot nguồn
+                $newSourceSlot = ceil($sourceItem->slots_occupied * ($newSourceQty / $sourceItem->quantity_on_hand));
 
-                // Log Source Transaction
-                InventoryTransaction::create([
-                    'item_id' => $sourceItem->id,
-                    'transaction_type' => 'transfer',
-                    'quantity' => -$moveQty,
-                    'reference_id' => $transfer->id,
-                    'reference_type' => InternalTransfer::class
+                $this->inventoryRepo->updateItem($sourceItem->id ?? $sourceItem->item_id, [
+                    'quantity_on_hand' => $newSourceQty,
+                    'slots_occupied' => $newSourceSlot
                 ]);
 
-                // 2. Cộng kho đích (Tạo item mới hoặc merge vào item cũ)
-                // Ở đây tạo Item mới cho đơn giản và đúng logic FIFO (giữ nguyên imported_at)
-                $newItem = InventoryItem::create([
-                    'block_id' => $targetBlock->id,
+                $this->inventoryRepo->logTransaction([
+                    'item_id' => $sourceItem->id ?? $sourceItem->item_id,
+                    'transaction_type' => 'TRANSFER_OUT',
+                    'quantity_change' => -$moveQty,
+                    'balance_before' => $sourceItem->quantity_on_hand,
+                    'balance_after' => $newSourceQty,
+                    'reference_id' => $transfer->id ?? $transfer->transfer_id,
+                    'reference_type' => 'INTERNAL_TRANSFER'
+                ]);
+
+                // 2. Cộng kho đích (Tạo item mới để giữ trace FIFO)
+                $newItem = $this->inventoryRepo->createItem([
+                    'block_id' => $targetBlock->id ?? $targetBlock->block_id,
                     'product_id' => $sourceItem->product_id,
-                    'calc_id' => $sourceItem->calc_id, // Giữ nguyên thông số kích thước
-                    'slot_used' => 0, // Cần tính toán lại dựa trên Size Rule, tạm để 0
-                    'imported_at' => $sourceItem->imported_at, // Quan trọng: Giữ nguyên ngày nhập gốc
-                    'current_quantity' => $moveQty
+                    'inbound_detail_id' => $sourceItem->inbound_detail_id, // Giữ nguyên trace
+                    'slots_occupied' => 0, // Cần tính lại slot dựa trên rule nếu cần
+                    'imported_at' => $sourceItem->imported_at, // Giữ nguyên ngày nhập
+                    'quantity_on_hand' => $moveQty
                 ]);
-                
-                // Recalculate slot for new item 
-                // $newItem->slot_used = ... 
-                $newItem->save();
 
-                // Log Target Transaction
-                InventoryTransaction::create([
-                    'item_id' => $newItem->id,
-                    'transaction_type' => 'transfer',
-                    'quantity' => $moveQty,
-                    'reference_id' => $transfer->id,
-                    'reference_type' => InternalTransfer::class
+                $this->inventoryRepo->logTransaction([
+                    'item_id' => $newItem->id ?? $newItem->item_id,
+                    'transaction_type' => 'TRANSFER_IN',
+                    'quantity_change' => $moveQty,
+                    'balance_before' => 0,
+                    'balance_after' => $moveQty,
+                    'reference_id' => $transfer->id ?? $transfer->transfer_id,
+                    'reference_type' => 'INTERNAL_TRANSFER'
                 ]);
             }
 
-            $transfer->update(['status' => 'completed']);
+            $this->inventoryRepo->updateTransferStatus($transferId, 'COMPLETED');
             DB::commit();
 
         } catch (Exception $e) {
             DB::rollBack();
             throw $e;
         }
+    }
+        public function searchInventory(array $filters)
+    {
+        return $this->inventoryRepo->searchInventory($filters);
+    }
+
+    public function getTotalUsedSlots()
+    {
+        return $this->inventoryRepo->sumTotalUsedSlots();
     }
 }

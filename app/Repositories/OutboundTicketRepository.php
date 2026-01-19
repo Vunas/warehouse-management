@@ -4,25 +4,45 @@ namespace App\Repositories;
 
 use App\Models\OutboundTicket;
 use App\Models\OutboundDetail;
+use App\Repositories\Interfaces\OutboundTicketRepositoryInterface;
 
-class OutboundTicketRepository
+class OutboundTicketRepository implements OutboundTicketRepositoryInterface
 {
-    public function getAllPaginated($perPage = 15)
+    protected $model;
+
+    public function __construct(OutboundTicket $model)
     {
-        return OutboundTicket::with(['contract.customer.user'])->latest()->paginate($perPage);
+        $this->model = $model;
+    }
+
+    public function paginate($perPage = 15)
+    {
+        return $this->model->with(['contract.customer'])->latest()->paginate($perPage);
     }
 
     public function findById($id)
     {
-        return OutboundTicket::with(['details.product', 'contract'])->findOrFail($id);
+        return $this->model->with(['details.product', 'contract'])->findOrFail($id);
     }
 
-    public function create(array $data)
+    public function create($data)
     {
-        return OutboundTicket::create($data);
+        return $this->model->create($data);
     }
 
-    public function createDetail(array $data)
+    public function update($id, $data)
+    {
+        $ticket = $this->findById($id);
+        $ticket->update($data);
+        return $ticket;
+    }
+
+    public function delete($id)
+    {
+        return $this->model->destroy($id);
+    }
+
+    public function createDetail($data)
     {
         return OutboundDetail::create($data);
     }

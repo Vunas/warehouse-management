@@ -8,7 +8,7 @@ class StoreInternalTransferRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('inventory.transfer');
+        return true;
     }
 
     public function rules(): array

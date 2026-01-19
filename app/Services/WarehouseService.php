@@ -2,45 +2,60 @@
 
 namespace App\Services;
 
-use App\Models\Warehouse;
-use App\Models\StorageBlock;
+use App\Repositories\Interfaces\WarehouseRepositoryInterface;
 use Illuminate\Support\Facades\DB;
 use Exception;
 
 class WarehouseService
 {
+    protected $warehouseRepo;
+
+    public function __construct(WarehouseRepositoryInterface $warehouseRepo)
+    {
+        $this->warehouseRepo = $warehouseRepo;
+    }
+
+    public function getAllWarehouses()
+    {
+        return $this->warehouseRepo->getAllWithRelations();
+    }
+
+    public function getAvailableBlocks()
+    {
+        return $this->warehouseRepo->getAvailableBlocks();
+    }
+
+    public function getWarehouseSelection()
+    {
+        return $this->warehouseRepo->getSelectable();
+    }
+
     public function createWarehouseWithBlocks(array $data)
     {
         DB::beginTransaction();
         try {
-            // 1. Tạo Kho
-            $warehouse = Warehouse::create([
+            $warehouse = $this->warehouseRepo->create([
                 'name' => $data['name'],
                 'type_id' => $data['type_id'],
-                'total_blocks' => $data['total_blocks'],
-                // Total slots sẽ được cập nhật sau
-                'status' => 'active',
+                'warehouse_code' => $data['warehouse_code'] ?? 'WH' . time(),
+                'total_capacity_slots' => 0,
+                'status' => 'ACTIVE',
             ]);
 
-            // 2. Tạo nhanh các Storage Block (Lô)
             $slotsPerBlock = $data['slots_per_block'];
             $totalSlots = 0;
 
             for ($i = 1; $i <= $data['total_blocks']; $i++) {
-                $blockCode = $this->generateBlockCode($i); 
-
-                StorageBlock::create([
+                $this->warehouseRepo->createBlock([
                     'warehouse_id' => $warehouse->id,
-                    'block_code' => $blockCode,
+                    'block_code' => 'BLK-' . str_pad($i, 2, '0', STR_PAD_LEFT),
                     'total_slots' => $slotsPerBlock,
-                    'status' => 'available'
+                    'status' => 'AVAILABLE'
                 ]);
-
                 $totalSlots += $slotsPerBlock;
             }
 
-            // 3. Cập nhật lại tổng slot cho Warehouse
-            $warehouse->update(['total_slots' => $totalSlots]);
+            $this->warehouseRepo->update($warehouse->id, ['total_capacity_slots' => $totalSlots]);
 
             DB::commit();
             return $warehouse;
@@ -49,21 +64,23 @@ class WarehouseService
             throw $e;
         }
     }
+    public function getTotalCapacity()
+    {
+        return $this->warehouseRepo->sumTotalCapacity();
+    }
 
     public function updateWarehouse($id, array $data)
     {
-        $warehouse = Warehouse::findOrFail($id);
-        $warehouse->update($data);
-        return $warehouse;
+        return $this->warehouseRepo->update($id, $data);
+    }
+
+    public function getRentableWarehousesWithAvailableBlocks()
+    {
+        return $this->warehouseRepo->getRentableWarehousesWithAvailableBlocks();
     }
 
     public function deleteWarehouse($id)
     {
-        return Warehouse::destroy($id);
-    }
-
-    private function generateBlockCode($index)
-    {
-        return 'BLK-' . str_pad($index, 2, '0', STR_PAD_LEFT);
+        return $this->warehouseRepo->delete($id);
     }
 }

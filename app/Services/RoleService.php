@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Repositories\RoleRepository;
+use App\Repositories\Interfaces\RoleRepositoryInterface;
 use Illuminate\Support\Facades\DB;
 use Exception;
 
@@ -10,7 +10,7 @@ class RoleService
 {
     protected $roleRepo;
 
-    public function __construct(RoleRepository $roleRepo)
+    public function __construct(RoleRepositoryInterface $roleRepo)
     {
         $this->roleRepo = $roleRepo;
     }
@@ -24,14 +24,14 @@ class RoleService
     {
         DB::beginTransaction();
         try {
-            $role = $this->roleRepo->create([
+            // Chuẩn bị dữ liệu, map permission_ids sang permissions cho Repo xử lý
+            $repoData = [
                 'name' => $data['name'],
-                'guard_name' => 'web'
-            ]);
+                'guard_name' => 'web',
+                'permissions' => $data['permission_ids'] ?? []
+            ];
 
-            if (!empty($data['permission_ids'])) {
-                $this->roleRepo->syncPermissions($role->id, $data['permission_ids']);
-            }
+            $role = $this->roleRepo->create($repoData);
 
             DB::commit();
             return $role;
@@ -45,11 +45,13 @@ class RoleService
     {
         DB::beginTransaction();
         try {
-            $role = $this->roleRepo->update($id, ['name' => $data['name']]);
-
+            $repoData = ['name' => $data['name']];
+            
             if (isset($data['permission_ids'])) {
-                $this->roleRepo->syncPermissions($id, $data['permission_ids']);
+                $repoData['permissions'] = $data['permission_ids'];
             }
+
+            $role = $this->roleRepo->update($id, $repoData);
 
             DB::commit();
             return $role;
@@ -61,7 +63,6 @@ class RoleService
     
     public function deleteRole($id)
     {
-        // Logic kiểm tra: Không được xóa Role hệ thống (Admin)
         $role = $this->roleRepo->findById($id);
         if (in_array($role->name, ['Admin', 'Manager', 'Staff'])) {
             throw new Exception("Không thể xóa vai trò mặc định của hệ thống.");

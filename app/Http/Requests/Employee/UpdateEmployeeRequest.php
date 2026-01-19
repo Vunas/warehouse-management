@@ -14,14 +14,18 @@ class UpdateEmployeeRequest extends FormRequest
 
     public function rules(): array
     {
-        // Lấy ID user từ employee đang được update để ignore unique check
         $employee = $this->route('employee'); 
-        $userId = $employee->user_id;
+        $userId = $employee ? $employee->user_id : null;
 
         return [
+  
             'full_name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', Rule::unique('users')->ignore($userId)],
-            
+            'email' => [
+                'required', 'email', 
+                Rule::unique('users', 'email')->ignore($userId)
+            ],
+            'password' => ['nullable', 'string', 'min:6', 'confirmed'],
+
             'position' => ['required', 'string'],
             'warehouse_id' => ['nullable', 'exists:warehouses,id'],
             'role_ids' => ['nullable', 'array'],
