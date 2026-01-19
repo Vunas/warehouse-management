@@ -2,19 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Controller;
+use App\Models\InboundTicket;
+use App\Models\StorageBlock;
+use App\Models\InventoryItem;
+use App\Models\Contract;
 use Illuminate\Http\Request;
-use App\Models\Contract; 
 
-class CustomerDashboardController extends Controller
+class DashboardController extends Controller
 {
     public function index()
     {
-        $contracts = Contract::where(
-            'customer_id',
-            auth()->user()->customer->id
-        )->get();
-
-       return view('customer.dashboard', compact('contracts'));
-
     }
+
 }
