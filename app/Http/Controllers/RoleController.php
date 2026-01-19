@@ -45,7 +45,6 @@ class RoleController extends Controller
 
     public function edit($id)
     {
-        // Repository getById thường trả về Model, nên ta truy cập relation được
         $role = $this->roleService->getAllRoles()->find($id); 
         $permissions = Permission::all()->groupBy(function($item) {
             return explode('.', $item->code)[0];

@@ -4,38 +4,68 @@ namespace App\Repositories;
 
 use App\Models\Contract;
 use App\Models\ContractBlock;
+use App\Repositories\Interfaces\ContractRepositoryInterface;
 
-class ContractRepository
+class ContractRepository implements ContractRepositoryInterface
 {
-    public function getAllPaginated($perPage = 10)
+    protected $model;
+
+    public function __construct(Contract $model)
     {
-        return Contract::with(['customer.user', 'contractBlocks'])->latest()->paginate($perPage);
+        $this->model = $model;
+    }
+
+    public function paginate($perPage = 10)
+    {
+        return $this->model->with(['customer', 'contractBlocks'])->latest()->paginate($perPage);
     }
 
     public function findById($id)
     {
-        return Contract::with(['customer', 'contractBlocks.storageBlock.warehouse'])->findOrFail($id);
+        return $this->model->with(['customer', 'contractBlocks.storageBlock.warehouse'])->findOrFail($id);
     }
 
-    public function create(array $data)
+    public function create($data)
     {
-        return Contract::create($data);
+        return $this->model->create($data);
     }
 
-    public function update($id, array $data)
+    public function update($id, $data)
     {
         $contract = $this->findById($id);
         $contract->update($data);
         return $contract;
     }
 
-    public function createBlockRent(array $data)
+    public function delete($id)
+    {
+        return $this->model->destroy($id);
+    }
+
+    public function getSelectable()
+    {
+        return $this->model->where('status', 'ACTIVE')
+            ->select('id', 'contract_number as name')
+            ->get();
+    }
+
+    public function createBlockRent($data)
     {
         return ContractBlock::create($data);
     }
-    
+
     public function getActiveContracts()
     {
-        return Contract::where('status', 'active')->get();
+        return $this->model->where('status', 'ACTIVE')->get();
+    }
+
+    public function getByCustomer($customerId)
+    {
+        return $this->model->where('customer_id', $customerId)->get();
+    }
+
+    public function countByStatus($status)
+    {
+        return Contract::where('status', $status)->count();
     }
 }

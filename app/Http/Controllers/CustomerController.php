@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Customer\StoreCustomerRequest;
 use App\Http\Requests\Customer\UpdateCustomerRequest;
+use App\Models\Customer;
 use App\Services\CustomerService;
 
 class CustomerController extends Controller
@@ -19,7 +20,7 @@ class CustomerController extends Controller
 
     public function index()
     {
-        $customers = $this->customerService->getAllCustomers();
+        $customers = $this->customerService->getCustomersPaginated();
         return view('admin.customers.index', compact('customers'));
     }
 
@@ -40,11 +41,11 @@ class CustomerController extends Controller
         return view('admin.customers.edit', compact('customer'));
     }
 
-    // public function update(UpdateCustomerRequest $request, $id)
-    // {
-    //     $this->customerService->updateCustomer($id, $request->validated());
-    //     return redirect()->route('customers.index')->with('success', 'Cập nhật khách hàng thành công');
-    // }
+    public function update(UpdateCustomerRequest $request, Customer $customer)
+    {
+        $this->customerService->updateCustomer($customer->id, $request->validated());
+        return redirect()->route('customers.index')->with('success', 'Cập nhật khách hàng thành công');
+    }
 
     public function destroy($id)
     {

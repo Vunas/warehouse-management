@@ -22,13 +22,22 @@ class InboundTicketPolicy
         return $user->employee && $user->employee->hasPermission('inbound.create');
     }
 
-    // Quyền duyệt (Approve) & Tính slot
+    public function update(User $user, InboundTicket $ticket)
+    {
+        return $user->employee && $user->employee->hasPermission('inbound.update');
+    }
+
+    public function delete(User $user, InboundTicket $ticket)
+    {
+        return $user->employee && $user->employee->hasPermission('inbound.delete');
+    }
+
+    // --- Custom ---
     public function approve(User $user, InboundTicket $ticket)
     {
         return $user->employee && $user->employee->hasPermission('inbound.approve');
     }
 
-    // Quyền thực hiện nhập kho (Process)
     public function process(User $user, InboundTicket $ticket)
     {
         return $user->employee && $user->employee->hasPermission('inbound.process');

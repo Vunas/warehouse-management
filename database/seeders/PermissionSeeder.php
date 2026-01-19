@@ -22,10 +22,16 @@ class PermissionSeeder extends Seeder
             ['code' => 'role.update', 'description' => 'Cập nhật thông tin quyền'],
             ['code' => 'role.delete', 'description' => 'Xóa/Khóa quyền'],
 
+            ['code' => 'product.view', 'description' => 'Xem danh sách sản phẩm'],
+            ['code' => 'product.create', 'description' => 'Thêm sản phẩm mới'],
+            ['code' => 'product.update', 'description' => 'Cập nhật thông tin sản phẩm'],
+            ['code' => 'product.delete', 'description' => 'Xóa/Khóa sản phẩm'],
+
             // --- Quản lý Kho & Sơ đồ (Warehouse) ---
             ['code' => 'warehouse.view', 'description' => 'Xem danh sách kho và sơ đồ trực quan'],
             ['code' => 'warehouse.create', 'description' => 'Tạo kho mới'],
             ['code' => 'warehouse.update', 'description' => 'Cập nhật cấu trúc kho (Blocks/Slots)'],
+            ['code' => 'warehouse.delete', 'description' => 'Xóa/Khóa cấu trúc kho (Blocks/Slots)'],
 
             // --- Quản lý Hợp đồng (Contract) ---
             ['code' => 'contract.view', 'description' => 'Xem danh sách hợp đồng'],

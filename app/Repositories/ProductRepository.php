@@ -3,28 +3,51 @@
 namespace App\Repositories;
 
 use App\Models\Product;
+use App\Repositories\Interfaces\ProductRepositoryInterface;
 
-class ProductRepository
+class ProductRepository implements ProductRepositoryInterface
 {
-    public function getAllPaginated($perPage = 20)
+    protected $model;
+
+    public function __construct(Product $model)
     {
-        return Product::with('category')->latest()->paginate($perPage);
+        $this->model = $model;
     }
 
-    public function create(array $data)
+    public function paginate($perPage = 20)
     {
-        return Product::create($data);
+        return $this->model->with('category')->latest()->paginate($perPage);
     }
 
-    public function update($id, array $data)
+    public function findById($id)
     {
-        $product = Product::findOrFail($id);
+        return $this->model->with('category')->findOrFail($id);
+    }
+
+    public function create($data)
+    {
+        return $this->model->create($data);
+    }
+
+    public function update($id, $data)
+    {
+        $product = $this->findById($id);
         $product->update($data);
         return $product;
     }
 
     public function delete($id)
     {
-        return Product::destroy($id);
+        return $this->model->destroy($id);
+    }
+
+    public function getSelectable()
+    {
+        return $this->model->select('id', 'name', 'sku')->get();
+    }
+
+    public function findBySku($sku)
+    {
+        return $this->model->where('sku', $sku)->first();
     }
 }

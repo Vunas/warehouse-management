@@ -2,25 +2,28 @@
 
 namespace App\Services;
 
-use App\Models\User;
 use App\Repositories\Interfaces\EmployeeRepositoryInterface;
+use App\Repositories\Interfaces\UserRepositoryInterface;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Exception;
 
 class EmployeeService
 {
     protected $employeeRepo;
+    protected $userRepo;
 
-    public function __construct(EmployeeRepositoryInterface $employeeRepo)
-    {
+    public function __construct(
+        EmployeeRepositoryInterface $employeeRepo,
+        UserRepositoryInterface $userRepo
+    ) {
         $this->employeeRepo = $employeeRepo;
+        $this->userRepo = $userRepo;
     }
 
-    public function getAllEmployees()
+    public function getEmployeesPaginated()
     {
-        return $this->employeeRepo->getAllPaginated();
+        return $this->employeeRepo->paginate();
     }
 
     public function getEmployeeById($id)
@@ -28,36 +31,37 @@ class EmployeeService
         return $this->employeeRepo->findById($id);
     }
 
+    public function getEmployeeSelection()
+    {
+        return $this->employeeRepo->getSelectable();
+    }
+
     public function createEmployee(array $data)
     {
         DB::beginTransaction();
         try {
-            // 1. Tạo User trước
-            $user = User::create([
+            $userData = [
                 'username' => $data['username'],
                 'email' => $data['email'],
-                'password' => Hash::make($data['password']),
+                'password' => $data['password'],
                 'full_name' => $data['full_name'],
                 'is_active' => true,
-            ]);
+            ];
+            $user = $this->userRepo->create($userData);
 
-            // 2. Tạo Employee liên kết với User
             $employeeData = [
                 'user_id' => $user->id,
+                'employee_code' => $data['employee_code'] ?? 'EMP' . time(),
                 'position' => $data['position'],
                 'warehouse_id' => $data['warehouse_id'] ?? null,
                 'hired_at' => $data['hired_at'],
+                'role_ids' => $data['role_ids'] ?? []
             ];
-            $employee = $this->employeeRepo->create($employeeData);
 
-            // 3. Gán Roles (Relationship Many-to-Many)
-            if (!empty($data['role_ids'])) {
-                $employee->roles()->sync($data['role_ids']);
-            }
+            $employee = $this->employeeRepo->create($employeeData);
 
             DB::commit();
             return $employee;
-
         } catch (Exception $e) {
             DB::rollBack();
             Log::error("Lỗi tạo nhân viên: " . $e->getMessage());
@@ -71,28 +75,26 @@ class EmployeeService
         try {
             $employee = $this->employeeRepo->findById($id);
 
-            // 1. Update thông tin User
-            $employee->user->update([
+            $this->userRepo->update($employee->user_id, [
                 'full_name' => $data['full_name'],
                 'email' => $data['email'],
-                'is_active' => $data['is_active'] ?? $employee->user->is_active,
+                'is_active' => $data['is_active'] ?? true,
             ]);
 
-            // 2. Update thông tin Employee
-            $this->employeeRepo->update($id, [
+            $updateData = [
                 'position' => $data['position'],
                 'warehouse_id' => $data['warehouse_id'],
                 'hired_at' => $data['hired_at'],
-            ]);
+            ];
 
-            // 3. Sync Roles nếu có thay đổi
             if (isset($data['role_ids'])) {
-                $employee->roles()->sync($data['role_ids']);
+                $updateData['role_ids'] = $data['role_ids'];
             }
 
-            DB::commit();
-            return $employee;
+            $updatedEmployee = $this->employeeRepo->update($id, $updateData);
 
+            DB::commit();
+            return $updatedEmployee;
         } catch (Exception $e) {
             DB::rollBack();
             throw $e;

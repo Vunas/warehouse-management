@@ -3,59 +3,81 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Contract\StoreContractRequest;
+use App\Http\Requests\Contract\UpdateContractRequest;
 use App\Models\Contract;
-use App\Models\Customer;
-use App\Models\StorageBlock;
 use App\Services\ContractService;
-use Illuminate\Http\Request;
+use App\Services\CustomerService;
+use App\Services\WarehouseService;
 
 class ContractController extends Controller
 {
     protected $contractService;
+    protected $customerService;
+    protected $warehouseService;
 
-    public function __construct(ContractService $contractService)
-    {
+    public function __construct(
+        ContractService $contractService,
+        CustomerService $customerService,
+        WarehouseService $warehouseService
+    ) {
         $this->contractService = $contractService;
+        $this->customerService = $customerService;
+        $this->warehouseService = $warehouseService;
         $this->authorizeResource(Contract::class, 'contract');
     }
 
     public function index()
     {
-        $contracts = Contract::with('customer')->latest()->paginate(10);
+        $contracts = $this->contractService->getContractsPaginated();
         return view('admin.contracts.index', compact('contracts'));
     }
 
     public function create()
     {
-        $customers = Customer::all();
-        // Chỉ lấy các Block còn trống hoặc phù hợp để thuê
-        $availableBlocks = StorageBlock::where('status', 'available')->with('warehouse')->get();
-        return view('admin.contracts.create', compact('customers', 'availableBlocks'));
+        $customers = $this->customerService->getCustomerSelection();
+        $warehouses = $this->warehouseService->getRentableWarehousesWithAvailableBlocks();
+
+        return view('admin.contracts.create', compact('customers', 'warehouses'));
     }
 
-    public function store(Request $request)
+    public function store(StoreContractRequest $request)
     {
-        // Validation nên đưa vào ContractRequest
-        $data = $request->validate([
-            'customer_id' => 'required|exists:customers,id',
-            'contract_code' => 'required|unique:contracts,contract_code',
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after:start_date',
-            'blocks' => 'required|array', 
-            'blocks.*.id' => 'exists:storage_blocks,id',
-            'blocks.*.price' => 'required|numeric'
-        ]);
+        $this->contractService->createContract($request->validated());
 
-        $this->contractService->createContract($data);
-
-        return redirect()->route('contracts.index')->with('success', 'Tạo hợp đồng thành công');
+        return redirect()
+            ->route('contracts.index')
+            ->with('success', 'Tạo hợp đồng thành công');
     }
 
     public function show(Contract $contract)
     {
-        $contract->load(['contractBlocks.storageBlock.warehouse', 'inboundTickets', 'outboundTickets']);
+
+        $contract->load([
+            'customer',
+            'contractBlocks.storageBlock.warehouse',
+            'inboundTickets',
+            'outboundTickets',
+        ]);
+
         return view('admin.contracts.show', compact('contract'));
     }
 
-    // Edit, Update, Destroy 
+    public function update(UpdateContractRequest $request, Contract $contract)
+    {
+        $this->contractService->updateContract($contract->id, $request->validated());
+
+        return redirect()
+            ->route('contracts.index')
+            ->with('success', 'Cập nhật hợp đồng thành công');
+    }
+
+    public function destroy(Contract $contract)
+    {
+        $this->contractService->deleteContract($contract->id);
+
+        return redirect()
+            ->route('contracts.index')
+            ->with('success', 'Đã xóa hợp đồng thành công.');
+    }
 }

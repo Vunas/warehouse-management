@@ -1,0 +1,14 @@
+<?php
+
+namespace App\Repositories\Interfaces;
+
+interface ProductRepositoryInterface
+{
+    public function paginate($perPage = 20);
+    public function findById($id);
+    public function create($data);
+    public function update($id, $data);
+    public function delete($id);
+    public function getSelectable();
+    public function findBySku($sku);
+}

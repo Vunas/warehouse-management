@@ -3,43 +3,43 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Outbound\StoreOutboundTicketRequest;
 use App\Models\OutboundTicket;
-use App\Models\Contract;
 use App\Services\OutboundService;
-use Illuminate\Http\Request;
+use App\Services\ContractService;
 
 class OutboundTicketController extends Controller
 {
     protected $outboundService;
+    protected $contractService;
 
-    public function __construct(OutboundService $outboundService)
-    {
+    public function __construct(
+        OutboundService $outboundService,
+        ContractService $contractService
+    ) {
         $this->outboundService = $outboundService;
+        $this->contractService = $contractService;
         $this->authorizeResource(OutboundTicket::class, 'outbound_ticket');
     }
 
     public function index()
     {
-        $tickets = OutboundTicket::with('contract.customer')->latest()->paginate(15);
+        $tickets = $this->outboundService->getOutboundHistory();
         return view('admin.outbound.index', compact('tickets'));
     }
 
     public function create()
     {
-        $contracts = Contract::where('status', 'active')->get();
+        $contracts = $this->contractService->getActiveContracts();
         return view('admin.outbound.create', compact('contracts'));
     }
 
-    public function store(Request $request)
+    public function store(StoreOutboundTicketRequest $request)
     {
-        $data = $request->validate([
-            'contract_id' => 'required|exists:contracts,id',
-            'requested_date' => 'required|date',
-            'products' => 'required|array', 
-        ]);
+        $this->outboundService->createTicket($request->validated());
 
-        $this->outboundService->createTicket($data);
-        return redirect()->route('outbound_tickets.index')->with('success', 'Tạo phiếu xuất thành công');
+        return redirect()->route('outbound_tickets.index')
+            ->with('success', 'Tạo phiếu xuất thành công');
     }
 
     public function show(OutboundTicket $outboundTicket)
@@ -50,7 +50,6 @@ class OutboundTicketController extends Controller
 
     public function process(OutboundTicket $outboundTicket)
     {
-        // Logic trừ tồn kho (FIFO)
         $this->outboundService->processOutbound($outboundTicket->id);
         return back()->with('success', 'Xuất kho hoàn tất.');
     }

@@ -3,50 +3,51 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Transfer\StoreInternalTransferRequest;
 use App\Models\InternalTransfer;
-use App\Models\StorageBlock;
 use App\Services\InventoryService;
-use Illuminate\Http\Request;
+use App\Services\WarehouseService; 
 
 class InternalTransferController extends Controller
 {
     protected $inventoryService;
+    protected $warehouseService;
 
-    public function __construct(InventoryService $inventoryService)
-    {
+    public function __construct(
+        InventoryService $inventoryService,
+        WarehouseService $warehouseService
+    ) {
         $this->inventoryService = $inventoryService;
-        // Check permission 'inventory.transfer'
+        $this->warehouseService = $warehouseService;
+        // $this->authorizeResource(InternalTransfer::class, 'internal_transfer');
     }
 
     public function index()
     {
-        $transfers = InternalTransfer::with(['fromBlock', 'toBlock'])->latest()->paginate(10);
+        // Service cần có hàm này (gọi repo->getTransfersPaginated)
+        $transfers = $this->inventoryService->getTransfersPaginated();
         return view('admin.transfers.index', compact('transfers'));
     }
 
     public function create()
     {
-        $blocks = StorageBlock::where('status', '!=', 'locked')->get();
+        // Lấy danh sách Block khả dụng từ WarehouseService
+        $blocks = $this->warehouseService->getAvailableBlocks();
         return view('admin.transfers.create', compact('blocks'));
     }
 
-    public function store(Request $request)
+    public function store(StoreInternalTransferRequest $request)
     {
-        $data = $request->validate([
-            'from_block_id' => 'required|exists:storage_blocks,id',
-            'to_block_id' => 'required|exists:storage_blocks,id|different:from_block_id',
-            'items' => 'required|array', 
-            'reason' => 'nullable|string'
-        ]);
+        $this->inventoryService->createTransfer($request->validated());
 
-        $this->inventoryService->createTransfer($data);
-
-        return redirect()->route('transfers.index')->with('success', 'Lệnh chuyển kho đã được tạo.');
+        return redirect()->route('transfers.index')
+            ->with('success', 'Lệnh chuyển kho đã được tạo.');
     }
 
     public function complete(InternalTransfer $internalTransfer)
     {
         $this->inventoryService->executeTransfer($internalTransfer->id);
+        
         return back()->with('success', 'Chuyển kho hoàn tất.');
     }
 }

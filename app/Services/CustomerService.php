@@ -2,24 +2,32 @@
 
 namespace App\Services;
 
-use App\Models\User;
-use App\Repositories\CustomerRepository;
+use App\Repositories\Interfaces\CustomerRepositoryInterface;
+use App\Repositories\Interfaces\UserRepositoryInterface;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use Exception;
 
 class CustomerService
 {
     protected $customerRepo;
+    protected $userRepo;
 
-    public function __construct(CustomerRepository $customerRepo)
-    {
+    public function __construct(
+        CustomerRepositoryInterface $customerRepo,
+        UserRepositoryInterface $userRepo
+    ) {
         $this->customerRepo = $customerRepo;
+        $this->userRepo = $userRepo;
     }
 
-    public function getAllCustomers()
+    public function getCustomersPaginated()
     {
-        return $this->customerRepo->getAllPaginated();
+        return $this->customerRepo->paginate();
+    }
+
+    public function getCustomerSelection()
+    {
+        return $this->customerRepo->getSelectable();
     }
 
     public function getCustomerById($id)
@@ -31,29 +39,25 @@ class CustomerService
     {
         DB::beginTransaction();
         try {
-            // 1. Tạo User (Tài khoản đăng nhập)
-            $user = User::create([
+            $user = $this->userRepo->create([
                 'username' => $data['username'],
                 'email' => $data['email'],
-                'password' => Hash::make($data['password']),
-                'full_name' => $data['full_name'], // Tên người đại diện
+                'password' => $data['password'],
+                'full_name' => $data['full_name'],
                 'is_active' => true,
             ]);
 
-            // 2. Tạo Hồ sơ Khách hàng
-            $customerData = [
+            $customer = $this->customerRepo->create([
                 'user_id' => $user->id,
                 'company_name' => $data['company_name'],
+                'customer_code' => $data['customer_code'] ?? 'CUST' . time(),
                 'tax_code' => $data['tax_code'],
                 'billing_phone' => $data['billing_phone'],
                 'address' => $data['address'] ?? null,
-            ];
-            
-            $customer = $this->customerRepo->create($customerData);
+            ]);
 
             DB::commit();
             return $customer;
-
         } catch (Exception $e) {
             DB::rollBack();
             throw $e;
@@ -66,15 +70,14 @@ class CustomerService
         try {
             $customer = $this->customerRepo->findById($id);
 
-            // Update User Info
-            $customer->user->update([
+
+            $this->userRepo->update($customer->user_id, [
                 'full_name' => $data['full_name'],
                 'email' => $data['email'],
-                'is_active' => $data['is_active'] ?? $customer->user->is_active,
+                'is_active' => $data['is_active'] ?? true,
             ]);
 
-            // Update Customer Info
-            $this->customerRepo->update($id, [
+            $updatedCustomer = $this->customerRepo->update($id, [
                 'company_name' => $data['company_name'],
                 'tax_code' => $data['tax_code'],
                 'billing_phone' => $data['billing_phone'],
@@ -82,13 +85,13 @@ class CustomerService
             ]);
 
             DB::commit();
-            return $customer;
+            return $updatedCustomer;
         } catch (Exception $e) {
             DB::rollBack();
             throw $e;
         }
     }
-    
+
     public function deleteCustomer($id)
     {
         return $this->customerRepo->delete($id);
