@@ -15,6 +15,7 @@ use App\Http\Controllers\InboundTicketController;
 use App\Http\Controllers\OutboundTicketController;
 use App\Http\Controllers\InternalTransferController;
 use App\Http\Controllers\InventoryController;
+use App\Http\Controllers\CustomerDashboardController;
 
 /*
 |--------------------------------------------------------------------------
@@ -29,7 +30,7 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 | 2. AUTH – GUEST
 |--------------------------------------------------------------------------
 */
-Route::middleware('guest')->group(function () {
+Route::middleware('redirect.login')->group(function () {
 
     // Employee login
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
@@ -112,3 +113,24 @@ Route::prefix('admin')
         Route::get('inventory', [InventoryController::class, 'index'])
             ->name('inventory.index');
     });
+/*
+|--------------------------------------------------------------------------
+| 4. CUSTOMER PANEL
+|--------------------------------------------------------------------------
+| URL: /Customer/*
+|--------------------------------------------------------------------------
+*/
+
+
+Route::prefix('customer')
+->middleware('active_customer')
+->group(function(){
+
+    Route::get('dashboard',
+        [CustomerDashboardController::class, 'index']
+    )->name('customer.dashboard');
+
+});
+
+
+

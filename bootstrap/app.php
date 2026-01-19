@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Middleware\CheckEmployeeActive;
+use App\Http\Middleware\CheckCustomerActive;
+use App\Http\Middleware\RedirectIfLoggedIn;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -14,7 +16,10 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'active_employee' => CheckEmployeeActive::class,
+            'active_customer' => CheckCustomerActive::class,
+            'redirect.login' => RedirectIfLoggedIn::class,
         ]);
+        
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

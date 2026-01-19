@@ -70,7 +70,7 @@ class AuthController extends Controller
 
         // Thử đăng nhập
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
-
+            $request->session()->regenerate();
             // Nếu là nhân viên → chặn
             if (Auth::user()->employee) {
                 Auth::logout();
@@ -87,7 +87,8 @@ class AuthController extends Controller
             }
 
             // KHÁCH ĐÚNG
-            return back()->with('success', 'Đăng nhập thành công!');
+            return redirect()->route('customer.dashboard');
+            ;
         }
 
         return back()->withErrors([
@@ -105,7 +106,8 @@ class AuthController extends Controller
             'password' => 'required|min:6'
         ]);
 
-        User::create([
+        // 1. Tạo user
+        $user = User::create([
             'username' => $request->username,
             'full_name' => $request->full_name,
             'email' => $request->email,
@@ -113,12 +115,21 @@ class AuthController extends Controller
             'is_active' => 1
         ]);
 
+        // 2. Tạo customer gắn với user
+        \App\Models\Customer::create([
+            'user_id' => $user->id,
+            'company_name' => 'Chưa cập nhật', // tạm
+            'billing_phone' => null,
+            'address' => null
+        ]);
+
         return redirect('/customer/login')
             ->with('success', 'Đăng ký thành công! Hãy đăng nhập lại');
     }
 
 
-    //------LogOUT
+
+    //------Logout
     public function logout(Request $request)
     {
         Auth::logout();
@@ -126,4 +137,9 @@ class AuthController extends Controller
         $request->session()->regenerateToken();
         return redirect('/');
     }
+
+
+
+
+
 }
