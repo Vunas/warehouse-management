@@ -14,10 +14,15 @@ class DatabaseSeeder extends Seeder
             WarehouseSeeder::class,
             SizeRuleSeeder::class,
             CategorySeeder::class,
-            UserSeeder::class,  
             PermissionSeeder::class,
+            UserSeeder::class,
+            EmployeeSeeder::class,
+            ProductSeeder::class,
+            CustomerSeeder::class,
+            ContractSeeder::class,
+            InventorySeeder::class,
         ]);
 
-        echo "Database seeded successfully with new structure!\n";
+        echo "Database seeded successfully with FULL business logic & dummy data!\n";
     }
 }
