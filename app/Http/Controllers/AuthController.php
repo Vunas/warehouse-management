@@ -72,7 +72,7 @@ class AuthController extends Controller
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
             // Nếu là nhân viên → chặn
-            if (Auth::user()->employee) {
+            if (!Auth::user()->customer) {
                 Auth::logout();
                 return back()->withErrors([
                     'username' => 'Trang này chỉ dành cho khách hàng'

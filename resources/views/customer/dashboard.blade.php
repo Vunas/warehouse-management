@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends('layouts.customer')
 
 @section('title', 'Tổng quan hệ thống')
 @section('header', 'Dashboard Quản Lý')
@@ -18,11 +18,26 @@
             </div>
         </div>
         <div class="mt-4 text-xs text-gray-500">
-            Cần xử lý gấp
+            Đang chờ xử lý
+        </div>
+    </div>
+    <!-- Card 2: Phiếu chờ xuất-->
+       <div class="bg-white rounded-xl shadow-sm p-5 border-l-4 border-red-500">
+        <div class="flex justify-between items-start">
+            <div>
+                <p class="text-xs font-bold text-gray-400 uppercase">Phiếu chờ xuất</p>
+                <h3 class="text-2xl font-bold text-gray-800 mt-1">{{ $stats['pending_inbound'] }}</h3>
+            </div>
+            <div class="p-2 bg-blue-100 rounded-lg text-red-600">
+                <i class="fa-solid fa-truck-ramp-box"></i>
+            </div>
+        </div>
+        <div class="mt-4 text-xs text-gray-500">
+            Đang chờ xử lý
         </div>
     </div>
 
-    <!-- Card 2: Hợp đồng Active -->
+    <!-- Card 3: Hợp đồng Active -->
     <div class="bg-white rounded-xl shadow-sm p-5 border-l-4 border-yellow-500">
         <div class="flex justify-between items-start">
             <div>
@@ -38,42 +53,20 @@
         </div>
     </div>
 
-    <!-- Card 3: Slot Trống -->
+    <!-- Card 4: Slot Trống -->
     <div class="bg-white rounded-xl shadow-sm p-5 border-l-4 border-green-500">
         <div class="flex justify-between items-start">
             <div>
-                <p class="text-xs font-bold text-gray-400 uppercase">Slot trống thực tế</p>
+                <p class="text-xs font-bold text-gray-400 uppercase">Slot đang sử dụng</p>
                 <h3 class="text-2xl font-bold text-gray-800 mt-1">{{ number_format($stats['free_slots']) }}</h3>
             </div>
             <div class="p-2 bg-green-100 rounded-lg text-green-600">
                 <i class="fa-solid fa-cubes-stacked"></i>
             </div>
         </div>
-        <div class="mt-4 text-xs text-gray-500">
-            Tổng sức chứa: {{ number_format($stats['total_slots']) }} slots
-        </div>
     </div>
 
-    <!-- Card 4: Tỷ lệ lấp đầy -->
-    <div class="bg-white rounded-xl shadow-sm p-5 border-l-4 border-purple-500">
-        <div class="flex justify-between items-start">
-            <div>
-                <p class="text-xs font-bold text-gray-400 uppercase">Tỷ lệ lấp đầy</p>
-                @php
-                    $occupancyRate = $stats['total_slots'] > 0 ? ($stats['used_slots'] / $stats['total_slots']) * 100 : 0;
-                @endphp
-                <h3 class="text-2xl font-bold text-gray-800 mt-1">{{ number_format($occupancyRate, 1) }}%</h3>
-            </div>
-            <div class="p-2 bg-purple-100 rounded-lg text-purple-600">
-                <i class="fa-solid fa-chart-pie"></i>
-            </div>
-        </div>
-        <div class="mt-4 text-xs text-gray-500">
-            <span class="{{ $occupancyRate > 90 ? 'text-red-500' : 'text-green-500' }} font-bold">
-                {{ $occupancyRate > 90 ? 'Cảnh báo đầy' : 'Trạng thái tốt' }}
-            </span>
-        </div>
-    </div>
+
 </div>
 
 <!-- 2. Main Content Grid -->
