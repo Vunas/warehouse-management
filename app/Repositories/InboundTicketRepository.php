@@ -68,10 +68,19 @@ class InboundTicketRepository implements InboundTicketRepositoryInterface
 
         return $ticket;
     }
-    public function countByStatus($status)
+    public function countByStatus($status,$contractIDs = null)
     {
-        return InboundTicket::where('status', $status)->count();
+        $Query = InboundTicket::where('status', $status);
+        if ($contractIDs === null) {
+            return $Query->count();
+        }
+        if (!is_array($contractIDs)) {
+            $contractIDs  = [$contractIDs];
+        }
+        
+        return $Query->whereIn('contract_id', $contractIDs)->count();
     }
+
 
     public function getLatest($limit = 5)
     {

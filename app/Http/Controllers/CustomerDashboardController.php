@@ -7,6 +7,7 @@ use App\Services\InboundService;
 use App\Services\WarehouseService;
 use App\Services\ContractService;
 use App\Services\InventoryService;
+use Illuminate\Support\Facades\Auth; // 👈 IMPORTANT
 
 class CustomerDashboardController extends Controller
 {
@@ -21,6 +22,8 @@ class CustomerDashboardController extends Controller
         ContractService $contractService,
         InventoryService $inventoryService
     ) {
+        $this->middleware('auth'); // protect route
+
         $this->inboundService = $inboundService;
         $this->warehouseService = $warehouseService;
         $this->contractService = $contractService;
@@ -29,15 +32,17 @@ class CustomerDashboardController extends Controller
 
     public function index()
     {
-        // Bạn cần bổ sung các hàm thống kê này vào Service tương ứng
+        // current logged in user
+        $user = Auth::user(); 
+
+        // Stats
         $stats = [
-            'pending_inbound' => $this->inboundService->countPending(),
+            'pending_inbound' => $this->inboundService->countPending($user->id),
             'total_slots' => $this->warehouseService->getTotalCapacity(),
             'used_slots' => $this->inventoryService->getTotalUsedSlots(),
-            // free_slots = total - used (tính ở view hoặc controller)
             'active_contracts' => $this->contractService->countActive(),
         ];
-        
+
         $stats['free_slots'] = $stats['total_slots'] - $stats['used_slots'];
 
         $latestInbounds = $this->inboundService->getLatest(5);

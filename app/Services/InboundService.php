@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Repositories\Interfaces\ContractRepositoryInterface;
+use App\Repositories\Interfaces\CustomerRepositoryInterface;
 use App\Repositories\Interfaces\InboundTicketRepositoryInterface;
 use App\Repositories\Interfaces\InventoryRepositoryInterface;
 use App\Repositories\Interfaces\WarehouseRepositoryInterface;
@@ -14,15 +16,22 @@ class InboundService
     protected $inboundRepo;
     protected $inventoryRepo;
     protected $warehouseRepo;
+    protected $contractRepo;
+    protected $customerRepo;
 
     public function __construct(
         InboundTicketRepositoryInterface $inboundRepo,
         InventoryRepositoryInterface $inventoryRepo,
-        WarehouseRepositoryInterface $warehouseRepo
+        WarehouseRepositoryInterface $warehouseRepo,
+        CustomerRepositoryInterface $customerRepo,
+        ContractRepositoryInterface $contractRepo,
+
     ) {
         $this->inboundRepo = $inboundRepo;
         $this->inventoryRepo = $inventoryRepo;
         $this->warehouseRepo = $warehouseRepo;
+        $this->customerRepo = $customerRepo;
+        $this->contractRepo = $contractRepo;
     }
 
     public function getInboundHistory()
@@ -176,10 +185,24 @@ class InboundService
         }
         return null;
     }
-    public function countPending()
+    public function countPending($userid = null)
     {
-        return $this->inboundRepo->countByStatus('pending');
+        if (!$userid) {
+            return $this->inboundRepo
+                ->countByStatus('pending');
+        }
+
+
+        $customer = $this->customerRepo->findByUserId($userid);
+        if (!$customer) {
+            return 0;
+        }
+        $contracts = $this->contractRepo->getByCustomer($customer->id);
+        $contractIds = $contracts->pluck('id')->toArray();
+        return $this->inboundRepo
+            ->countByStatus('pending', $contractIds);
     }
+
 
     public function getLatest($limit = 5)
     {

@@ -6,7 +6,7 @@
 @section('content')
 <!-- 1. Stats Cards -->
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-    <!-- Card 1: Phiếu chờ nhập -->
+    <!-- Card 1: Phiếu chờ nhập[xong]-->
     <div class="bg-white rounded-xl shadow-sm p-5 border-l-4 border-blue-500">
         <div class="flex justify-between items-start">
             <div>
@@ -21,7 +21,7 @@
             Đang chờ xử lý
         </div>
     </div>
-    <!-- Card 2: Phiếu chờ xuất-->
+    <!-- Card 2: Phiếu chờ xuất[chưa xong]-->
        <div class="bg-white rounded-xl shadow-sm p-5 border-l-4 border-red-500">
         <div class="flex justify-between items-start">
             <div>
@@ -37,7 +37,7 @@
         </div>
     </div>
 
-    <!-- Card 3: Hợp đồng Active -->
+    <!-- Card 3: Hợp đồng Active[chưa xong] -->
     <div class="bg-white rounded-xl shadow-sm p-5 border-l-4 border-yellow-500">
         <div class="flex justify-between items-start">
             <div>
@@ -53,7 +53,7 @@
         </div>
     </div>
 
-    <!-- Card 4: Slot Trống -->
+    <!-- Card 4: Slot Trống[chưa xong] -->
     <div class="bg-white rounded-xl shadow-sm p-5 border-l-4 border-green-500">
         <div class="flex justify-between items-start">
             <div>
@@ -69,7 +69,7 @@
 
 </div>
 
-<!-- 2. Main Content Grid -->
+<!-- 2. Main Content Grid[chưa xong] -->
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
     
     <!-- Left Column: Inbound Queue -->
@@ -137,8 +137,8 @@
                 <a href="{{ route('employees.create') }}" class="block w-full bg-white/20 hover:bg-white/30 p-3 rounded-lg items-center transition">
                     <i class="fa-solid fa-user-plus w-8 text-xl"></i>
                     <div class="text-left">
-                        <div class="font-bold text-sm">Thêm Nhân viên</div>
-                        <div class="text-xs text-blue-100">Tạo tài khoản mới</div>
+                        <div class="font-bold text-sm">Nhập hàng</div>
+                        <div class="text-xs text-blue-100">Tạo phiếu nhập</div>
                     </div>
                 </a>
                 
@@ -146,8 +146,8 @@
                 <button class="w-full bg-white/20 hover:bg-white/30 p-3 rounded-lg flex items-center transition opacity-75 cursor-not-allowed">
                     <i class="fa-solid fa-file-signature w-8 text-xl"></i>
                     <div class="text-left">
-                        <div class="font-bold text-sm">Tạo Hợp đồng (Sắp ra mắt)</div>
-                        <div class="text-xs text-blue-100">Đăng ký thuê kho</div>
+                        <div class="font-bold text-sm">Nhập nhiều món hàng cùng lúc (Sắp ra mắt)</div>
+                        <div class="text-xs text-blue-100">nhập hàng vào kho</div>
                     </div>
                 </button>
             </div>

@@ -23,6 +23,10 @@ class EmployeeRepository implements EmployeeRepositoryInterface
     {
         return $this->model->with(['user', 'roles', 'warehouse'])->findOrFail($id);
     }
+    public function findByUserId($userId)
+    {
+        return $this->model->with(['user', 'roles', 'warehouse'])->where('user_id', $userId)->first();
+    }
 
     public function create($data)
     {

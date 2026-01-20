@@ -35,12 +35,6 @@
             <span class="ml-2">Xuất kho</span>
         </a>
 
-        <a href="{{ route('transfers.index') }}"
-            class="nav-link flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors {{ request()->routeIs('transfers.*') ? 'active' : '' }}">
-            <i class="fa-solid fa-arrow-right-arrow-left w-6 text-center"></i>
-            <span class="ml-2">Chuyển nội bộ</span>
-        </a>
-
         <a href="{{ route('inventory.index') }}"
             class="nav-link flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors {{ request()->routeIs('inventory.*') ? 'active' : '' }}">
             <i class="fa-solid fa-cubes-stacked w-6 text-center"></i>
@@ -59,7 +53,7 @@
         <a href="{{ route('customers.index') }}"
             class="nav-link flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors {{ request()->routeIs('customers.*') ? 'active' : '' }}">
             <i class="fa-solid fa-building-user w-6 text-center"></i>
-            <span class="ml-2">Khách hàng</span>
+            <span class="ml-2">Thông tin cá nhân</span>
         </a>
 
         <!-- Module: Cấu hình -->
@@ -77,22 +71,6 @@
             <span class="ml-2">Sản phẩm</span>
         </a>
 
-        <!-- Module: Hệ thống (Admin Only) -->
-        @can('viewAny', App\Models\Employee::class)
-            <div class="mt-6 px-6 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Hệ thống</div>
-
-            <a href="{{ route('employees.index') }}"
-                class="nav-link flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors {{ request()->routeIs('employees.*') ? 'active' : '' }}">
-                <i class="fa-solid fa-users-gear w-6 text-center"></i>
-                <span class="ml-2">Nhân viên</span>
-            </a>
-
-            <a href="{{ route('roles.index') }}"
-                class="nav-link flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors {{ request()->routeIs('roles.*') ? 'active' : '' }}">
-                <i class="fa-solid fa-shield-halved w-6 text-center"></i>
-                <span class="ml-2">Phân quyền</span>
-            </a>
-        @endcan
 
     </nav>
 

@@ -30,6 +30,11 @@ class ContractService
         return $this->contractRepo->findById($id);
     }
 
+
+    public function getContractsByCustomerID($CustomerID){
+        return $this->contractRepo->getByCustomer($CustomerID);
+    }
+
     public function getActiveContracts()
     {
         return $this->contractRepo->getActiveContracts();
@@ -99,9 +104,11 @@ class ContractService
             throw $e;
         }
     }
+
     public function countActive()
     {
         return $this->contractRepo->countByStatus('active');
+        
     }
     public function updateContract($id, array $data)
     {

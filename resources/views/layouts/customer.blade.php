@@ -27,7 +27,7 @@
 <div class="flex h-screen overflow-hidden">
 
     {{-- Sidebar --}}
-    @include('partials.sidebar')
+    @include('partials.customersidebar')
 
     <div class="flex-1 flex flex-col ml-64 min-w-0">
 
