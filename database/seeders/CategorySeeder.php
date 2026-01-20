@@ -10,9 +10,10 @@ class CategorySeeder extends Seeder
     public function run(): void
     {
         $categories = [
-            ['name' => 'Điện tử', 'created_at' => now()],
-            ['name' => 'Gia dụng', 'created_at' => now()],
-            ['name' => 'Thực phẩm khô', 'created_at' => now()],
+            ['name' => 'Gỗ', 'created_at' => now()],
+            ['name' => 'Sắt', 'created_at' => now()],
+            ['name' => 'Thép', 'created_at' => now()],
+            ['name' => 'Vải', 'created_at' => now()],
         ];
 
         foreach ($categories as $cat) {
