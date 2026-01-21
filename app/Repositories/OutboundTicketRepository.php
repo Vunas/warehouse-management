@@ -53,4 +53,17 @@ class OutboundTicketRepository implements OutboundTicketRepositoryInterface
         $ticket->update(['status' => $status]);
         return $ticket;
     }
+
+        public function countByStatus($status,$contractIDs = null)
+    {
+        $Query = OutboundTicket::where('status', $status);
+        if ($contractIDs === null) {
+            return $Query->count();
+        }
+        if (!is_array($contractIDs)) {
+            $contractIDs  = [$contractIDs];
+        }
+        
+        return $Query->whereIn('contract_id', $contractIDs)->count();
+    }
 }

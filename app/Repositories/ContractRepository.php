@@ -64,8 +64,12 @@ class ContractRepository implements ContractRepositoryInterface
         return $this->model->where('customer_id', $customerId)->get();
     }
 
-    public function countByStatus($status)
+    public function countByStatus($status,$customerid = null)
     {
-        return Contract::where('status', $status)->count();
+        $Query = Contract::where('status', $status);
+        if ($customerid === null){
+        return $Query->count();
+        }
+        return $Query->where('customer_id',$customerid)->count();
     }
 }

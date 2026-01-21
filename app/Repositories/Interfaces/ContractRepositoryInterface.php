@@ -13,5 +13,5 @@ interface ContractRepositoryInterface
     public function createBlockRent($data);
     public function getActiveContracts();
     public function getByCustomer($customerId);
-    public function countByStatus($status);
+    public function countByStatus($status,$customerid = null);
 }

@@ -4,19 +4,23 @@ namespace App\Services;
 
 use App\Repositories\Interfaces\ContractRepositoryInterface;
 use App\Repositories\Interfaces\WarehouseRepositoryInterface;
+use App\Repositories\Interfaces\CustomerRepositoryInterface;
 use Illuminate\Support\Facades\DB;
 use Exception;
 
 class ContractService
 {
     protected $contractRepo;
+    protected $customerRepo;
     protected $warehouseRepo;
 
     public function __construct(
         ContractRepositoryInterface $contractRepo,
+        CustomerRepositoryInterface $customerRepo,
         WarehouseRepositoryInterface $warehouseRepo
     ) {
         $this->contractRepo = $contractRepo;
+        $this->customerRepo = $customerRepo;
         $this->warehouseRepo = $warehouseRepo;
     }
 
@@ -105,10 +109,17 @@ class ContractService
         }
     }
 
-    public function countActive()
+    public function countActive($userid=null)
     {
+        if ($userid === null) {
         return $this->contractRepo->countByStatus('active');
-        
+        }
+        $customer = $this->customerRepo->findByUserId($userid);
+        if (!$customer) {
+            return 0;
+        }
+
+        return $this->contractRepo->countByStatus('active',$customer->id);
     }
     public function updateContract($id, array $data)
     {

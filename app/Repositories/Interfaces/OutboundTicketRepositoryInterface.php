@@ -11,4 +11,5 @@ interface OutboundTicketRepositoryInterface
     public function delete($id);
     public function createDetail($data);
     public function updateStatus($id, $status);
+    public function countByStatus($status,$contractIDs = null);
 }

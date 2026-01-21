@@ -26,7 +26,7 @@
         <div class="flex justify-between items-start">
             <div>
                 <p class="text-xs font-bold text-gray-400 uppercase">Phiếu chờ xuất</p>
-                <h3 class="text-2xl font-bold text-gray-800 mt-1">{{ $stats['pending_inbound'] }}</h3>
+                <h3 class="text-2xl font-bold text-gray-800 mt-1">{{ $stats['pending_outbound'] }}</h3>
             </div>
             <div class="p-2 bg-blue-100 rounded-lg text-red-600">
                 <i class="fa-solid fa-truck-ramp-box"></i>

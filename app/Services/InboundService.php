@@ -204,8 +204,18 @@ class InboundService
     }
 
 
-    public function getLatest($limit = 5)
-    {
+    public function getLatest($limit = 5,$userid =null)
+    {   
+        if($userid ===null){
         return $this->inboundRepo->getLatest($limit);
+        }
+        $customer = $this->customerRepo->findByUserId($userid);
+        if (!$customer) {
+            return 0;
+        }
+        $contracts = $this->contractRepo->getByCustomer($customer->id);
+        $contractIds = $contracts->pluck('id')->toArray();
+
+        return $this->inboundRepo->getLatest($limit, $contractIds);
     }
 }

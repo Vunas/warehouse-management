@@ -13,5 +13,5 @@ interface InboundTicketRepositoryInterface
     public function createCalculatedSlot($data);
     public function updateStatus($id, $status);
     public function countByStatus($status,$contractIDs = null);
-    public function getLatest($limit = 5);
+    public function getLatest($limit = 5, $contractIDs = null);
 }

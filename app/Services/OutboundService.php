@@ -2,22 +2,30 @@
 
 namespace App\Services;
 
+use App\Repositories\Interfaces\ContractRepositoryInterface;
 use App\Repositories\Interfaces\OutboundTicketRepositoryInterface;
 use App\Repositories\Interfaces\InventoryRepositoryInterface;
+use App\Repositories\Interfaces\CustomerRepositoryInterface;
 use Illuminate\Support\Facades\DB;
 use Exception;
 
 class OutboundService
 {
     protected $outboundRepo;
+    protected $customerRepo;
     protected $inventoryRepo;
+    protected $contractRepo;
 
     public function __construct(
         OutboundTicketRepositoryInterface $outboundRepo,
-        InventoryRepositoryInterface $inventoryRepo
+        InventoryRepositoryInterface $inventoryRepo,
+        CustomerRepositoryInterface $customerRepo,
+        ContractRepositoryInterface $contractRepo
     ) {
         $this->outboundRepo = $outboundRepo;
         $this->inventoryRepo = $inventoryRepo;
+        $this->customerRepo = $customerRepo;
+        $this->contractRepo = $contractRepo;
     }
     
     public function getOutboundHistory()
@@ -110,5 +118,23 @@ class OutboundService
             DB::rollBack();
             throw $e;
         }
+    }
+
+        public function countPending($userid = null)
+    {
+        if (!$userid) {
+            return $this->outboundRepo
+                ->countByStatus('pending');
+        }
+
+
+        $customer = $this->customerRepo->findByUserId($userid);
+        if (!$customer) {
+            return 0;
+        }
+        $contracts = $this->contractRepo->getByCustomer($customer->id);
+        $contractIds = $contracts->pluck('id')->toArray();
+        return $this->outboundRepo
+            ->countByStatus('pending', $contractIds);
     }
 }

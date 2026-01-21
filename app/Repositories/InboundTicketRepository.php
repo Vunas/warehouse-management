@@ -68,25 +68,35 @@ class InboundTicketRepository implements InboundTicketRepositoryInterface
 
         return $ticket;
     }
-    public function countByStatus($status,$contractIDs = null)
+    public function countByStatus($status, $contractIDs = null)
     {
         $Query = InboundTicket::where('status', $status);
         if ($contractIDs === null) {
             return $Query->count();
         }
         if (!is_array($contractIDs)) {
-            $contractIDs  = [$contractIDs];
+            $contractIDs = [$contractIDs];
         }
-        
+
         return $Query->whereIn('contract_id', $contractIDs)->count();
     }
 
 
-    public function getLatest($limit = 5)
+    public function getLatest($limit = 5, $contractIDs = null)
     {
-        return InboundTicket::with(['contract.customer.user'])
-            ->latest()
-            ->take($limit)
-            ->get();
+        $query = InboundTicket::with(['contract.customer.user'])
+            ->latest();
+
+        if ($contractIDs !== null) {
+
+            if (!is_array($contractIDs)) {
+                $contractIDs = [$contractIDs];
+            }
+
+            $query->whereIn('contract_id', $contractIDs);
+        }
+
+        return $query->take($limit)->get();
     }
+
 }
