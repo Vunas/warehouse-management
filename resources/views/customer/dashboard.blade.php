@@ -21,7 +21,7 @@
             Đang chờ xử lý
         </div>
     </div>
-    <!-- Card 2: Phiếu chờ xuất[chưa xong]-->
+    <!-- Card 2: Phiếu chờ xuất[xong]-->
        <div class="bg-white rounded-xl shadow-sm p-5 border-l-4 border-red-500">
         <div class="flex justify-between items-start">
             <div>
@@ -37,7 +37,7 @@
         </div>
     </div>
 
-    <!-- Card 3: Hợp đồng Active[chưa xong] -->
+    <!-- Card 3: Hợp đồng Active[xong] -->
     <div class="bg-white rounded-xl shadow-sm p-5 border-l-4 border-yellow-500">
         <div class="flex justify-between items-start">
             <div>
