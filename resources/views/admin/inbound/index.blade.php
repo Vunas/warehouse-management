@@ -25,54 +25,65 @@
                 <tr>
                     <th class="px-6 py-3">Mã phiếu</th>
                     <th class="px-6 py-3">Hợp đồng</th>
-                    <th class="px-6 py-3">Khách hàng</th>
                     <th class="px-6 py-3">Ngày dự kiến</th>
-                    <th class="px-6 py-3">Trạng thái</th>
+                    <th class="px-6 py-3">Trạng thái (ERD)</th>
                     <th class="px-6 py-3 text-right">Hành động</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
                 @forelse($tickets as $ticket)
-                <tr class="hover:bg-gray-50 transition">
+                <tr class="hover:bg-gray-50 transition group">
                     <td class="px-6 py-4">
                         <a href="{{ route('inbound_tickets.show', $ticket->id) }}" class="font-bold text-blue-600 hover:underline">
                             #IN-{{ str_pad($ticket->id, 5, '0', STR_PAD_LEFT) }}
                         </a>
                     </td>
                     <td class="px-6 py-4 font-mono text-xs">{{ $ticket->contract->contract_code ?? '---' }}</td>
-                    <td class="px-6 py-4">{{ $ticket->contract->customer->company_name ?? '---' }}</td>
                     <td class="px-6 py-4">{{ $ticket->expected_date ? $ticket->expected_date->format('d/m/Y') : '' }}</td>
                     <td class="px-6 py-4">
-                        @if($ticket->status == 'pending')
-                            <span class="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs font-bold">Chờ duyệt</span>
-                        @elseif($ticket->status == 'approved')
-                            <span class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-bold">Đã duyệt</span>
-                        @elseif($ticket->status == 'received')
-                            <span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">Đã nhập kho</span>
+                        @if($ticket->status == 'Pending')
+                            <span class="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs font-bold">Pending</span>
+                        @elseif($ticket->status == 'Approved')
+                            <span class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-bold">Approved</span>
+                        @elseif($ticket->status == 'Rejected')
+                            <span class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-bold">Rejected</span>
                         @else
-                            <span class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-bold">Từ chối</span>
+                            <span class="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs font-bold">{{ $ticket->status }}</span>
                         @endif
                     </td>
-                    <td class="px-6 py-4 text-right">
-                        <a href="{{ route('inbound_tickets.show', $ticket->id) }}" class="text-blue-600 hover:text-blue-800 bg-blue-50 px-3 py-1 rounded text-xs">
-                            Chi tiết <i class="fa-solid fa-arrow-right ml-1"></i>
-                        </a>
+                    <td class="px-6 py-4 text-right flex justify-end gap-2">
+                        <a href="{{ route('inbound_tickets.show', $ticket->id) }}" class="text-gray-500 hover:text-blue-600" title="Chi tiết"><i class="fa-solid fa-eye"></i></a>
+
+                        @if($ticket->status == 'pending')
+                            <!-- Edit -->
+                            @can('update', $ticket)
+                            <a href="{{ route('inbound_tickets.edit', $ticket->id) }}" class="text-gray-500 hover:text-orange-500" title="Sửa"><i class="fa-solid fa-pen-to-square"></i></a>
+                            @endcan
+
+                            <!-- Delete -->
+                            @can('delete', $ticket)
+                            <form action="{{ route('inbound_tickets.destroy', $ticket->id) }}" method="POST" onsubmit="return confirm('Xóa phiếu này?');" class="inline">
+                                @csrf @method('DELETE')
+                                <button class="text-gray-500 hover:text-red-600" title="Xóa"><i class="fa-solid fa-trash"></i></button>
+                            </form>
+                            @endcan
+
+                            <!-- Reject Action (New) -->
+                            @can('inbound.approve')
+                            <form action="{{ route('inbound_tickets.reject', $ticket->id) }}" method="POST" onsubmit="return confirm('Từ chối phiếu nhập kho này?');" class="inline">
+                                @csrf @method('POST') <!-- Dùng POST cho action Reject -->
+                                <button class="text-gray-500 hover:text-red-800 ml-2" title="Từ chối (Reject)"><i class="fa-solid fa-ban"></i></button>
+                            </form>
+                            @endcan
+                        @endif
                     </td>
                 </tr>
                 @empty
-                <tr>
-                    <td colspan="6" class="px-6 py-8 text-center text-gray-400">
-                        <i class="fa-solid fa-box-open text-2xl mb-2"></i><br>
-                        Chưa có phiếu nhập kho nào.
-                    </td>
-                </tr>
+                <tr><td colspan="5" class="px-6 py-8 text-center text-gray-400">Không có dữ liệu.</td></tr>
                 @endforelse
             </tbody>
         </table>
     </div>
-
-    <div class="p-4 border-t border-gray-100">
-        {{ $tickets->links() }}
-    </div>
+    <div class="p-4 border-t border-gray-100">{{ $tickets->links() }}</div>
 </div>
 @endsection

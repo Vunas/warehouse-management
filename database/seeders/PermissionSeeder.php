@@ -43,6 +43,8 @@ class PermissionSeeder extends Seeder
             // --- Nhập kho (Inbound) ---
             ['code' => 'inbound.view', 'description' => 'Xem phiếu nhập kho'],
             ['code' => 'inbound.create', 'description' => 'Tạo yêu cầu nhập kho'],
+            ['code' => 'inbound.update', 'description' => 'Cập nhật phiếu nhập'],
+            ['code' => 'inbound.delete', 'description' => 'Hủy/Xóa phiếu nhập'],
             ['code' => 'inbound.approve', 'description' => 'Duyệt yêu cầu nhập (Tính toán slot)'],
             ['code' => 'inbound.process', 'description' => 'Thực hiện nhập kho (Confirm đã nhận hàng)'],
 
@@ -98,7 +100,7 @@ class PermissionSeeder extends Seeder
         // --- B. Role MANAGER: Full quyền trừ việc xóa User hệ thống ---
         if ($managerRole) {
             $managerPermissions = DB::table('permissions')
-                ->where('code', '!=', 'employee.delete') 
+                ->where('code', '!=', 'employee.delete')
                 ->pluck('id');
 
             foreach ($managerPermissions as $permId) {
@@ -112,13 +114,13 @@ class PermissionSeeder extends Seeder
         // --- C. Role STAFF: Chỉ thao tác vận hành (Kho, Nhập, Xuất) ---
         if ($staffRole) {
             $staffCodes = [
-                'warehouse.view',      
+                'warehouse.view',
                 'inbound.view',
-                'inbound.process', 
+                'inbound.process',
                 'outbound.view',
-                'outbound.process', 
+                'outbound.process',
                 'inventory.view',
-                'inventory.transfer', 
+                'inventory.transfer',
             ];
 
             $staffPermissions = DB::table('permissions')

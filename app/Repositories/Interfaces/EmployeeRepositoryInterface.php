@@ -5,7 +5,7 @@ namespace App\Repositories\Interfaces;
 interface EmployeeRepositoryInterface
 {
 
-    public function paginate($perPage = 10);
+    public function paginate();
     public function findById($id);
     public function findByUserId($userId);
     public function create($data);

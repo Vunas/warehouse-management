@@ -85,6 +85,10 @@ Route::prefix('admin')
             'inbound-tickets/{inbound_ticket}/approve',
             [InboundTicketController::class, 'approve']
         )->name('inbound_tickets.approve');
+        Route::post(
+            'inbound-tickets/{inbound_ticket}/approve',
+            [InboundTicketController::class, 'approve']
+        )->name('inbound_tickets.reject');
 
         Route::post(
             'inbound-tickets/{inbound_ticket}/process',

@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\InboundTicket;
+use App\Policies\InboundTicketPolicy;
 use Illuminate\Support\ServiceProvider;
 
 // Import đầy đủ Interfaces
@@ -31,6 +33,7 @@ use App\Repositories\ProductRepository;
 use App\Repositories\WarehouseRepository;
 use App\Repositories\CategoryRepository;
 use App\Repositories\SizeConversionRuleRepository;
+use Illuminate\Support\Facades\Gate;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -48,7 +51,7 @@ class AppServiceProvider extends ServiceProvider
         // 2. Nhóm Sản phẩm & Cấu hình
         $this->app->bind(ProductRepositoryInterface::class, ProductRepository::class);
         $this->app->bind(CategoryRepositoryInterface::class, CategoryRepository::class);
-        $this->app->bind(SizeConversionRuleRepositoryInterface::class, SizeConversionRuleRepository::class);
+        $this->app->bind(SizeConversionRuleRepositoryInterface::class, SizeConversionRuleRepositoryInterface::class);
 
         // 3. Nhóm Kho & Hợp đồng
         $this->app->bind(WarehouseRepositoryInterface::class, WarehouseRepository::class);
@@ -60,11 +63,19 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(OutboundTicketRepositoryInterface::class, OutboundTicketRepository::class);
     }
 
+    // AuthServiceProvider.php
+    protected $policies = [
+        InboundTicket::class => InboundTicketPolicy::class,
+    ];
+
+
     /**
      * Bootstrap any application services.
      */
     public function boot(): void
     {
-        //
+        Gate::define('inbound.approve', function ($user) {
+            return $user->employee && $user->employee->hasPermission('inbound.approve');
+        });
     }
 }
