@@ -4,21 +4,37 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Role extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'guard_name'];
+    protected $table = 'roles';
 
-    // Relationships
-    public function permissions()
+    protected $fillable = [
+        'role_name',
+    ];
+
+    /*
+    |--------------------------------------------------------------------------
+    | RELATIONS
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * Quan hệ n-n với bảng users
+     */
+    public function users(): BelongsToMany
     {
-        return $this->belongsToMany(Permission::class, 'permission_role');
+        return $this->belongsToMany(User::class, 'user_roles', 'role_id', 'user_id');
     }
 
-    public function employees()
+    /**
+     * Quan hệ n-n với bảng permissions
+     */
+    public function permissions(): BelongsToMany
     {
-        return $this->belongsToMany(Employee::class, 'employee_role');
+        return $this->belongsToMany(Permission::class, 'role_permissions', 'role_id', 'permission_id');
     }
 }

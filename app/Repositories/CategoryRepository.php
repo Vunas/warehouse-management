@@ -4,42 +4,16 @@ namespace App\Repositories;
 
 use App\Models\Category;
 use App\Repositories\Interfaces\CategoryRepositoryInterface;
+use App\Repositories\Traits\CanRead;
+use App\Repositories\Traits\CanWrite;
+use App\Repositories\Traits\CanSoftDelete;
 
-class CategoryRepository implements CategoryRepositoryInterface
+class CategoryRepository extends BaseRepository implements CategoryRepositoryInterface
 {
-    protected $model;
+    use CanRead, CanWrite, CanSoftDelete;
 
-    public function __construct(Category $model)
+    public function getModel()
     {
-        $this->model = $model;
+        return Category::class;
     }
-
-    public function getAll()
-    {
-        return $this->model->latest()->get();
-    }
-
-    public function findById($id)
-    {
-        return $this->model->findOrFail($id);
-    }
-
-    public function create(array $data)
-    {
-        return $this->model->create($data);
-    }
-
-    public function update($id, array $data)
-    {
-        $category = $this->findById($id);
-        $category->update($data);
-        return $category;
-    }
-
-    public function delete($id)
-    {
-        return $this->model->destroy($id);
-    }
-
-
 }

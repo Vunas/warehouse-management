@@ -3,20 +3,29 @@
 namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
+use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 
 class UserFactory extends Factory
 {
+    protected $model = User::class;
+
     public function definition(): array
     {
         return [
-            'username' => $this->faker->unique()->userName(),
-            'password' => Hash::make('123456'), 
-            'full_name' => $this->faker->name(),
-            'email' => $this->faker->unique()->safeEmail(),
+            'username' => fake()->userName(),
+            'full_name' => fake()->name(),
+            'email' => fake()->unique()->safeEmail(),
+            'phone' => fake()->phoneNumber(),
+            'password' => Hash::make('password'),
             'is_active' => true,
-            'created_at' => now(),
-            'updated_at' => now(),
         ];
+    }
+
+    public function inactive()
+    {
+        return $this->state(fn () => [
+            'is_active' => false,
+        ]);
     }
 }

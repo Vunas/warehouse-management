@@ -2,48 +2,27 @@
 
 namespace Database\Seeders;
 
+use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
 {
     public function run(): void
     {
-        
-        $existingAdmin = DB::table('users')->where('username', 'admin')->first();
-
-        if (!$existingAdmin) {
-            
-            $adminId = DB::table('users')->insertGetId([
-                'username' => 'admin@gmail.com',
-                'password' => Hash::make('123456'), 
-                'full_name' => 'System Administrator',
-                'email' => 'admin@warehouse.com',
+        User::updateOrCreate(
+            ['email' => 'admin@example.com'],
+            [
+                'username'  => 'admin',
+                'full_name' => 'Administrator',
+                'phone'     => '0123456789',
+                'password'  => Hash::make('123456'),
                 'is_active' => true,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+            ]
+        );
 
-            
-            $empId = DB::table('employees')->insertGetId([
-                'user_id' => $adminId,
-                'position' => 'System Admin',
-                'hired_at' => now(),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+        User::factory(50)->create();
 
-            
-            $adminRole = DB::table('roles')->where('name', 'Admin')->first();
-
-            
-            if ($adminRole) {
-                DB::table('employee_role')->insert([
-                    'employee_id' => $empId,
-                    'role_id' => $adminRole->id
-                ]);
-            }
-        }
+        User::factory(5)->inactive()->create();
     }
 }

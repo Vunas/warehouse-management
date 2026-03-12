@@ -13,17 +13,19 @@ class ProductService
         $this->productRepo = $productRepo;
     }
 
-    public function getProductsPaginated()
+    public function getPaginatedProducts($perPage = 15)
     {
-        return $this->productRepo->paginate();
+        return $this->productRepo->paginate($perPage, ['*'], ['category', 'brand']);
     }
 
-    public function getSelectable(){
-        return $this->productRepo->getSelectable();
+    public function getProductById($id)
+    {
+        return $this->productRepo->findById($id, ['*'], ['category', 'brand', 'images']);
     }
 
     public function createProduct(array $data)
     {
+        // Tại đây sau này bạn có thể gọi thêm ProductImageService để lưu ảnh
         return $this->productRepo->create($data);
     }
 
@@ -34,6 +36,6 @@ class ProductService
 
     public function deleteProduct($id)
     {
-        return $this->productRepo->delete($id);
+        return $this->productRepo->softDelete($id);
     }
 }

@@ -4,10 +4,17 @@ namespace App\Repositories\Interfaces;
 
 interface UserRepositoryInterface
 {
-    public function paginate($perPage = 10);
-    public function findById($id);
-    public function findByEmail($email);
-    public function create(array $data);
-    public function update($id, array $data);
-    public function delete($id);
+    // Đọc
+    public function all(array $columns = ['*'], array $relations = []);
+    public function findById($id, array $columns = ['*'], array $relations = []);
+    public function paginate(int $perPage = 15, array $columns = ['*'], array $relations = []);
+    
+    // Ghi
+    public function create(array $payload);
+    public function update($id, array $payload);
+    
+    // Xóa mềm (Do DB có deleted_at)
+    public function softDelete($id);
+    public function restore($id);
+    public function forceDelete($id);
 }
