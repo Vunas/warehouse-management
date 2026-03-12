@@ -2,112 +2,41 @@
 
 namespace App\Repositories;
 
-use App\Models\InventoryItem;
-use App\Models\InternalTransfer;
-use App\Models\TransferItem;
-use App\Models\InventoryTransaction;
+use App\Models\Inventory;
 use App\Repositories\Interfaces\InventoryRepositoryInterface;
+use App\Repositories\Traits\CanRead;
+use App\Repositories\Traits\CanWrite;
 
-class InventoryRepository implements InventoryRepositoryInterface
+class InventoryRepository extends BaseRepository implements InventoryRepositoryInterface
 {
-    public function getItemsByWarehouse($warehouseId)
-    {
-        return InventoryItem::whereHas('storageBlock', function ($q) use ($warehouseId) {
-            $q->where('warehouse_id', $warehouseId);
-        })->with(['product', 'storageBlock'])->get();
+    use CanRead;
+    use CanWrite {
+        create as traitCreate;
+        update as traitUpdate;
     }
 
-    public function getFifoItemsForProduct($productId)
+    public function getModel()
     {
-        return InventoryItem::where('product_id', $productId)
-            ->where('quantity_on_hand', '>', 0)
-            ->orderBy('imported_at', 'asc')
-            ->get();
+        return Inventory::class;
     }
 
-    public function findItemById($id)
+    public function create(array $payload)
     {
-        return InventoryItem::findOrFail($id);
+        return $this->traitCreate($payload);
     }
 
-    public function createItem($data)
+    public function update($id, array $payload)
     {
-        return InventoryItem::create($data);
+        return $this->traitUpdate($id, $payload);
     }
 
-    public function updateItem($id, $data)
+    public function getByProductId(int $productId)
     {
-        $item = $this->findItemById($id);
-        $item->update($data);
-        return $item;
+        return $this->model->with('shelf.zone.warehouse')->where('product_id', $productId)->get();
     }
 
-    public function deleteItem($id)
+    public function getByShelfId(int $shelfId)
     {
-        return InventoryItem::destroy($id);
-    }
-
-    public function getTransfersPaginated($perPage = 10)
-    {
-        return InternalTransfer::with(['fromBlock.warehouse', 'toBlock.warehouse'])
-            ->latest()
-            ->paginate($perPage);
-    }
-
-    public function findTransferById($id)
-    {
-        return InternalTransfer::with(['items.inventoryItem.product', 'fromBlock', 'toBlock'])->findOrFail($id);
-    }
-
-    public function createTransfer($data)
-    {
-        return InternalTransfer::create($data);
-    }
-
-    public function createTransferItem($data)
-    {
-        return TransferItem::create($data);
-    }
-
-    public function updateTransferStatus($id, $status)
-    {
-        $transfer = InternalTransfer::findOrFail($id);
-        $transfer->update(['status' => $status]);
-
-        if ($status === 'COMPLETED') {
-            $transfer->update(['completed_at' => now()]);
-        }
-
-        return $transfer;
-    }
-
-    public function logTransaction($data)
-    {
-        return InventoryTransaction::create($data);
-    }
-    public function searchInventory(array $filters, $perPage = 20)
-    {
-        $query = InventoryItem::with(['product', 'storageBlock.warehouse']);
-
-        if (!empty($filters['warehouse_id'])) {
-            $query->whereHas('storageBlock', function ($q) use ($filters) {
-                $q->where('warehouse_id', $filters['warehouse_id']);
-            });
-        }
-
-        if (!empty($filters['search'])) {
-            $search = $filters['search'];
-            $query->whereHas('product', function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('sku', 'like', "%{$search}%");
-            });
-        }
-
-        return $query->latest()->paginate($perPage);
-    }
-
-    public function sumTotalUsedSlots()
-    {
-        return InventoryItem::sum('slot_used');
+        return $this->model->with('product')->where('shelf_id', $shelfId)->get();
     }
 }

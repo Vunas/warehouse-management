@@ -3,8 +3,6 @@
 namespace App\Services;
 
 use App\Repositories\Interfaces\CategoryRepositoryInterface;
-use Exception;
-use Illuminate\Support\Facades\DB;
 
 class CategoryService
 {
@@ -15,9 +13,14 @@ class CategoryService
         $this->categoryRepo = $categoryRepo;
     }
 
-    public function getAllCategories()
+    public function getPaginatedCategories($perPage = 15)
     {
-        return $this->categoryRepo->getAll();
+        return $this->categoryRepo->paginate($perPage);
+    }
+
+    public function getCategoryById($id)
+    {
+        return $this->categoryRepo->findById($id);
     }
 
     public function createCategory(array $data)
@@ -32,13 +35,6 @@ class CategoryService
 
     public function deleteCategory($id)
     {
-        // Logic kiểm tra: Nếu danh mục đã có sản phẩm thì không cho xóa
-        $category = $this->categoryRepo->findById($id);
-        
-        if ($category->products()->exists()) {
-            throw new Exception("Không thể xóa danh mục đã có sản phẩm.");
-        }
-
-        return $this->categoryRepo->delete($id);
+        return $this->categoryRepo->softDelete($id);
     }
 }

@@ -4,11 +4,14 @@ namespace App\Repositories\Interfaces;
 
 interface ProductRepositoryInterface
 {
-    public function paginate($perPage = 20);
-    public function findById($id);
-    public function create($data);
-    public function update($id, $data);
-    public function delete($id);
-    public function getSelectable();
-    public function findBySku($sku);
+    public function all(array $columns = ['*'], array $relations = []);
+    public function findById($id, array $columns = ['*'], array $relations = []);
+    public function paginate(int $perPage = 15, array $columns = ['*'], array $relations = []);
+    
+    public function create(array $payload);
+    public function update($id, array $payload);
+    
+    public function softDelete($id);
+    public function restore($id);
+    public function forceDelete($id);
 }

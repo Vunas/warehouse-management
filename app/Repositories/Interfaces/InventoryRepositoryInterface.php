@@ -4,21 +4,14 @@ namespace App\Repositories\Interfaces;
 
 interface InventoryRepositoryInterface
 {
-    public function getItemsByWarehouse($warehouseId);
-    public function getFifoItemsForProduct($productId);
-    public function findItemById($id);
-    public function createItem($data);
-    public function updateItem($id, $data);
-    public function deleteItem($id);
-
-    public function getTransfersPaginated($perPage = 10);
-    public function findTransferById($id);
-    public function createTransfer($data);
-    public function createTransferItem($data);
-    public function updateTransferStatus($id, $status);
-
-    public function logTransaction($data);
-    public function searchInventory(array $filters, $perPage = 20);
-
-    public function sumTotalUsedSlots();
+    public function findById($id, array $columns = ['*'], array $relations = []);
+    public function paginate(int $perPage = 15, array $columns = ['*'], array $relations = []);
+    
+    public function getByProductId(int $productId);
+    public function getByShelfId(int $shelfId);
+    
+    public function create(array $payload);
+    public function update($id, array $payload); // Chỉ update số lượng quantity
+    
+    // KHÔNG CÓ delete(). Hàng hết thì quantity = 0, xóa mất dữ liệu lịch sử tồn.
 }
