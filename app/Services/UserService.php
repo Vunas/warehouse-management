@@ -19,9 +19,16 @@ class UserService
         return $this->userRepo->all(['*'], ['roles']);
     }
 
-    public function getPaginatedUsers($perPage = 15)
+    public function getPaginatedUsers($perPage = 15, array $filters = [], $sort = 'id', $dir = 'desc')
     {
-        return $this->userRepo->paginate($perPage, ['*'], ['roles']);
+        return $this->userRepo->paginate(
+            $perPage,
+            ['*'],
+            ['roles'],
+            $filters,
+            $sort,
+            $dir
+        );
     }
 
     public function getUserById($id)

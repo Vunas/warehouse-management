@@ -23,9 +23,12 @@ class UserController extends Controller
     public function index(Request $request)
     {
         $perPage = $request->get('per_page', 15);
-        $users = $this->userService->getPaginatedUsers($perPage);
-        
-        // Trả về view: resources/views/admin/users/index.blade.php
+        $filters = $request->only(['search', 'status']);
+        $sort = $request->get('sort', 'id');
+        $dir = $request->get('dir', 'desc');
+
+        $users = $this->userService->getPaginatedUsers($perPage, $filters, $sort, $dir);
+
         return view('admin.users.index', compact('users'));
     }
 
@@ -34,7 +37,6 @@ class UserController extends Controller
      */
     public function create()
     {
-        // SỬA Ở ĐÂY: Trỏ đúng vào thư mục admin.users
         return view('admin.users.form');
     }
 
@@ -45,12 +47,12 @@ class UserController extends Controller
     {
         try {
             $this->userService->createUser($request->validated());
-            
+
             return redirect()->route('users.index')
-                             ->with('success', 'Tạo người dùng thành công!');
+                ->with('success', 'Tạo người dùng thành công!');
         } catch (Exception $e) {
             return back()->withInput()
-                         ->with('error', 'Lỗi khi tạo người dùng: ' . $e->getMessage());
+                ->with('error', 'Lỗi khi tạo người dùng: ' . $e->getMessage());
         }
     }
 
@@ -61,11 +63,11 @@ class UserController extends Controller
     {
         try {
             $user = $this->userService->getUserById($id);
-            // SỬA Ở ĐÂY: Dùng chung file form.blade.php với create, chỉ khác là có truyền thêm biến $user
+
             return view('admin.users.form', compact('user'));
         } catch (Exception $e) {
             return redirect()->route('users.index')
-                             ->with('error', 'Không tìm thấy người dùng để chỉnh sửa.');
+                ->with('error', 'Không tìm thấy người dùng để chỉnh sửa.');
         }
     }
 
@@ -76,12 +78,12 @@ class UserController extends Controller
     {
         try {
             $this->userService->updateUser($id, $request->validated());
-            
+
             return redirect()->route('users.index')
-                             ->with('success', 'Cập nhật người dùng thành công!');
+                ->with('success', 'Cập nhật người dùng thành công!');
         } catch (Exception $e) {
             return back()->withInput()
-                         ->with('error', 'Lỗi khi cập nhật: ' . $e->getMessage());
+                ->with('error', 'Lỗi khi cập nhật: ' . $e->getMessage());
         }
     }
 
@@ -92,9 +94,9 @@ class UserController extends Controller
     {
         try {
             $this->userService->softDeleteUser($id);
-            
+
             return redirect()->route('users.index')
-                             ->with('success', 'Đã chuyển người dùng vào thùng rác!');
+                ->with('success', 'Đã chuyển người dùng vào thùng rác!');
         } catch (Exception $e) {
             return back()->with('error', 'Lỗi khi xóa: ' . $e->getMessage());
         }
