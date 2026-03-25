@@ -8,7 +8,10 @@ interface InventoryRepositoryInterface
     public function paginate(int $perPage = 15, array $columns = ['*'], array $relations = []);
     
     public function getByProductId(int $productId);
-    public function getByShelfId(int $shelfId);
+    public function getByLocationID(int $shelfId);
+    
+    public function findByProductAndLocation(int $productId, int $shelfId);
+    public function getAvailableStockByProduct(int $productId);
     
     public function create(array $payload);
     public function update($id, array $payload); // Chỉ update số lượng quantity

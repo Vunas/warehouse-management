@@ -1,29 +1,29 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\User;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateUserRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     */
     public function rules(): array
     {
+        $userId = $this->route('user')->id;
+
         return [
-            'full_name' => 'sometimes|string',
-            'phone'     => 'nullable|string',
-            'is_active' => 'sometimes|boolean',
-            'password'  => 'nullable|min:6' 
+            'username'  => ['required', 'string', 'max:100', Rule::unique('users')->ignore($userId)],
+            'email'     => ['required', 'email', 'max:150', Rule::unique('users')->ignore($userId)],
+            'password'  => ['nullable', 'string', 'min:6'], 
+            'full_name' => ['required', 'string', 'max:150'],
+            'phone'     => ['nullable', 'string', 'max:20'],
+            'role_name' => ['required', 'string', 'exists:roles,name'],
+            'is_active' => ['required', 'boolean'],
         ];
     }
 }

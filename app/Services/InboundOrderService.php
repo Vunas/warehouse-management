@@ -34,10 +34,7 @@ class InboundOrderService
         return $this->inboundOrderRepo->create($data);
     }
 
-    /**
-     * NGHIỆP VỤ LÕI: Hoàn tất phiếu nhập kho và CỘNG tồn kho
-     */
-    public function completeInboundOrder($inboundId, array $shelfAssignments)
+    public function completeInboundOrder($inboundId, array $locationAssignments)
     {
         $order = $this->inboundOrderRepo->findById($inboundId);
 
@@ -45,22 +42,19 @@ class InboundOrderService
             throw new Exception("Chỉ có thể hoàn tất phiếu đang ở trạng thái pending.");
         }
 
-        return DB::transaction(function () use ($inboundId, $shelfAssignments) {
-            // 1. Cập nhật trạng thái phiếu nhập
+        return DB::transaction(function () use ($inboundId, $locationAssignments) {
             $order = $this->inboundOrderRepo->update($inboundId, ['status' => 'completed']);
-
-            // 2. Lấy chi tiết các món hàng vừa nhập
             $items = $this->inboundItemRepo->getByInboundId($inboundId);
 
             foreach ($items as $item) {
-                if (!isset($shelfAssignments[$item->id])) {
-                    throw new Exception("Sản phẩm {$item->product_id} chưa được chỉ định kệ lưu trữ.");
+                if (!isset($locationAssignments[$item->id])) {
+                    throw new Exception("Sản phẩm {$item->product_id} chưa được chỉ định vị trí lưu trữ.");
                 }
 
-                $shelfId = $shelfAssignments[$item->id];
+                $locationId = $locationAssignments[$item->id];
 
-                // 3. Gọi InventoryService để cộng tồn kho
-                $this->inventoryService->addStock($item->product_id, $shelfId, $item->quantity);
+                // Cộng tồn kho vào vị trí đã chọn
+                $this->inventoryService->addStock($item->product_id, $locationId, $item->quantity);
             }
 
             return $order;

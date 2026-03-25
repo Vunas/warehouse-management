@@ -32,11 +32,30 @@ class InventoryRepository extends BaseRepository implements InventoryRepositoryI
 
     public function getByProductId(int $productId)
     {
-        return $this->model->with('shelf.zone.warehouse')->where('product_id', $productId)->get();
+        return $this->model->with('location.warehouse')
+                           ->where('product_id', $productId)
+                           ->get();
     }
 
-    public function getByShelfId(int $shelfId)
+    public function getByLocationId(int $locationId)
     {
-        return $this->model->with('product')->where('shelf_id', $shelfId)->get();
+        return $this->model->with('product')
+                           ->where('location_id', $locationId)
+                           ->get();
+    }
+
+    public function findByProductAndLocation(int $productId, int $locationId)
+    {
+        return $this->model->where('product_id', $productId)
+                           ->where('location_id', $locationId)
+                           ->first();
+    }
+
+    public function getAvailableStockByProduct(int $productId)
+    {
+        return $this->model->where('product_id', $productId)
+                           ->where('quantity', '>', 0)
+                           ->orderBy('created_at', 'asc')
+                           ->get();
     }
 }
