@@ -15,8 +15,8 @@ class Warehouse extends Model
 
     protected $fillable = ['name', 'location'];
 
-    public function zones(): HasMany
+    public function locations(): HasMany
     {
-        return $this->hasMany(Zone::class);
+        return $this->hasMany(Location::class);
     }
 }

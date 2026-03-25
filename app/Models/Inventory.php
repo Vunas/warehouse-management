@@ -14,7 +14,7 @@ class Inventory extends Model
 
     protected $fillable = [
         'product_id',
-        'shelf_id',
+        'location_id',
         'quantity',
     ];
 
@@ -23,8 +23,8 @@ class Inventory extends Model
         return $this->belongsTo(Product::class);
     }
 
-    public function shelf(): BelongsTo
+    public function location(): BelongsTo
     {
-        return $this->belongsTo(Shelf::class);
+        return $this->belongsTo(Location::class, 'location_id');
     }
 }

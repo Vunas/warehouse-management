@@ -22,41 +22,6 @@ CREATE TABLE users (
     deleted_at TIMESTAMP NULL
 );
 
-CREATE TABLE roles (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    role_name VARCHAR(100) UNIQUE,
-
-    created_at TIMESTAMP NULL,
-    updated_at TIMESTAMP NULL
-);
-
-CREATE TABLE permissions (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    permission_code VARCHAR(100) UNIQUE,
-    description VARCHAR(255),
-
-    created_at TIMESTAMP NULL,
-    updated_at TIMESTAMP NULL
-);
-
-CREATE TABLE user_roles (
-    user_id BIGINT,
-    role_id INT,
-    PRIMARY KEY (user_id, role_id),
-
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE
-);
-
-CREATE TABLE role_permissions (
-    role_id INT,
-    permission_id INT,
-    PRIMARY KEY (role_id, permission_id),
-
-    FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE,
-    FOREIGN KEY (permission_id) REFERENCES permissions(id) ON DELETE CASCADE
-);
-
 -- =====================================
 -- 2. ADDRESS
 -- =====================================
@@ -195,42 +160,34 @@ CREATE TABLE warehouses (
     deleted_at TIMESTAMP NULL
 );
 
-CREATE TABLE zones (
+CREATE TABLE locations (
     id INT AUTO_INCREMENT PRIMARY KEY,
     warehouse_id INT,
-    name VARCHAR(100),
+    parent_id INT NULL,
+    name VARCHAR(150),
+    type ENUM('zone','shelf','pallet','bin','rack') NOT NULL,
+    is_store BOOLEAN DEFAULT TRUE,
 
     created_at TIMESTAMP NULL,
     updated_at TIMESTAMP NULL,
 
-    FOREIGN KEY (warehouse_id) REFERENCES warehouses(id)
-);
-
-CREATE TABLE shelves (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    zone_id INT,
-    shelf_code VARCHAR(100),
-
-    created_at TIMESTAMP NULL,
-    updated_at TIMESTAMP NULL,
-
-    FOREIGN KEY (zone_id) REFERENCES zones(id)
+    FOREIGN KEY (warehouse_id) REFERENCES warehouses(id),
+    FOREIGN KEY (parent_id) REFERENCES locations(id)
 );
 
 CREATE TABLE inventory (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-
     product_id INT,
-    shelf_id INT,
+    location_id INT,
     quantity INT DEFAULT 0,
 
     created_at TIMESTAMP NULL,
     updated_at TIMESTAMP NULL,
 
-    UNIQUE(product_id, shelf_id),
+    UNIQUE(product_id, location_id),
 
     FOREIGN KEY (product_id) REFERENCES products(id),
-    FOREIGN KEY (shelf_id) REFERENCES shelves(id)
+    FOREIGN KEY (location_id) REFERENCES locations(id)
 );
 
 -- =====================================
@@ -362,10 +319,8 @@ CREATE TABLE outbound_items (
 
 CREATE TABLE stock_transfers (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
-
-    from_shelf_id INT,
-    to_shelf_id INT,
-
+    from_location_id INT,
+    to_location_id INT,
     staff_id BIGINT,
 
     status ENUM('pending','completed','cancelled'),
@@ -373,8 +328,8 @@ CREATE TABLE stock_transfers (
     created_at TIMESTAMP NULL,
     updated_at TIMESTAMP NULL,
 
-    FOREIGN KEY (from_shelf_id) REFERENCES shelves(id),
-    FOREIGN KEY (to_shelf_id) REFERENCES shelves(id),
+    FOREIGN KEY (from_location_id) REFERENCES locations(id),
+    FOREIGN KEY (to_location_id) REFERENCES locations(id),
     FOREIGN KEY (staff_id) REFERENCES users(id)
 );
 
