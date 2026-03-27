@@ -18,6 +18,7 @@ use App\Http\Controllers\OutboundOrderController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\CartItemController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
 
 /*
 |--------------------------------------------------------------------------
@@ -28,18 +29,32 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
+// Guest routes
 Route::middleware('guest')->group(function () {
+    // Admin login
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [AuthController::class, 'login'])->name('login.post');
+
+    // Customer login
+    Route::get('/customer/login', [AuthController::class, 'showCustomerLoginForm'])->name('customer_login');
+    Route::post('/customer/login', [AuthController::class, 'login'])->name('customer_login.post');
 });
 
-Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
+// Logout routes
+Route::post('/logout', function(Request $request) {
+    return app(AuthController::class)->logout($request, 'web');
+})->name('logout')->middleware('auth');
+
+Route::post('/customer/logout', function(Request $request) {
+    return app(AuthController::class)->logout($request, 'customer');
+})->name('customer.logout')->middleware('auth');
 
 /*
 |--------------------------------------------------------------------------
 | 2. ADMIN MODULES
 |--------------------------------------------------------------------------
 */
+
 Route::middleware(['auth'])->prefix('admin')->group(function () {
     
     // Tổng quan (Dashboard)
@@ -86,4 +101,9 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::resource('carts', CartItemController::class)->only(['index']);
 
     Route::resource('orders', OrderController::class)->only(['index']);
+});
+
+
+Route::middleware(['auth:customer'])->prefix('customer')->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('customer.dashboard');
 });

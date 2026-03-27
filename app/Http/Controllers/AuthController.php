@@ -12,20 +12,29 @@ class AuthController extends Controller
      */
     public function showLoginForm()
     {
-        // Nếu đã đăng nhập thì chuyển thẳng vào trang admin
-        if (Auth::check()) {
-            return redirect()->route('users.index');
+        if (Auth::guard('web')->check()) {
+            return redirect()->route('dashboard'); // admin
         }
-        
         return view('auth.login');
+    }
+
+    public function showCustomerLoginForm()
+    {
+        if (Auth::guard('customer')->check()) {
+            return redirect()->route('customer.dashboard'); // customer
+        }
+        return view('auth.customer_login');
     }
 
     /**
      * Xử lý logic đăng nhập
      */
-    public function login(Request $request)
+    public function login(Request $request, $type = null)
     {
-        // 1. Validate dữ liệu nhập vào
+        $guard = $type ?? $request->input('type', 'web');
+
+
+        // 1. Validate
         $credentials = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required'],
@@ -35,43 +44,41 @@ class AuthController extends Controller
             'password.required' => 'Vui lòng nhập mật khẩu.',
         ]);
 
-        // 2. Thử đăng nhập với thông tin được cung cấp
-        $remember = $request->boolean('remember'); // Tính năng ghi nhớ đăng nhập
-        
-        if (Auth::attempt($credentials, $remember)) {
-            
-            // 3. Kiểm tra xem tài khoản có bị khóa không
-            if (!Auth::user()->is_active) {
-                Auth::logout(); // Đăng xuất ngay lập tức
+        $remember = $request->boolean('remember');
+
+        // 2. Attempt login
+        if (Auth::guard($guard)->attempt($credentials, $remember)) {
+            $user = Auth::guard($guard)->user();
+
+            if (!$user->is_active) {
+                Auth::guard($guard)->logout();
                 return back()->withErrors([
-                    'email' => 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ Admin.',
+                    'email' => 'Tài khoản của bạn đã bị khóa.',
                 ])->onlyInput('email');
             }
 
-            // 4. Đăng nhập thành công -> Tạo lại session để bảo mật (tránh Session Fixation)
             $request->session()->regenerate();
 
-            // Chuyển hướng về trang họ muốn vào trước đó, hoặc mặc định về /admin/users
-            return redirect()->intended('/admin/users')->with('success', 'Đăng nhập thành công!');
+            return redirect()->intended(
+                $guard === 'web' ? '/admin/dashboard' : '/customer/dashboard'
+            )->with('success', 'Đăng nhập thành công!');
         }
 
-        // 5. Đăng nhập thất bại -> Trả về lỗi
         return back()->withErrors([
             'email' => 'Email hoặc mật khẩu không chính xác.',
         ])->onlyInput('email');
     }
-
     /**
      * Xử lý đăng xuất
      */
-    public function logout(Request $request)
+    public function logout(Request $request, $guard = 'web')
     {
-        Auth::logout();
+        Auth::guard($guard)->logout();
 
-        // Xóa sạch session hiện tại
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/login')->with('success', 'Bạn đã đăng xuất an toàn.');
+        return redirect($guard === 'web' ? '/login' : '/customer/login')
+            ->with('success', 'Bạn đã đăng xuất an toàn.');
     }
 }
