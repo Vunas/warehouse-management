@@ -10,8 +10,11 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
 
-            UserSeeder::class,
-
+      RolePermissionSeeder::class, // Tạo User Admin và Quyền
+            AddressSeeder::class,        // Tạo Tỉnh, Huyện, Xã
+            ProductSeeder::class,        // Tạo Danh mục, Brand, Sản phẩm
+            SupplierSeeder::class,       // Tạo NCC và map Sản phẩm
+            WarehouseSeeder::class, 
         ]);
 
         echo "Database seeded successfully with FULL business logic & dummy data!\n";

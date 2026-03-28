@@ -82,7 +82,7 @@
 
                     <div>
                         <label class="block text-sm font-semibold mb-2">Username</label>
-                        <input type="text" name="username" value="{{ old('username') }}" placeholder="vd: nguyenvana"
+                        <input type="text" name="email" value="{{ old('email') }}" placeholder="vd: nguyenvana"
                             class="w-full border p-3 rounded-lg focus:ring-2 focus:ring-blue-500" required>
                     </div>
 
@@ -91,6 +91,7 @@
                         <input type="password" name="password" placeholder="••••••••"
                             class="w-full border p-3 rounded-lg focus:ring-2 focus:ring-blue-500" required>
                     </div>
+                    <input type="hidden" name="type" value="customer">
 
                     <div class="flex items-center">
                         <input type="checkbox" name="remember" class="mr-2">
@@ -101,13 +102,6 @@
                         Đăng nhập
                     </button>
                 </form>
-
-                <p class="mt-6 text-center text-sm">
-                    Chưa có tài khoản?
-                    <a href="/customer/register" class="text-blue-600 font-semibold">
-                        Đăng ký
-                    </a>
-                </p>
 
             </div>
         </div>

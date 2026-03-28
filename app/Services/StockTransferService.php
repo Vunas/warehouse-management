@@ -6,6 +6,7 @@ use App\Repositories\Interfaces\StockTransferRepositoryInterface;
 use App\Repositories\Interfaces\TransferItemRepositoryInterface;
 use Illuminate\Support\Facades\DB;
 use Exception;
+use App\Services\InventoryService;
 
 class StockTransferService
 {
@@ -29,9 +30,6 @@ class StockTransferService
         return $this->transferRepo->create($data);
     }
 
-    /**
-     * NGHIỆP VỤ LÕI: Hoàn tất luân chuyển kho
-     */
     public function completeTransfer($transferId)
     {
         $transfer = $this->transferRepo->findById($transferId);
@@ -46,14 +44,19 @@ class StockTransferService
             $items = $this->transferItemRepo->getByTransferId($transfer->id);
 
             foreach ($items as $item) {
-                // 1. Trừ tồn kho ở kệ cũ
-                $this->inventoryService->deductStock($item->inventory->product_id, $transfer->from_shelf_id, $item->quantity);
-                
-                // 2. Cộng tồn kho ở kệ mới
-                $this->inventoryService->addStock($item->inventory->product_id, $transfer->to_shelf_id, $item->quantity);
+                // 1. Trừ tồn kho ở location cũ
+                $this->inventoryService->deductStock($item->inventory->product_id, $transfer->from_location_id, $item->quantity);
+
+                // 2. Cộng tồn kho ở location mới
+                $this->inventoryService->addStock($item->inventory->product_id, $transfer->to_location_id, $item->quantity);
             }
 
             return $transfer;
         });
+    }
+
+    public function cancelTransfer($transferId)
+    {
+        return $this->transferRepo->update($transferId, ['status' => 'cancelled']);
     }
 }

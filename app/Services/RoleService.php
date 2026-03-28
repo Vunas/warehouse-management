@@ -2,34 +2,70 @@
 
 namespace App\Services;
 
-use App\Repositories\Interfaces\RoleRepositoryInterface;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
+use Illuminate\Support\Facades\DB;
+use Exception;
 
 class RoleService
 {
-    protected $roleRepo;
-
-    public function __construct(RoleRepositoryInterface $roleRepo)
+    public function getPaginatedRoles($perPage = 15, $search = '')
     {
-        $this->roleRepo = $roleRepo;
+        $query = Role::with('permissions'); // Kèm theo quyền để hiển thị
+
+        if (!empty($search)) {
+            $query->where('name', 'like', '%' . $search . '%');
+        }
+
+        return $query->paginate($perPage)->withQueryString();
     }
 
-    public function getAllRoles()
+    public function getAllPermissions()
     {
-        return $this->roleRepo->all(['*'], ['permissions']);
+        return Permission::all();
     }
 
     public function createRole(array $data)
     {
-        return $this->roleRepo->create($data);
+        DB::beginTransaction();
+        try {
+            // Spatie tự động tạo role
+            $role = Role::create(['name' => $data['name']]);
+            
+            // Gán quyền cho role (nếu có chọn)
+            if (!empty($data['permissions'])) {
+                $role->syncPermissions($data['permissions']);
+            }
+
+            DB::commit();
+            return $role;
+        } catch (Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
     }
 
-    public function updateRole($id, array $data)
+    public function updateRole(Role $role, array $data)
     {
-        return $this->roleRepo->update($id, $data);
+        DB::beginTransaction();
+        try {
+            $role->update(['name' => $data['name']]);
+
+            // Cập nhật lại danh sách quyền (Spatie sẽ tự xóa quyền cũ, map quyền mới)
+            $permissions = $data['permissions'] ?? [];
+            $role->syncPermissions($permissions);
+
+            DB::commit();
+            return $role;
+        } catch (Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
     }
 
-    public function deleteRole($id)
+    public function deleteRole(Role $role)
     {
-        return $this->roleRepo->delete($id);
+        // Spatie sẽ tự động gỡ các khóa ngoại liên quan trước khi xóa
+        return $role->delete();
     }
 }
