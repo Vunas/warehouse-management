@@ -15,62 +15,46 @@
 
         <!-- Dashboard -->
         <a href="{{ route('customer.dashboard') }}"
-            class="nav-link flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+            class="nav-link flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors {{ request()->routeIs('customer.dashboard') ? 'active' : '' }}">
             <i class="fa-solid fa-chart-line w-6 text-center"></i>
             <span class="ml-2 font-medium">Tổng quan</span>
         </a>
 
-        <!-- Module: Vận hành Kho -->
-        <div class="mt-6 px-6 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Vận hành</div>
+        <!-- Module: Mua Sắm -->
+        <div class="mt-6 px-6 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Mua Sắm</div>
 
-        <a href="{{ route('inbound_tickets.index') }}"
-            class="nav-link flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors {{ request()->routeIs('inbound_tickets.*') ? 'active' : '' }}">
-            <i class="fa-solid fa-truck-ramp-box w-6 text-center"></i>
-            <span class="ml-2">Nhập kho</span>
+        <a href="{{ route('customer.dashboard') }}"
+            class="nav-link flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors {{ request()->routeIs('customer.dashboard') ? 'active' : '' }}">
+            <i class="fa-solid fa-shopping-bag w-6 text-center"></i>
+            <span class="ml-2">Danh sách sản phẩm</span>
         </a>
 
-        <a href="{{ route('outbound_tickets.index') }}"
-            class="nav-link flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors {{ request()->routeIs('outbound_tickets.*') ? 'active' : '' }}">
-            <i class="fa-solid fa-dolly w-6 text-center"></i>
-            <span class="ml-2">Xuất kho</span>
+        <a href="{{ route('customer.cart.index') }}"
+            class="nav-link flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors relative {{ request()->routeIs('customer.cart.*') ? 'active' : '' }}">
+            <i class="fa-solid fa-cart-shopping w-6 text-center"></i>
+            <span class="ml-2">Giỏ Hàng</span>
+            @php
+                $cartCount = Auth::check() ? \App\Models\CartItem::where('user_id', Auth::id())->count() : 0;
+            @endphp
+            @if($cartCount > 0)
+                <span class="ml-auto bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">{{ $cartCount }}</span>
+            @endif
         </a>
 
-        <a href="{{ route('inventory.index') }}"
-            class="nav-link flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors {{ request()->routeIs('inventory.*') ? 'active' : '' }}">
-            <i class="fa-solid fa-cubes-stacked w-6 text-center"></i>
-            <span class="ml-2">Tồn kho</span>
+        <a href="{{ route('customer.address.index') }}"
+            class="nav-link flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors {{ request()->routeIs('customer.address.*') ? 'active' : '' }}">
+            <i class="fa-solid fa-map-location-dot w-6 text-center"></i>
+            <span class="ml-2">Địa Chỉ Giao Hàng</span>
         </a>
 
-        <!-- Module: Quản lý -->
-        <div class="mt-6 px-6 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Quản lý</div>
+        <!-- Module: Tài Khoản -->
+        <div class="mt-6 px-6 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Tài Khoản</div>
 
-        <a href="{{ route('contracts.index') }}"
-            class="nav-link flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors {{ request()->routeIs('contracts.*') ? 'active' : '' }}">
-            <i class="fa-solid fa-file-contract w-6 text-center"></i>
-            <span class="ml-2">Hợp đồng</span>
+        <a href="{{ route('customer.profile.edit') }}"
+            class="nav-link flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors {{ request()->routeIs('customer.profile.*') ? 'active' : '' }}">
+            <i class="fa-solid fa-user-gear w-6 text-center"></i>
+            <span class="ml-2">Quản lý tài khoản</span>
         </a>
-
-        <a href="{{ route('customers.index') }}"
-            class="nav-link flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors {{ request()->routeIs('customers.*') ? 'active' : '' }}">
-            <i class="fa-solid fa-building-user w-6 text-center"></i>
-            <span class="ml-2">Thông tin cá nhân</span>
-        </a>
-
-        <!-- Module: Cấu hình -->
-        <div class="mt-6 px-6 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Cấu hình</div>
-
-        <a href="{{ route('warehouses.index') }}"
-            class="nav-link flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors {{ request()->routeIs('warehouses.*') ? 'active' : '' }}">
-            <i class="fa-solid fa-warehouse w-6 text-center"></i>
-            <span class="ml-2">Kho & Lô</span>
-        </a>
-
-        <a href="{{ route('products.index') }}"
-            class="nav-link flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors {{ request()->routeIs('products.*') ? 'active' : '' }}">
-            <i class="fa-solid fa-tag w-6 text-center"></i>
-            <span class="ml-2">Sản phẩm</span>
-        </a>
-
 
     </nav>
 
@@ -85,10 +69,10 @@
                 <div class="text-xs text-slate-500 truncate">{{ Auth::user()->username ?? 'N/A' }}</div>
             </div>
         </div>
-        <form method="POST" action="{{ route('logout') }}">
+        <form method="POST" action="{{ route('customer.logout') }}">
             @csrf
-            <button type="submit" class="w-full text-red-400 hover:text-white">
-                Đăng xuất
+            <button type="submit" class="w-full text-red-400 hover:text-white transition">
+                <i class="fa-solid fa-sign-out-alt mr-2"></i>Đăng xuất
             </button>
         </form>
     </div>

@@ -59,9 +59,13 @@ class AuthController extends Controller
 
             $request->session()->regenerate();
 
-            return redirect()->intended(
-                $guard === 'web' ? '/admin/dashboard' : '/customer/dashboard'
-            )->with('success', 'Đăng nhập thành công!');
+            if ($guard === 'web') {
+                return redirect()->route('dashboard')
+                    ->with('success', 'Đăng nhập thành công!');
+            } else {
+                return redirect()->route('customer.dashboard')
+                    ->with('success', 'Đăng nhập thành công!');
+            }
         }
 
         return back()->withErrors([
@@ -73,12 +77,18 @@ class AuthController extends Controller
      */
     public function logout(Request $request, $guard = 'web')
     {
-        Auth::guard($guard)->logout();
+        Auth::guard('web')->logout();
+        Auth::guard('customer')->logout();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect($guard === 'web' ? '/login' : '/customer/login')
-            ->with('success', 'Bạn đã đăng xuất an toàn.');
+        if ($guard === 'customer') {
+            return redirect()->route('customer_login')
+                ->with('success', 'Bạn đã đăng xuất thành công!');
+        } else {
+            return redirect()->route('login')
+                ->with('success', 'Bạn đã đăng xuất thành công!');
+        }
     }
 }
