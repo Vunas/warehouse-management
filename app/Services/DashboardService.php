@@ -6,7 +6,10 @@ use App\Models\Inventory;
 use App\Models\InboundOrder;
 use App\Models\OutboundOrder;
 use App\Models\StockTransfer;
+use App\Models\Order;
+use App\Models\CartItem;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class DashboardService
 {
@@ -38,6 +41,60 @@ class DashboardService
         // Lấy 5 phiếu xuất kho mới nhất đang chờ xử lý
         return OutboundOrder::with(['order', 'staff'])
             ->where('status', 'pending')
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get();
+    }
+
+    // ===== CUSTOMER METHODS =====
+
+    public function getCustomerProducts()
+    {
+        // Lấy tất cả sản phẩm hoạt động với thông tin tồn kho
+        return Product::with(['brand', 'images', 'category'])
+            ->where('is_active', true)
+            ->get()
+            ->map(function ($product) {
+                $totalStock = Inventory::where('product_id', $product->id)->sum('quantity') ?? 0;
+                $product->total_stock = $totalStock;
+                $product->status = $totalStock > 0 ? 'Còn hàng' : 'Hết hàng';
+                $product->status_color = $totalStock > 0 ? 'green' : 'red';
+                return $product;
+            });
+    }
+
+    public function getCustomerCartStats()
+    {
+        // Lấy thống kê giỏ hàng của khách hàng hiện tại
+        $user = Auth::user();
+        if (!$user) {
+            return [
+                'cart_items' => 0,
+                'cart_total' => 0,
+            ];
+        }
+
+        $cartItems = CartItem::where('user_id', $user->id)->get();
+        $cartTotal = $cartItems->sum(function ($item) {
+            return ($item->product->price ?? 0) * $item->quantity;
+        });
+
+        return [
+            'cart_items' => $cartItems->count(),
+            'cart_total' => $cartTotal,
+        ];
+    }
+
+    public function getCustomerRecentOrders()
+    {
+        // Lấy các đơn hàng gần đây của khách hàng
+        $user = Auth::user();
+        if (!$user) {
+            return [];
+        }
+
+        return Order::with(['items.product', 'payment'])
+            ->where('user_id', $user->id)
             ->orderBy('created_at', 'desc')
             ->take(5)
             ->get();

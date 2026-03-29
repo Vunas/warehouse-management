@@ -22,4 +22,13 @@ class DashboardController extends Controller
 
         return view('admin.dashboard.index', compact('stats', 'lowStocks', 'recentTasks'));
     }
+
+    public function customerIndex()
+    {
+        $products = $this->dashboardService->getCustomerProducts();
+        $cartStats = $this->dashboardService->getCustomerCartStats();
+        $recentOrders = $this->dashboardService->getCustomerRecentOrders();
+
+        return view('customer.dashboard.index', compact('products', 'cartStats', 'recentOrders'));
+    }
 }

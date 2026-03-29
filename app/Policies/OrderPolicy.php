@@ -12,7 +12,7 @@ class OrderPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->hasPermissionTo('view_orders');
+        return $user->hasPermissionTo('view_orders') || $user->id;
     }
 
     /**
@@ -21,7 +21,17 @@ class OrderPolicy
      */
     public function view(User $user, Order $order): bool
     {
-        return $user->hasPermissionTo('view_orders') || $user->id === $order->user_id;
+        // Check if user is the order owner (works for customers)
+        if ($user->id === $order->user_id) {
+            return true;
+        }
+        
+        // Check permission for admin/staff (only for web guard)
+        try {
+            return $user->hasPermissionTo('view_orders');
+        } catch (\Exception $e) {
+            return false;
+        }
     }
 
     /**
@@ -37,7 +47,11 @@ class OrderPolicy
      */
     public function update(User $user, Order $order): bool
     {
-        return $user->hasPermissionTo('edit_orders');
+        try {
+            return $user->hasPermissionTo('edit_orders');
+        } catch (\Exception $e) {
+            return false;
+        }
     }
 
     /**
@@ -45,7 +59,16 @@ class OrderPolicy
      */
     public function delete(User $user, Order $order): bool
     {
-        return $user->hasPermissionTo('delete_orders') || 
-               ($user->id === $order->user_id && $order->status === 'pending');
+        // Customers can cancel their own pending orders
+        if ($user->id === $order->user_id && $order->status === 'pending') {
+            return true;
+        }
+        
+        // Check admin permission
+        try {
+            return $user->hasPermissionTo('delete_orders');
+        } catch (\Exception $e) {
+            return false;
+        }
     }
 }

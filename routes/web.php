@@ -17,6 +17,10 @@ use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\OutboundOrderController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\CartItemController;
+use App\Http\Controllers\CustomerProfileController;
+use App\Http\Controllers\CustomerCartController;
+use App\Http\Controllers\CustomerOrderController;
+use App\Http\Controllers\CustomerAddressController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 
@@ -104,6 +108,30 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
 });
 
 
-Route::middleware(['auth:customer'])->prefix('customer')->group(function () {
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('customer.dashboard');
+Route::middleware(['auth:customer'])->prefix('customer')->name('customer.')->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'customerIndex'])->name('dashboard');
+    
+    // Profile Management
+    Route::get('/profile', [CustomerProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile', [CustomerProfileController::class, 'updateProfile'])->name('profile.update');
+    Route::put('/profile/password', [CustomerProfileController::class, 'updatePassword'])->name('profile.updatePassword');
+    Route::delete('/profile', [CustomerProfileController::class, 'deleteAccount'])->name('profile.delete');
+    
+    // Address Management
+    Route::resource('address', CustomerAddressController::class)->except(['show']);
+    
+    // Address API routes
+    Route::get('address-api/districts/{cityId}', [CustomerAddressController::class, 'getDistricts'])->name('address.api.districts');
+    Route::get('address-api/wards/{districtId}', [CustomerAddressController::class, 'getWards'])->name('address.api.wards');
+    
+    // Cart Management
+    Route::get('/cart', [CustomerCartController::class, 'index'])->name('cart.index');
+    Route::post('/cart/add', [CustomerCartController::class, 'add'])->name('cart.add');
+    Route::put('/cart/{cartItem}', [CustomerCartController::class, 'update'])->name('cart.update');
+    Route::delete('/cart/{cartItem}', [CustomerCartController::class, 'remove'])->name('cart.remove');
+    Route::post('/cart/checkout', [CustomerCartController::class, 'checkout'])->name('cart.checkout');
+    
+    // Order Management
+    Route::get('/order/{order}', [CustomerOrderController::class, 'show'])->name('order.show');
+    Route::post('/order/{order}/cancel', [CustomerOrderController::class, 'cancel'])->name('order.cancel');
 });
