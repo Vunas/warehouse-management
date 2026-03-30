@@ -56,6 +56,11 @@
                 <p class="text-xs text-gray-500 mt-1">Ví dụ: Tòa nhà A, 123 Đường Nguyễn Huệ</p>
             </div>
 
+            <label class="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-lg hover:border-blue-300 cursor-pointer transition">
+                <input type="checkbox" name="is_default" value="1" {{ old('is_default') ? 'checked' : '' }} class="w-5 h-5 text-blue-600 rounded">
+                <span class="font-bold text-gray-800">Đặt làm địa chỉ mặc định</span>
+            </label>
+
             <div class="flex gap-3 pt-4">
                 <a href="{{ route('customer.address.index') }}" class="flex-1 bg-gray-200 text-gray-800 px-4 py-2 rounded-lg font-bold hover:bg-gray-300 transition text-center">
                     Hủy

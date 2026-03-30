@@ -125,50 +125,6 @@
         </div>
     </div>
 
-    <!-- Hàng 3: Đơn Hàng Gần Đây -->
-    @if($recentOrders->count() > 0)
-        <div class="bg-white shadow-sm rounded-2xl border border-gray-100 overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-100 bg-purple-50/50 flex justify-between items-center">
-                <h3 class="text-lg font-bold text-purple-800"><i class="fa-solid fa-receipt mr-2"></i>Đơn Hàng Gần Đây</h3>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-100">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Mã Đơn</th>
-                            <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Ngày Đặt</th>
-                            <th class="px-6 py-3 text-center text-xs font-bold text-gray-500 uppercase">Số Lượng SP</th>
-                            <th class="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase">Tổng Tiền</th>
-                            <th class="px-6 py-3 text-center text-xs font-bold text-gray-500 uppercase">Trạng Thái</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100">
-                        @foreach($recentOrders as $order)
-                            <tr class="hover:bg-gray-50">
-                                <td class="px-6 py-4 text-sm font-bold text-indigo-700">ORD-{{ str_pad($order->id, 5, '0', STR_PAD_LEFT) }}</td>
-                                <td class="px-6 py-4 text-sm text-gray-600">{{ $order->created_at->format('d/m/Y H:i') }}</td>
-                                <td class="px-6 py-4 text-sm text-center font-bold text-gray-800">{{ $order->items->count() }}</td>
-                                <td class="px-6 py-4 text-sm text-right font-bold text-green-600">{{ number_format($order->items->sum(fn($i) => $i->quantity * $i->product->price), 0, ',', '.') }} ₫</td>
-                                <td class="px-6 py-4 text-sm text-center">
-                                    @php
-                                        $statusColors = [
-                                            'pending' => ['bg-yellow-100', 'text-yellow-800', 'Chờ xử lý'],
-                                            'processing' => ['bg-blue-100', 'text-blue-800', 'Đang xử lý'],
-                                            'completed' => ['bg-green-100', 'text-green-800', 'Hoàn thành'],
-                                            'cancelled' => ['bg-red-100', 'text-red-800', 'Đã hủy'],
-                                        ];
-                                        $status = $statusColors[$order->status] ?? ['bg-gray-100', 'text-gray-800', 'Không xác định'];
-                                    @endphp
-                                    <span class="inline-block {{ $status[0] }} {{ $status[1] }} px-3 py-1 rounded-full text-xs font-bold">{{ $status[2] }}</span>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    @endif
-
 </div>
 
 <!-- Add to Cart Modal -->

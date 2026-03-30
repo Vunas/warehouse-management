@@ -8,6 +8,7 @@ use App\Models\Inventory;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Payment;
+use App\Models\Address;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -19,7 +20,9 @@ class CustomerCartController extends Controller
      */
     public function index()
     {
-        $cartItems = CartItem::where('user_id', Auth::id())
+        $userId = Auth::id();
+        
+        $cartItems = CartItem::where('user_id', $userId)
             ->with('product')
             ->get();
         
@@ -27,7 +30,20 @@ class CustomerCartController extends Controller
             return ($item->product->price ?? 0) * $item->quantity;
         });
 
-        return view('customer.cart.index', compact('cartItems', 'total'));
+        // Lấy danh sách địa chỉ
+        $addresses = Address::where('user_id', $userId)
+            ->with('ward.district.city')
+            ->orderBy('is_default', 'desc')
+            ->get();
+
+        // Lấy đơn hàng gần đây
+        $recentOrders = Order::where('user_id', $userId)
+            ->with(['items.product', 'payment'])
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get();
+
+        return view('customer.cart.index', compact('cartItems', 'total', 'addresses', 'recentOrders'));
     }
 
     /**
@@ -115,18 +131,32 @@ class CustomerCartController extends Controller
      */
     public function checkout(Request $request)
     {
+        $request->validate([
+            'address_id' => ['required', 'exists:addresses,id'],
+        ], [
+            'address_id.required' => 'Vui lòng chọn địa chỉ giao hàng!',
+            'address_id.exists' => 'Địa chỉ không hợp lệ!',
+        ]);
+
+        $userId = Auth::id();
         $user = Auth::user();
-        $cartItems = CartItem::where('user_id', $user->id)->with('product')->get();
+        
+        if (!$userId || !$user) {
+            return redirect()->route('customer_login')->withErrors(['auth' => 'Vui lòng đăng nhập!']);
+        }
+
+        $cartItems = CartItem::where('user_id', $userId)->with('product')->get();
 
         if ($cartItems->isEmpty()) {
             return back()->withErrors(['cart' => 'Giỏ hàng trống!']);
         }
 
-        // Kiểm tra địa chỉ
-        $address = $user->addresses()->first();
-        if (!$address) {
-            return redirect()->route('customer.address.create')
-                ->with('error', 'Vui lòng thêm địa chỉ giao hàng trước khi đặt hàng!');
+        // Lấy địa chỉ được chọn
+        $address = Address::findOrFail($request->address_id);
+        
+        // Kiểm tra địa chỉ thuộc user hiện tại
+        if ($address->user_id !== $userId) {
+            return back()->withErrors(['address_id' => 'Địa chỉ không hợp lệ!']);
         }
 
         try {
@@ -147,7 +177,7 @@ class CustomerCartController extends Controller
 
             // Tạo đơn hàng
             $order = Order::create([
-                'user_id' => $user->id,
+                'user_id' => $userId,
                 'address_id' => $address->id,
                 'total_price' => $total,
                 'status' => 'pending',
@@ -176,14 +206,14 @@ class CustomerCartController extends Controller
             // Tạo payment
             Payment::create([
                 'order_id' => $order->id,
-                'user_id' => $user->id,
+                'user_id' => $userId,
                 'amount' => $total,
                 'status' => 'pending',
                 'payment_method' => 'bank_transfer',
             ]);
 
             // Xóa items khỏi giỏ hàng
-            CartItem::where('user_id', $user->id)->delete();
+            CartItem::where('user_id', $userId)->delete();
 
             DB::commit();
 

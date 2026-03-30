@@ -27,8 +27,7 @@ class DashboardController extends Controller
     {
         $products = $this->dashboardService->getCustomerProducts();
         $cartStats = $this->dashboardService->getCustomerCartStats();
-        $recentOrders = $this->dashboardService->getCustomerRecentOrders();
 
-        return view('customer.dashboard.index', compact('products', 'cartStats', 'recentOrders'));
+        return view('customer.dashboard.index', compact('products', 'cartStats'));
     }
 }
