@@ -5,7 +5,7 @@
     
     <!-- Tiêu đề -->
     <div class="flex items-center justify-between">
-        <h1 class="text-2xl font-black text-gray-800">Danh Sách Sản Phẩm</h1>
+        <h1 class="text-2xl font-black text-gray-800">Nhập hàng</h1>
         <div class="text-sm text-gray-500 font-medium bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-200">
             <i class="fa-regular fa-clock mr-2"></i>Cập nhật lúc: {{ now()->format('H:i - d/m/Y') }}
         </div>
@@ -61,7 +61,7 @@
     <!-- Hàng 2: Danh Sách Sản Phẩm -->
     <div class="bg-white shadow-sm rounded-2xl border border-gray-100 overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-100 bg-blue-50/50 flex justify-between items-center">
-            <h3 class="text-lg font-bold text-blue-800"><i class="fa-solid fa-list mr-2"></i>Danh Sách Sản Phẩm Để Mua</h3>
+            <h3 class="text-lg font-bold text-blue-800"><i class="fa-solid fa-list mr-2"></i>Danh Sách Sản Phẩm</h3>
         </div>
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-100">
