@@ -1,47 +1,35 @@
 <?php
-
-namespace App\Http\Requests;
+namespace App\Http\Requests\User;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreUserRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
-        // Trả về true nếu mọi user đều có quyền, hoặc thêm logic check permission ở đây
         return true; 
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     */
     public function rules(): array
     {
         return [
-            'username'  => 'required|unique:users',
-            'password'  => 'required|min:6',
-            'full_name' => 'required|string',
-            'email'     => 'required|email|unique:users',
-            'phone'     => 'nullable|string',
+            'username'  => ['required', 'string', 'max:100', 'unique:users,username'],
+            'email'     => ['required', 'email', 'max:150', 'unique:users,email'],
+            'password'  => ['required', 'string', 'min:6'],
+            'full_name' => ['required', 'string', 'max:150'],
+            'phone'     => ['nullable', 'string', 'max:20'],
+            'role_name' => ['required', 'string', 'exists:roles,name'], 
+            'is_active' => ['required', 'boolean'],
         ];
     }
 
-    /**
-     * Custom messages (Tùy chọn)
-     */
     public function messages(): array
     {
         return [
-            'username.required' => 'Tên đăng nhập không được để trống.',
-            'username.unique'   => 'Tên đăng nhập đã tồn tại.',
-            'email.required'    => 'Email không được để trống.',
-            'email.email'       => 'Email không đúng định dạng.',
-            'email.unique'      => 'Email đã được sử dụng.',
-            'password.required' => 'Mật khẩu không được để trống.',
-            'password.min'      => 'Mật khẩu phải có ít nhất 6 ký tự.',
+            'username.unique' => 'Tên đăng nhập này đã tồn tại.',
+            'email.unique'    => 'Email này đã được sử dụng.',
+            'role_name.exists'=> 'Vai trò không hợp lệ.',
         ];
     }
 }
