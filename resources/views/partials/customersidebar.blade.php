@@ -26,13 +26,13 @@
         <a href="{{ route('customer.dashboard') }}"
             class="nav-link flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors {{ request()->routeIs('customer.dashboard') ? 'active' : '' }}">
             <i class="fa-solid fa-shopping-bag w-6 text-center"></i>
-            <span class="ml-2">Danh sách sản phẩm</span>
+            <span class="ml-2">Nhập Hàng</span>
         </a>
 
         <a href="{{ route('customer.cart.index') }}"
             class="nav-link flex items-center px-6 py-3 hover:bg-slate-800 hover:text-white transition-colors relative {{ request()->routeIs('customer.cart.*') ? 'active' : '' }}">
             <i class="fa-solid fa-cart-shopping w-6 text-center"></i>
-            <span class="ml-2">Giỏ Hàng</span>
+            <span class="ml-2">Hàng Chờ Nhập</span>
             @php
                 $cartCount = Auth::check() ? \App\Models\CartItem::where('user_id', Auth::id())->sum('quantity') : 0;
             @endphp

@@ -30,7 +30,7 @@ use Illuminate\Http\Request;
 |--------------------------------------------------------------------------
 */
 Route::get('/', function () {
-    return redirect()->route('login');
+    return redirect()->route('customer_login');
 });
 
 // Guest routes
@@ -47,11 +47,11 @@ Route::middleware('guest')->group(function () {
 // Logout routes
 Route::post('/logout', function(Request $request) {
     return app(AuthController::class)->logout($request, 'web');
-})->name('logout')->middleware('auth');
+})->name('logout')->middleware('auth:web');
 
 Route::post('/customer/logout', function(Request $request) {
     return app(AuthController::class)->logout($request, 'customer');
-})->name('customer.logout')->middleware('auth');
+})->name('customer.logout')->middleware('auth:customer');
 
 /*
 |--------------------------------------------------------------------------
