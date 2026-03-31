@@ -17,6 +17,7 @@ class StockTransfer extends Model
         'from_location_id',
         'to_location_id',
         'staff_id',
+        'batch_id',
         'status',
     ];
 
@@ -38,5 +39,9 @@ class StockTransfer extends Model
     public function items(): HasMany
     {
         return $this->hasMany(TransferItem::class, 'transfer_id');
+    }
+    public function batch(): BelongsTo
+    {
+        return $this->belongsTo(ProductBatch::class, 'batch_id');
     }
 }

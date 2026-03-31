@@ -110,6 +110,19 @@ CREATE TABLE products (
     FOREIGN KEY (brand_id) REFERENCES brands(id)
 );
 
+CREATE TABLE product_batches (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    product_id INT,
+    batch_code VARCHAR(100),
+    expiry_date DATE,
+    manufacture_date DATE,
+    created_at TIMESTAMP
+
+    FOREIGN KEY (product_id) REFERENCES products(id)
+
+);
+
+
 CREATE TABLE product_images (
     id INT AUTO_INCREMENT PRIMARY KEY,
     product_id INT,
@@ -180,11 +193,13 @@ CREATE TABLE inventory (
     product_id INT,
     location_id INT,
     quantity INT DEFAULT 0,
+    reserved_quantity INT DEFAULT 0,
+    batch_id BIGINT,
 
     created_at TIMESTAMP NULL,
     updated_at TIMESTAMP NULL,
 
-    UNIQUE(product_id, location_id),
+     UNIQUE(product_id, location_id, batch_id),
 
     FOREIGN KEY (product_id) REFERENCES products(id),
     FOREIGN KEY (location_id) REFERENCES locations(id)
@@ -213,6 +228,7 @@ CREATE TABLE inbound_items (
 
     inbound_id BIGINT,
     product_id INT,
+    batch_id BIGINT, 
 
     quantity INT,
     price DECIMAL(12,2),
@@ -221,7 +237,8 @@ CREATE TABLE inbound_items (
     updated_at TIMESTAMP NULL,
 
     FOREIGN KEY (inbound_id) REFERENCES inbound_orders(id) ON DELETE CASCADE,
-    FOREIGN KEY (product_id) REFERENCES products(id)
+    FOREIGN KEY (product_id) REFERENCES products(id),
+     FOREIGN KEY (batch_id) REFERENCES product_batches(id)
 );
 
 -- =====================================
@@ -289,14 +306,18 @@ CREATE TABLE outbound_orders (
 
     order_id BIGINT,
     staff_id BIGINT,
-
+    warehouse_id BIGINT UNSIGNED NULL,
+    type ENUM('sales', 'internal', 'adjustment', 'return_to_supplier') DEFAULT 'sales',
+    reason TEXT NULL,
     status ENUM('pending','completed','cancelled'),
 
     created_at TIMESTAMP NULL,
     updated_at TIMESTAMP NULL,
 
     FOREIGN KEY (order_id) REFERENCES orders(id),
-    FOREIGN KEY (staff_id) REFERENCES users(id)
+    FOREIGN KEY (staff_id) REFERENCES users(id),
+    FOREIGN KEY (warehouse_id) REFERENCES warehouses(id),
+
 );
 
 CREATE TABLE outbound_items (
@@ -304,13 +325,17 @@ CREATE TABLE outbound_items (
 
     outbound_id BIGINT,
     product_id INT,
+    location_id BIGINT UNSIGNED NULL,
     quantity INT,
+    batch_id BIGINT, 
 
     created_at TIMESTAMP NULL,
     updated_at TIMESTAMP NULL,
 
     FOREIGN KEY (outbound_id) REFERENCES outbound_orders(id) ON DELETE CASCADE,
-    FOREIGN KEY (product_id) REFERENCES products(id)
+    FOREIGN KEY (product_id) REFERENCES products(id),
+    FOREIGN KEY (location_id) REFERENCES locations(id),
+    FOREIGN KEY (batch_id) REFERENCES product_batches(id)
 );
 
 -- =====================================
@@ -322,6 +347,7 @@ CREATE TABLE stock_transfers (
     from_location_id INT,
     to_location_id INT,
     staff_id BIGINT,
+    batch_id BIGINT,
 
     status ENUM('pending','completed','cancelled'),
 
@@ -330,7 +356,8 @@ CREATE TABLE stock_transfers (
 
     FOREIGN KEY (from_location_id) REFERENCES locations(id),
     FOREIGN KEY (to_location_id) REFERENCES locations(id),
-    FOREIGN KEY (staff_id) REFERENCES users(id)
+    FOREIGN KEY (staff_id) REFERENCES users(id),
+    FOREIGN KEY (batch_id) REFERENCES product_batches(id)
 );
 
 CREATE TABLE transfer_items (
