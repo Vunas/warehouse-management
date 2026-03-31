@@ -36,7 +36,7 @@ class Location extends Model
         return $this->hasMany(Location::class, 'parent_id');
     }
 
-     public function children_tree()
+    public function children_tree()
     {
         return $this->children()->with('children_tree');
     }
@@ -45,4 +45,19 @@ class Location extends Model
     {
         return $this->hasMany(Inventory::class, 'location_id');
     }
+
+    public function getFullPathAttribute()
+    {
+        $path = $this->name;
+        $parent = $this->parent;
+
+        while ($parent) {
+            $path = $parent->name . ' - ' . $path;
+            $parent = $parent->parent;
+        }
+
+        return $path;
+    }
+
+    protected $appends = ['full_path'];
 }

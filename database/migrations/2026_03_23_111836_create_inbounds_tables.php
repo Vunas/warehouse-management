@@ -12,16 +12,23 @@ return new class extends Migration
             $table->id();
             $table->foreignId('supplier_id')->constrained('suppliers');
             $table->foreignId('staff_id')->constrained('users');
+
             $table->enum('status', ['pending', 'completed', 'cancelled'])->default('pending');
+
             $table->timestamps();
         });
 
         Schema::create('inbound_items', function (Blueprint $table) {
             $table->id();
+
             $table->foreignId('inbound_id')->constrained('inbound_orders')->cascadeOnDelete();
             $table->foreignId('product_id')->constrained('products');
+
+            $table->foreignId('batch_id')->nullable()->constrained('product_batches');
+
             $table->integer('quantity');
             $table->decimal('price', 12, 2);
+
             $table->timestamps();
         });
     }

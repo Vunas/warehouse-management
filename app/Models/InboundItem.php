@@ -17,6 +17,7 @@ class InboundItem extends Model
         'product_id',
         'quantity',
         'price',
+        'batch_id',
     ];
 
     protected $casts = [
@@ -31,5 +32,10 @@ class InboundItem extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function batch(): BelongsTo
+    {
+        return $this->belongsTo(ProductBatch::class, 'batch_id');
     }
 }
