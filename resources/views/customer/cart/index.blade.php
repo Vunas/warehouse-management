@@ -42,7 +42,7 @@
             <h2 class="text-2xl font-bold text-gray-800 mb-2">Giỏ Hàng Trống</h2>
             <p class="text-gray-600 mb-6">Bạn chưa thêm sản phẩm nào vào giỏ hàng</p>
             <a href="{{ route('customer.dashboard') }}" class="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-700 transition">
-                <i class="fa-solid fa-arrow-left mr-2"></i>Tiếp tục mua sắm
+                <i class="fa-solid fa-arrow-left mr-2"></i>Nhập hàng
             </a>
         </div>
     @else

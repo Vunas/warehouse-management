@@ -30,7 +30,7 @@ use Illuminate\Http\Request;
 |--------------------------------------------------------------------------
 */
 Route::get('/', function () {
-    return redirect()->route('/customer/login');
+    return redirect()->route('customer_login');
 });
 
 // Guest routes
