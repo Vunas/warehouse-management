@@ -33,29 +33,47 @@ class InventoryRepository extends BaseRepository implements InventoryRepositoryI
     public function getByProductId(int $productId)
     {
         return $this->model->with('location.warehouse')
-                           ->where('product_id', $productId)
-                           ->get();
+            ->where('product_id', $productId)
+            ->get();
     }
 
     public function getByLocationId(int $locationId)
     {
         return $this->model->with('product')
-                           ->where('location_id', $locationId)
-                           ->get();
+            ->where('location_id', $locationId)
+            ->get();
     }
 
     public function findByProductAndLocation(int $productId, int $locationId)
     {
         return $this->model->where('product_id', $productId)
-                           ->where('location_id', $locationId)
-                           ->first();
+            ->where('location_id', $locationId)
+            ->first();
     }
 
+    // Lấy các lô hàng có "tồn khả dụng" (Số lượng - Đã giữ > 0) để xuất bán mới hoặc xuất nội bộ
     public function getAvailableStockByProduct(int $productId)
     {
         return $this->model->where('product_id', $productId)
-                           ->where('quantity', '>', 0)
-                           ->orderBy('created_at', 'asc')
-                           ->get();
+            ->whereRaw('(quantity - reserved_quantity) > 0')
+            ->orderBy('created_at', 'asc') // FIFO
+            ->get();
+    }
+
+    // Lấy các lô hàng đang được "giữ chỗ" (Dành cho việc xuất kho sau khi đã reserve)
+    public function getReservedStockByProduct(int $productId)
+    {
+        return $this->model->where('product_id', $productId)
+            ->where('reserved_quantity', '>', 0)
+            ->orderBy('created_at', 'asc') // FIFO
+            ->get();
+    }
+
+    public function findByProductLocationBatch($productId, $locationId, $batchId)
+    {
+        return Inventory::where('product_id', $productId)
+            ->where('location_id', $locationId)
+            ->where('batch_id', $batchId)
+            ->first();
     }
 }
