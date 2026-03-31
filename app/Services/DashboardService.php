@@ -66,21 +66,21 @@ class DashboardService
     public function getCustomerCartStats()
     {
         // Lấy thống kê giỏ hàng của khách hàng hiện tại
-        $user = Auth::user();
-        if (!$user) {
+        $userId = Auth::id();
+        if (!$userId) {
             return [
                 'cart_items' => 0,
                 'cart_total' => 0,
             ];
         }
 
-        $cartItems = CartItem::where('user_id', $user->id)->get();
+        $cartItems = CartItem::where('user_id', $userId)->get();
         $cartTotal = $cartItems->sum(function ($item) {
             return ($item->product->price ?? 0) * $item->quantity;
         });
 
         return [
-            'cart_items' => $cartItems->count(),
+            'cart_items' => $cartItems->sum('quantity'),
             'cart_total' => $cartTotal,
         ];
     }
@@ -88,13 +88,13 @@ class DashboardService
     public function getCustomerRecentOrders()
     {
         // Lấy các đơn hàng gần đây của khách hàng
-        $user = Auth::user();
-        if (!$user) {
+        $userId = Auth::id();
+        if (!$userId) {
             return [];
         }
 
         return Order::with(['items.product', 'payment'])
-            ->where('user_id', $user->id)
+            ->where('user_id', $userId)
             ->orderBy('created_at', 'desc')
             ->take(5)
             ->get();

@@ -7,8 +7,20 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Spatie\Permission\Traits\HasRoles; 
+use Spatie\Permission\Traits\HasRoles;
 
+/**
+ * @property int $id
+ * @property string $username
+ * @property string $password
+ * @property string $full_name
+ * @property string $email
+ * @property ?string $phone
+ * @property bool $is_active
+ * @property-read HasMany $addresses
+ * @property-read HasMany $orders
+ * @property-read HasMany $cartItems
+ */
 class User extends Authenticatable
 {
     use HasFactory, Notifiable, SoftDeletes, HasRoles; 

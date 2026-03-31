@@ -34,7 +34,7 @@
             <i class="fa-solid fa-cart-shopping w-6 text-center"></i>
             <span class="ml-2">Hàng Chờ Nhập</span>
             @php
-                $cartCount = Auth::check() ? \App\Models\CartItem::where('user_id', Auth::id())->count() : 0;
+                $cartCount = Auth::check() ? \App\Models\CartItem::where('user_id', Auth::id())->sum('quantity') : 0;
             @endphp
             @if($cartCount > 0)
                 <span class="ml-auto bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">{{ $cartCount }}</span>

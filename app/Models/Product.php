@@ -9,6 +9,18 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
+/**
+ * @property int $id
+ * @property int $category_id
+ * @property int $brand_id
+ * @property string $name
+ * @property ?string $description
+ * @property float $price
+ * @property bool $is_active
+ * @property-read Category $category
+ * @property-read Brand $brand
+ * @property-read HasMany $images
+ */
 class Product extends Model
 {
     use HasFactory, SoftDeletes;

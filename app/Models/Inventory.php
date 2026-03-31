@@ -6,6 +6,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property int $id
+ * @property int $product_id
+ * @property int $location_id
+ * @property int $quantity
+ * @property-read Product $product
+ * @property-read Location $location
+ */
 class Inventory extends Model
 {
     use HasFactory;

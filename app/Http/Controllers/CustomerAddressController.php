@@ -37,10 +37,21 @@ class CustomerAddressController extends Controller
         $validated = $request->validate([
             'ward_id' => ['required', 'exists:wards,id'],
             'detail' => ['required', 'string', 'max:500'],
+            'is_default' => ['nullable', 'boolean'],
         ], [
             'ward_id.required' => 'Vui lòng chọn phường/xã.',
             'detail.required' => 'Vui lòng nhập chi tiết địa chỉ.',
         ]);
+
+        $userId = Auth::id();
+        
+        // Nếu đánh dấu là mặc định, bỏ flag mặc định từ các địa chỉ khác
+        if ($request->has('is_default') && $request->is_default) {
+            Address::where('user_id', $userId)->update(['is_default' => false]);
+            $validated['is_default'] = true;
+        } else {
+            $validated['is_default'] = false;
+        }
 
         Auth::user()->addresses()->create($validated);
 
@@ -72,7 +83,18 @@ class CustomerAddressController extends Controller
         $validated = $request->validate([
             'ward_id' => ['required', 'exists:wards,id'],
             'detail' => ['required', 'string', 'max:500'],
+            'is_default' => ['nullable', 'boolean'],
         ]);
+
+        $userId = Auth::id();
+        
+        // Nếu đánh dấu là mặc định, bỏ flag mặc định từ các địa chỉ khác
+        if ($request->has('is_default') && $request->is_default) {
+            Address::where('user_id', $userId)->where('id', '!=', $address->id)->update(['is_default' => false]);
+            $validated['is_default'] = true;
+        } else {
+            $validated['is_default'] = false;
+        }
 
         $address->update($validated);
 
