@@ -30,7 +30,7 @@ use Illuminate\Http\Request;
 |--------------------------------------------------------------------------
 */
 Route::get('/', function () {
-    return redirect()->route('login');
+    return redirect()->route('customer_login');
 });
 
 // Guest routes
@@ -47,11 +47,11 @@ Route::middleware('guest')->group(function () {
 // Logout routes
 Route::post('/logout', function(Request $request) {
     return app(AuthController::class)->logout($request, 'web');
-})->name('logout')->middleware('auth');
+})->name('logout')->middleware('auth:web');
 
 Route::post('/customer/logout', function(Request $request) {
     return app(AuthController::class)->logout($request, 'customer');
-})->name('customer.logout')->middleware('auth');
+})->name('customer.logout')->middleware('auth:customer');
 
 /*
 |--------------------------------------------------------------------------
@@ -66,6 +66,8 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
 
     // Hệ thống & Người dùng
     Route::resource('users', UserController::class);
+    Route::post('/users/{user}/restore', [UserController::class, 'restore'])->withTrashed()->name('users.restore');
+    Route::delete('/users/{user}/force-delete', [UserController::class, 'forceDelete'])->withTrashed()->name('users.force-delete');
     Route::resource('roles', RoleController::class);
 
     // Master Data (Danh mục lõi)

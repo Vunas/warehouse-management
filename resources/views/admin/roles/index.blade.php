@@ -36,6 +36,8 @@
                         <div class="flex flex-wrap gap-1">
                             @if($role->name === 'admin')
                                 <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">Tất cả quyền (Super Admin)</span>
+                            @elseif($role->name === 'customer')
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">Tài khoản chỉ sử dụng ở trang nhập hàng</span>
                             @else
                                 @forelse($role->permissions as $permission)
                                     <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800">

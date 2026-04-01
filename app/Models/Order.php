@@ -9,6 +9,17 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
+/**
+ * @property int $id
+ * @property int $user_id
+ * @property int $address_id
+ * @property float $total_price
+ * @property string $status
+ * @property-read User $user
+ * @property-read Address $address
+ * @property-read HasMany $items
+ * @property-read HasOne $payment
+ */
 class Order extends Model
 {
     use HasFactory, SoftDeletes;
