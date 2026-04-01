@@ -41,13 +41,13 @@
                 <select name="role" class="block w-full md:w-40 py-2 pl-3 pr-10 border border-gray-300 rounded-lg sm:text-sm">
                     <option value="">Tất cả role</option>
                     @foreach($roles as $role)
-                        <option value="{{ $role->name }}" {{ request('role') == $role->id ? 'selected' : '' }}>
+                        <option value="{{ $role->name }}" {{ request('role') == $role->name ? 'selected' : '' }}>
                             {{ $role->name }}
                         </option>
                     @endforeach
                 </select>
 
-                {{-- Role --}}
+                {{-- Active --}}
                 <input type="checkbox" name="include_inactive" value="1" {{ request('include_inactive') ? 'checked' : '' }} class="ml-2">
                 <span class="text-sm text-gray-600">Bao gồm người dùng đã xóa</span>
 
