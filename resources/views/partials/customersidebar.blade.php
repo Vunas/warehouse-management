@@ -7,7 +7,7 @@
             {{-- LEFT: LOGO --}}
             <div class="flex items-center">
                 <span class="text-xl font-bold text-white">
-                    <i class="fa-solid fa-boxes-stacked text-blue-500 mr-2"></i> WMS PRO
+                    <i class="fa-solid fa-boxes-stacked text-blue-500 mr-2"></i> ALOVUA
                 </span>
             </div>
 
@@ -15,8 +15,8 @@
             <nav class="flex items-center gap-2">
 
                 <!-- Tổng quan -->
-                <a href="{{ route('customer.dashboard') }}"
-                    class="nav-link flex items-center px-4 py-2 rounded-lg hover:bg-slate-800 hover:text-white transition {{ request()->routeIs('customer.dashboard') ? 'active' : '' }}">
+                <a href="{{ route('customer.overview') }}"
+                    class="nav-link flex items-center px-4 py-2 rounded-lg hover:bg-slate-800 hover:text-white transition {{ request()->routeIs('customer.overview') ? 'active' : '' }}">
                     <i class="fa-solid fa-chart-line mr-2"></i>
                     Tổng quan
                 </a>

@@ -109,6 +109,7 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
 
 
 Route::middleware(['auth:customer'])->prefix('customer')->name('customer.')->group(function () {
+    Route::get('/overview', [DashboardController::class, 'overview'])->name('overview');
     Route::get('/dashboard', [DashboardController::class, 'customerIndex'])->name('dashboard');
     
     // Profile Management
