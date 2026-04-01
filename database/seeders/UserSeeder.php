@@ -10,7 +10,9 @@ class UserSeeder extends Seeder
 {
     public function run(): void
     {
-        User::factory(5)->withRole('staff')->create();
-        User::factory(2)->withRole('customer')->inactive()->create();
+        User::factory(15)->withRole('staff')->create();
+        User::factory(5)->withRole('customer')->create();
+        User::factory(10)->withRole('customer')->create();
+        User::factory(5)->withRole('customer')->inactive()->create();
     }
 }

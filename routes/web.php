@@ -43,7 +43,6 @@ Route::middleware('guest')->group(function () {
     Route::get('/customer/login', [AuthController::class, 'showCustomerLoginForm'])->name('customer_login');
     Route::post('/customer/login', [AuthController::class, 'login'])->name('customer_login.post');
 });
-
 // Logout routes
 Route::post('/logout', function(Request $request) {
     return app(AuthController::class)->logout($request, 'web');
@@ -98,7 +97,7 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::post('transfers/{transfer}/cancel', [StockTransferController::class, 'cancel'])->name('transfers.cancel');
 
     // Xuất kho (Outbound)
-    Route::resource('outbounds', OutboundOrderController::class)->except(['edit', 'update']);
+    Route::resource('outbounds', OutboundOrderController::class);
     Route::post('outbounds/{outbound}/complete', [OutboundOrderController::class, 'complete'])->name('outbounds.complete');
     Route::post('outbounds/{outbound}/cancel', [OutboundOrderController::class, 'cancel'])->name('outbounds.cancel');
 
@@ -109,6 +108,8 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::resource('orders', OrderController::class)->only(['index']);
 });
 
+Route::get('/api/inventory/{warehouse}', [App\Http\Controllers\OutboundOrderController::class, 'getInventoryApi']);
+Route::get('/api/locations/{warehouse}', [App\Http\Controllers\InventoryController::class, 'getLocationsApi']);
 
 Route::middleware(['auth:customer'])->prefix('customer')->name('customer.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'customerIndex'])->name('dashboard');

@@ -13,9 +13,13 @@ class OutboundOrder extends Model
 
     protected $table = 'outbound_orders';
 
+    // ĐÃ THÊM warehouse_id VÀO ĐÂY
     protected $fillable = [
         'order_id',
         'staff_id',
+        'warehouse_id', // BẮT BUỘC PHẢI CÓ
+        'type',
+        'reason',
         'status',
     ];
 
@@ -32,5 +36,10 @@ class OutboundOrder extends Model
     public function items(): HasMany
     {
         return $this->hasMany(OutboundItem::class, 'outbound_id');
+    }
+    
+    public function warehouse(): BelongsTo
+    {
+        return $this->belongsTo(Warehouse::class, 'warehouse_id');
     }
 }
