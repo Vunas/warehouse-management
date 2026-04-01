@@ -29,6 +29,16 @@ class UserService
             $query->where('is_active', $filters['status']);
         }
 
+        if (isset($filters['role']) && $filters['role'] !== '') {
+            $query->whereHas('roles', function ($q) use ($filters) {
+                $q->where('name', $filters['role']);
+            });
+        }
+
+        if(isset($filters['include_inactive'])) {
+            $query->withTrashed();
+        }
+
         return $query->orderBy($sort, $dir)->paginate($perPage)->withQueryString();
     }
 
@@ -100,5 +110,19 @@ class UserService
     {
         // Có thể thêm logic: không cho xóa Admin cao nhất ở đây
         return $user->delete();
+    }
+
+    public function restoreUser(User $user)
+    {
+        return $user->restore();
+    }
+    
+    /**
+     * Xóa vĩnh viễn người dùng
+     */
+    public function forceDeleteUser(User $user)
+    {
+        // Có thể thêm logic: không cho xóa Admin cao nhất ở đây
+        return $user->forceDelete();
     }
 }

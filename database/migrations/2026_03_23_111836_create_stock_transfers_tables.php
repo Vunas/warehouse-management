@@ -23,6 +23,7 @@ return new class extends Migration
             $table->foreignId('transfer_id')->constrained('stock_transfers')->cascadeOnDelete();
             $table->foreignId('inventory_id')->constrained('inventory');
             $table->foreignId('product_id')->constrained('products');
+            $table->foreignId('batch_id')->constrained('product_batches');
             $table->integer('quantity');
             $table->timestamps();
         });

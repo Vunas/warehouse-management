@@ -37,6 +37,20 @@
                     <option value="0" {{ request('status') === '0' ? 'selected' : '' }}>Bị khóa</option>
                 </select>
 
+                {{-- Role --}}
+                <select name="role" class="block w-full md:w-40 py-2 pl-3 pr-10 border border-gray-300 rounded-lg sm:text-sm">
+                    <option value="">Tất cả role</option>
+                    @foreach($roles as $role)
+                        <option value="{{ $role->name }}" {{ request('role') == $role->name ? 'selected' : '' }}>
+                            {{ $role->name }}
+                        </option>
+                    @endforeach
+                </select>
+
+                {{-- Active --}}
+                <input type="checkbox" name="include_inactive" value="1" {{ request('include_inactive') ? 'checked' : '' }} class="ml-2">
+                <span class="text-sm text-gray-600">Bao gồm người dùng đã xóa</span>
+
                 {{-- Giữ sort --}}
                 @if(request('sort')) <input type="hidden" name="sort" value="{{ request('sort') }}"> @endif
                 @if(request('dir')) <input type="hidden" name="dir" value="{{ request('dir') }}"> @endif
@@ -68,7 +82,7 @@
             </x-slot>
 
             @forelse($users as $user)
-                <tr class="hover:bg-gray-50">
+                <tr class=" {{ $user->trashed() ? 'bg-red-100 hover:bg-red-200' : 'hover:bg-gray-50' }}">
                     {{-- ID --}}
                     <td class="px-6 py-4 font-medium">#{{ $user->id }}</td>
 
@@ -107,24 +121,43 @@
                     <td class="px-6 py-4 text-right">
                         <div class="flex justify-end space-x-2">
 
-                            @can('update', $user)
-                                <a href="{{ route('users.edit', $user->id) }}"
-                                   class="text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-md">
-                                    Sửa
-                                </a>
-                            @endcan
+                            @if($user->trashed())
+                                @can('delete', $user)
+                                    <form action="{{ route('users.restore', $user->id) }}" method="POST" class="inline">
+                                        @csrf
+                                        <button type="submit" class="text-green-600 bg-green-50 px-3 py-1.5 rounded-md">Khôi phục</button>
+                                    </form>
+                                @endcan
+                            @else
+                                @can('update', $user)
+                                    <a href="{{ route('users.edit', $user->id) }}"
+                                    class="text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-md">
+                                        Sửa
+                                    </a>
+                                @endcan
+                            @endif
 
-                            @can('delete', $user)
-                                <form action="{{ route('users.destroy', $user->id) }}" method="POST"
-                                      onsubmit="return confirm('Chuyển người dùng này vào thùng rác?');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button class="text-red-600 bg-red-50 px-3 py-1.5 rounded-md">
-                                        Xóa
-                                    </button>
-                                </form>
-                            @endcan
-
+                            @if($user->trashed())
+                                @can('delete', $user)
+                                    <form action="{{ route('users.force-delete', $user->id) }}" method="POST" class="inline" 
+                                        onsubmit="return confirm('Bạn có chắc chắn muốn xóa vĩnh viễn người dùng này?');">
+                                        @csrf 
+                                        @method('DELETE')
+                                        <button type="submit" class="text-red-600 bg-red-50 px-3 py-1.5 rounded-md">Xóa</button>
+                                    </form>
+                                @endcan
+                            @else
+                                @can('delete', $user)
+                                    <form action="{{ route('users.destroy', $user->id) }}" method="POST"
+                                        onsubmit="return confirm('Chuyển người dùng này vào thùng rác?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button class="text-red-600 bg-red-50 px-3 py-1.5 rounded-md">
+                                            Xóa
+                                        </button>
+                                    </form>
+                                @endcan
+                            @endif
                         </div>
                     </td>
                 </tr>
@@ -136,6 +169,5 @@
                 </tr>
             @endforelse
         </x-ui.table>
-
     </x-crud.index>
 @endsection
