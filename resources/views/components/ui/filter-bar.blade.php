@@ -9,7 +9,7 @@
             <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gray-800 hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 transition-colors">
                 Lọc dữ liệu
             </button>
-            @if(request()->anyFilled(['search', 'status', 'sort']))
+            @if(request()->anyFilled(['search', 'status', 'sort', 'role', 'include_inactive']))
                 <a href="{{ $action }}" class="text-sm font-medium text-gray-500 hover:text-red-600 underline underline-offset-2 transition-colors">Xóa lọc</a>
             @endif
         </div>

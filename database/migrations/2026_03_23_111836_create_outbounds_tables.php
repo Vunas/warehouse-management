@@ -10,9 +10,16 @@ return new class extends Migration
     {
         Schema::create('outbound_orders', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('order_id')->constrained('orders');
+
+            $table->foreignId('order_id')->nullable()->constrained('orders');
             $table->foreignId('staff_id')->constrained('users');
+            $table->foreignId('warehouse_id')->nullable()->constrained('warehouses');
+
+            $table->enum('type', ['sales', 'internal', 'adjustment'])->default('sales');
+            $table->text('reason')->nullable();
+
             $table->enum('status', ['pending', 'completed', 'cancelled'])->default('pending');
+
             $table->timestamps();
         });
 
@@ -20,6 +27,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('outbound_id')->constrained('outbound_orders')->cascadeOnDelete();
             $table->foreignId('product_id')->constrained('products');
+            $table->foreignId('batch_id')->constrained('product_batches');
+            $table->foreignId('location_id')->nullable()->constrained('locations');
             $table->integer('quantity');
             $table->timestamps();
         });

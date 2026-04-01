@@ -9,5 +9,6 @@ interface InboundItemRepositoryInterface
     
     public function create(array $payload);
     public function delete($id);
+    public function update($id, array $data);
     // KHÔNG CÓ update(). Sai thì xóa dòng đó nhập lại dòng mới
 }

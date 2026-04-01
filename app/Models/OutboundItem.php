@@ -15,7 +15,9 @@ class OutboundItem extends Model
     protected $fillable = [
         'outbound_id',
         'product_id',
+        'location_id',
         'quantity',
+        'batch_id',
     ];
 
     public function outboundOrder(): BelongsTo
@@ -26,5 +28,15 @@ class OutboundItem extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function location(): BelongsTo
+    {
+        return $this->belongsTo(Location::class);
+    }
+
+    public function batch(): BelongsTo
+    {
+        return $this->belongsTo(ProductBatch::class, 'batch_id');
     }
 }
