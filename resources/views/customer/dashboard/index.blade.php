@@ -58,6 +58,139 @@
         </div>
     </div>
 
+    <!-- Phần lọc và tìm kiếm -->
+    <form method="GET" action="{{ route('customer.dashboard') }}" class="bg-white shadow-sm rounded-2xl border border-gray-100 p-6">
+        <div class="flex items-end gap-4 mb-4">
+            <div class="flex-1">
+                <label class="block text-sm font-bold text-gray-700 mb-2">Tìm kiếm sản phẩm</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fa-solid fa-magnifying-glass text-gray-400"></i>
+                    </div>
+                    <input type="text" name="search" value="{{ request('search') }}"
+                        placeholder="Nhập tên sản phẩm..."
+                        class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium flex items-center gap-2">
+                    <i class="fa-solid fa-search"></i>
+                    <span>Tìm kiếm</span>
+                </button>
+                <button type="button" 
+                    onclick="toggleAdvancedSearch(this)" 
+                    class="px-4 py-2 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-lg hover:bg-indigo-100 transition-colors font-medium flex items-center gap-2">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>Nâng cao</span>
+                </button>
+                @if(request('search') || request('category_id') || request('brand_id') || request('price_from') || request('price_to') || request('stock_status'))
+                    <a href="{{ route('customer.dashboard') }}" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors font-medium flex items-center gap-2">
+                        <i class="fa-solid fa-rotate-left"></i>
+                        <span>Xóa</span>
+                    </a>
+                @endif
+            </div>
+        </div>
+
+        <!-- Form Tìm kiếm nâng cao - Ẩn theo mặc định -->
+        <div id="advancedSearchForm" class="hidden border-t border-gray-200 pt-4 mt-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Danh mục -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Danh mục</label>
+                    <select name="category_id" class="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <option value="">-- Tất cả danh mục --</option>
+                        @foreach($categories as $category)
+                            <option value="{{ $category->id }}" 
+                                {{ request('category_id') == $category->id ? 'selected' : '' }}>
+                                {{ $category->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- Thương hiệu -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Thương hiệu</label>
+                    <select name="brand_id" class="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <option value="">-- Tất cả thương hiệu --</option>
+                        @foreach($brands as $brand)
+                            <option value="{{ $brand->id }}" 
+                                {{ request('brand_id') == $brand->id ? 'selected' : '' }}>
+                                {{ $brand->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- Trạng thái hàng -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Trạng thái</label>
+                    <select name="stock_status" class="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <option value="">-- Tất cả --</option>
+                        <option value="in_stock" {{ request('stock_status') === 'in_stock' ? 'selected' : '' }}>Còn hàng</option>
+                        <option value="out_of_stock" {{ request('stock_status') === 'out_of_stock' ? 'selected' : '' }}>Hết hàng</option>
+                    </select>
+                </div>
+
+                <!-- Giá từ -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Giá từ (VNĐ)</label>
+                    <input type="number" name="price_from" value="{{ request('price_from') }}"
+                        placeholder="0"
+                        class="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+
+                <!-- Giá đến -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Giá đến (VNĐ)</label>
+                    <input type="number" name="price_to" value="{{ request('price_to') }}"
+                        placeholder="Không giới hạn"
+                        class="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                </div>
+            </div>
+
+            <!-- Nút tìm kiếm và reset -->
+            <div class="mt-4 flex gap-2">
+                <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium flex items-center gap-2">
+                    <i class="fa-solid fa-search"></i>
+                    <span>Tìm kiếm</span>
+                </button>
+                <a href="{{ route('customer.dashboard') }}" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors font-medium flex items-center gap-2">
+                    <i class="fa-solid fa-rotate-left"></i>
+                    <span>Xóa bộ lọc</span>
+                </a>
+            </div>
+        </div>
+
+        <script>
+            function toggleAdvancedSearch(button) {
+                const form = document.getElementById('advancedSearchForm');
+                const isHidden = form.classList.contains('hidden');
+                
+                if (isHidden) {
+                    form.classList.remove('hidden');
+                    button.classList.add('bg-indigo-600', 'text-white', 'border-indigo-600');
+                    button.classList.remove('bg-indigo-50', 'text-indigo-700', 'border-indigo-200');
+                } else {
+                    form.classList.add('hidden');
+                    button.classList.remove('bg-indigo-600', 'text-white', 'border-indigo-600');
+                    button.classList.add('bg-indigo-50', 'text-indigo-700', 'border-indigo-200');
+                }
+            }
+
+            // Tự động mở form tìm kiếm nâng cao nếu có bất kỳ bộ lọc nâng cao nào
+            window.addEventListener('DOMContentLoaded', function() {
+                @if(request('category_id') || request('brand_id') || request('stock_status') || request('price_from') || request('price_to') )
+                    document.getElementById('advancedSearchForm').classList.remove('hidden');
+                    const btn = document.querySelector('button[onclick="toggleAdvancedSearch(this)"]');
+                    btn.classList.add('bg-indigo-600', 'text-white', 'border-indigo-600');
+                    btn.classList.remove('bg-indigo-50', 'text-indigo-700', 'border-indigo-200');
+                @endif
+            });
+        </script>
+    </form>
+
     <!-- Hàng 2: Danh Sách Sản Phẩm -->
     <div class="bg-white shadow-sm rounded-2xl border border-gray-100 overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-100 bg-blue-50/50 flex justify-between items-center">
@@ -147,7 +280,7 @@
                             <tr class="hover:bg-gray-50">
                                 <td class="px-6 py-4 text-sm font-bold text-indigo-700">ORD-{{ str_pad($order->id, 5, '0', STR_PAD_LEFT) }}</td>
                                 <td class="px-6 py-4 text-sm text-gray-600">{{ $order->created_at->format('d/m/Y H:i') }}</td>
-                                <td class="px-6 py-4 text-sm text-center font-bold text-gray-800">{{ $order->items->count() }}</td>
+                                <td class="px-6 py-4 text-sm text-center font-bold text-gray-800">{{ $order->items->sum('quantity') }}</td>
                                 <td class="px-6 py-4 text-sm text-right font-bold text-green-600">{{ number_format($order->items->sum(fn($i) => $i->quantity * $i->product->price), 0, ',', '.') }} ₫</td>
                                 <td class="px-6 py-4 text-sm text-center">
                                     @php

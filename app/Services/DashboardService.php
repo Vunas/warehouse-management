@@ -2,6 +2,8 @@
 namespace App\Services;
 
 use App\Models\Product;
+use App\Models\Category;
+use App\Models\Brand;
 use App\Models\Inventory;
 use App\Models\InboundOrder;
 use App\Models\OutboundOrder;
@@ -48,18 +50,60 @@ class DashboardService
 
     // ===== CUSTOMER METHODS =====
 
-    public function getCustomerProducts()
+    public function getCustomerProducts($search = null, $filters = [])
     {
         // Lấy tất cả sản phẩm hoạt động với thông tin tồn kho
-        return Product::with(['brand', 'images', 'category'])
-            ->where('is_active', true)
-            ->get()
+        $query = Product::with(['brand', 'images', 'category'])
+            ->where('is_active', true);
+
+        // Tìm kiếm theo tên sản phẩm (tương đối)
+        if (!empty($search)) {
+            $query->where('name', 'like', '%' . $search . '%');
+        }
+
+        // Lọc theo danh mục
+        if (!empty($filters['category_id'])) {
+            $query->where('category_id', $filters['category_id']);
+        }
+
+        // Lọc theo thương hiệu
+        if (!empty($filters['brand_id'])) {
+            $query->where('brand_id', $filters['brand_id']);
+        }
+
+        // Lọc theo giá từ
+        if (!empty($filters['price_from'])) {
+            $query->where('price', '>=', $filters['price_from']);
+        }
+
+        // Lọc theo giá đến
+        if (!empty($filters['price_to'])) {
+            $query->where('price', '<=', $filters['price_to']);
+        }
+
+        // Lọc theo trạng thái hàng
+        if (isset($filters['stock_status']) && $filters['stock_status'] !== '') {
+            $stockStatus = $filters['stock_status'];
+            if ($stockStatus === 'in_stock') {
+                // Có hàng - sẽ lọc ở phần map
+            } elseif ($stockStatus === 'out_of_stock') {
+                // Hết hàng - sẽ lọc ở phần map
+            }
+        }
+
+        return $query->get()
             ->map(function ($product) {
                 $totalStock = Inventory::where('product_id', $product->id)->sum('quantity') ?? 0;
                 $product->total_stock = $totalStock;
                 $product->status = $totalStock > 0 ? 'Còn hàng' : 'Hết hàng';
                 $product->status_color = $totalStock > 0 ? 'green' : 'red';
                 return $product;
+            })
+            ->when(isset($filters['stock_status']) && $filters['stock_status'] === 'in_stock', function($products) {
+                return $products->filter(fn($p) => $p->total_stock > 0);
+            })
+            ->when(isset($filters['stock_status']) && $filters['stock_status'] === 'out_of_stock', function($products) {
+                return $products->filter(fn($p) => $p->total_stock <= 0);
             });
     }
 
@@ -99,4 +143,14 @@ class DashboardService
             ->take(5)
             ->get();
     }
+
+    public function getCategories()
+    {
+        // Lấy danh sách tất cả danh mục
+        return Category::orderBy('name')->get();
+    }
+
+    public function getBrands()
+    {        // Lấy danh sách tất cả thương hiệu
+        return Brand::orderBy('name')->get();}
 }
