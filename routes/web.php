@@ -66,6 +66,8 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
 
     // Hệ thống & Người dùng
     Route::resource('users', UserController::class);
+    Route::post('/users/{user}/restore', [UserController::class, 'restore'])->withTrashed()->name('users.restore');
+    Route::delete('/users/{user}/force-delete', [UserController::class, 'forceDelete'])->withTrashed()->name('users.force-delete');
     Route::resource('roles', RoleController::class);
 
     // Master Data (Danh mục lõi)
