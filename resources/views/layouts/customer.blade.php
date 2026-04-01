@@ -32,7 +32,7 @@
     <div class="flex-1 flex flex-col min-w-0">
 
         {{-- Header --}}
-        @include('partials.header')
+        {{--@include('partials.header')--}}
 
         <main class="flex-1 overflow-y-auto bg-gray-50 p-6">
 

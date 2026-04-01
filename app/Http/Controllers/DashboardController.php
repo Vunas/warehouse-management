@@ -44,4 +44,8 @@ class DashboardController extends Controller
 
         return view('customer.dashboard.index', compact('products', 'categories', 'brands', 'cartStats', 'recentOrders'));
     }
+    public function overview()
+    {
+        return view('customer.overview.index');
+    }
 }
