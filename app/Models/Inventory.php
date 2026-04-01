@@ -11,7 +11,6 @@ class Inventory extends Model
 
     protected $table = 'inventory';
 
-    // Đảm bảo có batch_id ở đây
     protected $fillable = [
         'product_id',
         'location_id',
@@ -30,7 +29,6 @@ class Inventory extends Model
         return $this->belongsTo(Location::class, 'location_id');
     }
 
-    // ĐẢM BẢO PHẢI CÓ HÀM NÀY ĐỂ TRÁNH LỖI 500 KHI AJAX GỌI
     public function batch()
     {
         return $this->belongsTo(ProductBatch::class, 'batch_id');

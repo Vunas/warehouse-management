@@ -2,10 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\StockTransfer;
-use App\Models\Location;
-use App\Models\Inventory;
-use App\Models\TransferItem;
+use App\Http\Requests\StockTransfer\StoreStockTransferRequest;
+use App\Http\Requests\StockTransfer\AddTransferItemRequest;
+use App\Http\Requests\StockTransfer\UpdateBulkTransferRequest;
 use App\Services\StockTransferService;
 use Illuminate\Http\Request;
 use Exception;
@@ -22,43 +21,29 @@ class StockTransferController extends Controller
 
     public function index(Request $request)
     {
-        $query = StockTransfer::with(['staff', 'fromLocation', 'toLocation'])->orderBy('id', 'desc');
-        
-        // Lọc theo Mã phiếu
-        if ($request->filled('search')) {
-            $searchId = str_replace(['TRF-', 'trf-'], '', $request->search);
-            $query->where('id', (int)$searchId);
-        }
+        $filters = $request->only(['search', 'status']);
+        $transfers = $this->transferService->getPaginatedTransfers($filters, $request->get('per_page', 15));
 
-        // Lọc theo Trạng thái
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        $transfers = $query->paginate($request->get('per_page', 15));
-            
         return view('admin.transfers.index', compact('transfers'));
     }
 
     public function create()
     {
-        $locations = Location::where('is_store', true)->get();
-        return view('admin.transfers.create', compact('locations'));
+        $data = $this->transferService->getCreateData();
+        return view('admin.transfers.create', $data);
     }
 
-    public function store(Request $request)
+    public function store(StoreStockTransferRequest $request)
     {
-        $request->validate([
-            'from_location_id' => 'required|exists:locations,id',
-            'to_location_id'   => 'required|exists:locations,id|different:from_location_id',
-        ]);
-
         try {
-            $data = $request->only(['from_location_id', 'to_location_id']);
+            $data = $request->validated();
             $data['staff_id'] = Auth::id();
 
             $transfer = $this->transferService->createTransfer($data);
-            return redirect()->route('transfers.show', $transfer->id)->with('success', 'Khởi tạo phiếu luân chuyển thành công!');
+
+            return redirect()
+                ->route('transfers.show', $transfer->id)
+                ->with('success', 'Khởi tạo phiếu chuyển thành công!');
         } catch (Exception $e) {
             return back()->withInput()->with('error', 'Lỗi: ' . $e->getMessage());
         }
@@ -66,44 +51,30 @@ class StockTransferController extends Controller
 
     public function show($id)
     {
-        $transfer = StockTransfer::with(['items.product', 'staff'])->findOrFail($id);
-        
-        $inventories = Inventory::with('product')
-            ->where('location_id', $transfer->from_location_id)
-            ->where('quantity', '>', 0)
-            ->get();
-
-        return view('admin.transfers.show', compact('transfer', 'inventories'));
+        $data = $this->transferService->getShowData($id);
+        return view('admin.transfers.show', $data);
     }
 
-    public function addItem(Request $request, $id)
+    public function addItem(AddTransferItemRequest $request, $id)
     {
-        $request->validate([
-            'inventory_id' => 'required|exists:inventory,id',
-            'quantity'     => 'required|integer|min:1',
-        ]);
-
         try {
-            $transfer = StockTransfer::findOrFail($id);
-            if ($transfer->status !== 'pending') throw new Exception("Không thể thêm sản phẩm vào phiếu đã xử lý.");
+            $this->transferService->autoAllocateAndAddItems(
+                $id,
+                $request->product_id,
+                $request->quantity
+            );
 
-            $inventory = Inventory::findOrFail($request->inventory_id);
-            if ($inventory->quantity < $request->quantity) {
-                 throw new Exception("Số lượng luân chuyển không được vượt quá số lượng đang tồn.");
-            }
+            return back()->with('success', 'Đã thêm vào phiếu dự tính (chưa trừ kho).');
+        } catch (Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
 
-            $existingItem = TransferItem::where('transfer_id', $id)->where('inventory_id', $inventory->id)->first();
-            if ($existingItem) {
-                 $newQty = $existingItem->quantity + $request->quantity;
-                 if ($newQty > $inventory->quantity) throw new Exception("Tổng số lượng vượt quá tồn kho hiện có.");
-                 $existingItem->update(['quantity' => $newQty]);
-            } else {
-                 TransferItem::create([
-                     'transfer_id' => $id, 'inventory_id' => $inventory->id,
-                     'product_id'  => $inventory->product_id, 'quantity' => $request->quantity
-                 ]);
-            }
-            return back()->with('success', 'Đã thêm sản phẩm vào phiếu luân chuyển.');
+    public function updateBulk(UpdateBulkTransferRequest $request, $id)
+    {
+        try {
+            $this->transferService->updateBulkItems($id, $request->items);
+            return back()->with('success', 'Đã lưu tạm thời toàn bộ lộ trình.');
         } catch (Exception $e) {
             return back()->with('error', $e->getMessage());
         }
@@ -112,10 +83,8 @@ class StockTransferController extends Controller
     public function removeItem($id, $itemId)
     {
         try {
-            $item = TransferItem::findOrFail($itemId);
-            if ($item->transfer->status !== 'pending') throw new Exception("Phiếu đã khóa, không thể xóa.");
-            $item->delete();
-            return back()->with('success', 'Đã xóa sản phẩm khỏi phiếu.');
+            $this->transferService->removeItem($itemId);
+            return back()->with('success', 'Đã xóa dòng khỏi phiếu.');
         } catch (Exception $e) {
             return back()->with('error', $e->getMessage());
         }
@@ -125,20 +94,19 @@ class StockTransferController extends Controller
     {
         try {
             $this->transferService->completeTransfer($id);
-            return back()->with('success', 'Luân chuyển hàng hóa thành công!');
+            return back()->with('success', 'Chuyển kho THÀNH CÔNG! Đã trừ kho thực tế.');
         } catch (Exception $e) {
             return back()->with('error', $e->getMessage());
         }
     }
-
 
     public function cancel($id)
     {
         try {
             $this->transferService->cancelTransfer($id);
-            return back()->with('success', 'Đã hủy phiếu nhập kho!');
+            return back()->with('success', 'Đã hủy phiếu nháp!');
         } catch (Exception $e) {
             return back()->with('error', $e->getMessage());
         }
     }
-}
+}   

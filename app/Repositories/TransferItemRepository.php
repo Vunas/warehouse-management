@@ -8,19 +8,14 @@ use App\Repositories\Traits\CanRead;
 use App\Repositories\Traits\CanWrite;
 use App\Repositories\Traits\CanDelete;
 
-class TransferItemRepository extends BaseRepository implements TransferItemRepositoryInterface
+class TransferItemRepository implements TransferItemRepositoryInterface
 {
     use CanRead, CanWrite, CanDelete;
 
-    public function getModel()
-    {
-        return TransferItem::class;
-    }
+    protected $model;
 
-    public function getByTransferId(int $transferId)
+    public function __construct(TransferItem $model)
     {
-        return $this->model->with('inventory.product')
-                           ->where('transfer_id', $transferId)
-                           ->get();
+        $this->model = $model;
     }
 }

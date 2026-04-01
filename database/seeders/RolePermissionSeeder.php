@@ -20,6 +20,8 @@ class RolePermissionSeeder extends Seeder
 
         // 1. Tạo danh sách các Permissions
         $permissions = [
+            'view_dashboard',    // Xem bảng điều khiển
+            'view_reports',      // Xem báo cáo tổng quan trên Dashboard
             // ---------------- Hệ thống & Phân quyền ----------------
             'manage_roles',      // Quản lý vai trò (CRUD Roles)
 
@@ -75,12 +77,29 @@ class RolePermissionSeeder extends Seeder
             'approve_transfers', // Quyền duyệt phiếu điều chuyển
             'delete_transfers',
 
+            // ---------------- Lịch sử giao dịch kho (Inventory Transactions) ----------------
+            'view_inventory_transactions',
+            'create_inventory_transactions',
+            'edit_inventory_transactions',
+            'delete_inventory_transactions',
+
+            // ---------------- Kiểm kê kho (Stock Takes) ----------------
+            'view_stock_takes',
+            'create_stock_takes',
+            'edit_stock_takes',
+            'delete_stock_takes',
             // ---------------- Quản lý Đơn hàng bán (Sales Orders) ----------------
             'view_orders',
             'create_orders',
             'edit_orders',
             'process_orders',    // Xử lý đơn hàng (chuyển trạng thái shipping, completed...)
             'delete_orders',
+
+            // ---------------- Cảnh báo Tồn Kho ----------------
+            'view_alerts',      // Xem danh sách và bảng tin cảnh báo
+            'create_alerts',    // Tạo cấu hình cảnh báo mới
+            'edit_alerts',      // Sửa cấu hình cảnh báo
+            'delete_alerts',    // Xóa cấu hình cảnh báo
         ];
 
         foreach ($permissions as $permission) {

@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\User;
 use App\Policies\RolePolicy;
 use App\Repositories\BrandRepository;
 use App\Repositories\CartItemRepository;
@@ -28,16 +29,20 @@ use App\Repositories\Interfaces\BrandRepositoryInterface;
 use App\Repositories\Interfaces\CartItemRepositoryInterface;
 use App\Repositories\Interfaces\InboundItemRepositoryInterface;
 use App\Repositories\Interfaces\InboundOrderRepositoryInterface;
+use App\Repositories\Interfaces\InventoryTransactionRepositoryInterface;
 use App\Repositories\Interfaces\LocationRepositoryInterface;
 use App\Repositories\Interfaces\OrderItemRepositoryInterface;
 use App\Repositories\Interfaces\OrderRepositoryInterface;
+use App\Repositories\Interfaces\OutboundOrderRepositoryInterface;
 use App\Repositories\Interfaces\PaymentRepositoryInterface;
 use App\Repositories\Interfaces\StockTransferRepositoryInterface;
 use App\Repositories\Interfaces\SupplierRepositoryInterface;
 use App\Repositories\Interfaces\TransferItemRepositoryInterface;
+use App\Repositories\InventoryTransactionRepository;
 use App\Repositories\LocationRepository;
 use App\Repositories\OrderItemRepository;
 use App\Repositories\OrderRepository;
+use App\Repositories\OutboundOrderRepository;
 use App\Repositories\PaymentRepository;
 use App\Repositories\StockTransferRepository;
 use App\Repositories\SupplierRepository;
@@ -66,6 +71,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(InventoryRepositoryInterface::class, InventoryRepository::class);
         $this->app->bind(InboundOrderRepositoryInterface::class, InboundOrderRepository::class);
         $this->app->bind(InboundItemRepositoryInterface::class, InboundItemRepository::class);
+        $this->app->bind(OutboundOrderRepositoryInterface::class, OutboundOrderRepository::class);
         $this->app->bind(StockTransferRepositoryInterface::class, StockTransferRepository::class);
         $this->app->bind(TransferItemRepositoryInterface::class, TransferItemRepository::class);
         $this->app->bind(LocationRepositoryInterface::class, LocationRepository::class);
@@ -76,6 +82,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(CartItemRepositoryInterface::class, CartItemRepository::class);
         $this->app->bind(OrderItemRepositoryInterface::class, OrderItemRepository::class);
         $this->app->bind(OrderRepositoryInterface::class, OrderRepository::class);
+
+        $this->app->bind(InventoryTransactionRepositoryInterface::class, InventoryTransactionRepository::class);
     }
 
 
@@ -91,6 +99,12 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Role::class, RolePolicy::class);
         Gate::define('inbound.approve', function ($user) {
             return $user->employee && $user->employee->hasPermission('inbound.approve');
+        });
+        Gate::define('view_dashboard', function (User $user) {
+            return $user->hasPermissionTo('view_dashboard');
+        });
+        Gate::define('view_reports', function (User $user) {
+            return $user->hasPermissionTo('view_reports');
         });
     }
 }
