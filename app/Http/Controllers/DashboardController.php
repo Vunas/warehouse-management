@@ -23,11 +23,23 @@ class DashboardController extends Controller
         return view('admin.dashboard.index', compact('stats', 'lowStocks', 'recentTasks'));
     }
 
-    public function customerIndex()
+    public function customerIndex(Request $request)
     {
-        $products = $this->dashboardService->getCustomerProducts();
-        $cartStats = $this->dashboardService->getCustomerCartStats();
+        $search = $request->get('search');
+        $filters = [
+            'category_id' => $request->get('category_id'),
+            'brand_id' => $request->get('brand_id'),
+            'price_from' => $request->get('price_from'),
+            'price_to' => $request->get('price_to'),
+            'stock_status' => $request->get('stock_status'),
+        ];
 
-        return view('customer.dashboard.index', compact('products', 'cartStats'));
+        $products = $this->dashboardService->getCustomerProducts($search, $filters);
+        $categories = $this->dashboardService->getCategories();
+        $brands = $this->dashboardService->getBrands();
+        $cartStats = $this->dashboardService->getCustomerCartStats();
+        $recentOrders = $this->dashboardService->getCustomerRecentOrders();
+
+        return view('customer.dashboard.index', compact('products', 'categories', 'brands', 'cartStats', 'recentOrders'));
     }
 }

@@ -96,6 +96,9 @@ class RolePermissionSeeder extends Seeder
         $staffRole = Role::firstOrCreate(['name' => 'staff']);
         $staffRole->givePermissionTo(['view_users']);
 
+        // Role customer: cho khách hàng đăng nhập vào hệ thống
+        $customerRole = Role::firstOrCreate(['name' => 'customer']);
+
         // 3. Tạo một tài khoản Admin mặc định để test
         $adminUser = User::firstOrCreate(
             ['email' => 'admin@example.com'], // Kiểm tra xem email này có chưa
@@ -111,6 +114,21 @@ class RolePermissionSeeder extends Seeder
         // Gán vai trò admin cho user này
         if (!$adminUser->hasRole('admin')) {
             $adminUser->assignRole($adminRole);
+        }
+
+        // Tạo một tài khoản dev để test
+        $devUser = User::firstOrCreate(
+            ['email' => 'ngquvi461@gmail.com'],
+            [
+                'username'  => 'vinh',
+                'full_name' => 'Vinh Nguyen',
+                'phone'     => '0123456789',
+                'password'  => Hash::make('123456'),
+                'is_active' => true,
+            ]
+        );
+        if (!$devUser->hasRole('customer')) {
+            $devUser->assignRole($customerRole);
         }
     }
 }

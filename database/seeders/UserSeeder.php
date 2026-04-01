@@ -10,19 +10,9 @@ class UserSeeder extends Seeder
 {
     public function run(): void
     {
-        User::updateOrCreate(
-            ['email' => 'admin@example.com'],
-            [
-                'username'  => 'admin',
-                'full_name' => 'Administrator',
-                'phone'     => '0123456789',
-                'password'  => Hash::make('123456'),
-                'is_active' => true,
-            ]
-        );
-
-        User::factory(50)->create();
-
-        User::factory(5)->inactive()->create();
+        User::factory(15)->withRole('staff')->create();
+        User::factory(5)->withRole('customer')->create();
+        User::factory(10)->withRole('customer')->create();
+        User::factory(5)->withRole('customer')->inactive()->create();
     }
 }

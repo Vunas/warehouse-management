@@ -22,6 +22,17 @@ class UserFactory extends Factory
         ];
     }
 
+    public function withRole($roleName)
+    {
+        return $this->afterCreating(function (User $user) use ($roleName) {
+            $role = \Spatie\Permission\Models\Role::where('name', $roleName)->first();
+
+            if ($role) {
+                $user->assignRole($role);
+            }
+        });
+    }
+
     public function inactive()
     {
         return $this->state(fn () => [

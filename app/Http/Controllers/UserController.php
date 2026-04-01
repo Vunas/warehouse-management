@@ -22,15 +22,16 @@ class UserController extends Controller
 
     public function index(Request $request)
     {
-        $filters = $request->only(['search', 'status']);
+        $filters = $request->only(['search', 'status', 'role', 'include_inactive']);
+        $roles = $this->userService->getAllRoles();
         $users = $this->userService->getPaginatedUsers(
             $request->get('per_page', 15),
             $filters,
             $request->get('sort', 'id'),
-            $request->get('dir', 'desc')
+            $request->get('dir', 'asc')
         );
 
-        return view('admin.users.index', compact('users'));
+        return view('admin.users.index', compact('users', 'roles'));
     }
 
     public function create()
@@ -71,6 +72,26 @@ class UserController extends Controller
         try {
             $this->userService->softDeleteUser($user);
             return redirect()->route('users.index')->with('success', 'Đã chuyển vào thùng rác!');
+        } catch (Exception $e) {
+            return back()->with('error', 'Lỗi: ' . $e->getMessage());
+        }
+    }
+
+    public function restore(User $user)
+    {
+        try {
+            $this->userService->restoreUser($user);
+            return redirect()->route('users.index')->with('success', 'Đã khôi phục người dùng!');
+        } catch (Exception $e) {
+            return back()->with('error', 'Lỗi: ' . $e->getMessage());
+        }
+    }   
+    
+    public function forceDelete(User $user)
+    {
+        try {
+            $this->userService->forceDeleteUser($user);
+            return redirect()->route('users.index')->with('success', 'Đã xóa vĩnh viễn người dùng!');
         } catch (Exception $e) {
             return back()->with('error', 'Lỗi: ' . $e->getMessage());
         }
