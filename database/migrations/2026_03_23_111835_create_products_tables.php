@@ -38,9 +38,7 @@ return new class extends Migration
             $table->string('name', 150);
             $table->text('description')->nullable();
 
-
             $table->decimal('price', 12, 2);
-
             $table->boolean('is_active')->default(true);
 
             $table->timestamps();
@@ -57,23 +55,20 @@ return new class extends Migration
                   ->cascadeOnDelete();
 
             $table->string('batch_code')->nullable();
-
             $table->date('expiry_date')->nullable();
-
             $table->date('manufacture_date')->nullable();
 
             $table->timestamps();
+            $table->softDeletes();
 
             $table->unique(['product_id', 'batch_code']);
         });
 
         Schema::create('product_images', function (Blueprint $table) {
             $table->id();
-
             $table->foreignId('product_id')
                   ->constrained('products')
                   ->cascadeOnDelete();
-
             $table->string('image_url', 255);
             $table->timestamps();
         });

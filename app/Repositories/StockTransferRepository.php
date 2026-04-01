@@ -8,12 +8,31 @@ use App\Repositories\Traits\CanRead;
 use App\Repositories\Traits\CanWrite;
 use App\Repositories\Traits\CanDelete;
 
-class StockTransferRepository extends BaseRepository implements StockTransferRepositoryInterface
+class StockTransferRepository implements StockTransferRepositoryInterface
 {
     use CanRead, CanWrite, CanDelete;
 
-    public function getModel()
+    protected $model;
+
+    public function __construct(StockTransfer $model)
     {
-        return StockTransfer::class;
+        $this->model = $model;
+    }
+
+    public function filterAndPaginate(array $filters, int $perPage = 15)
+    {
+        $query = $this->model->with(['staff', 'fromWarehouse', 'toWarehouse'])
+                             ->orderBy('id', 'desc');
+
+        if (!empty($filters['search'])) {
+            $searchId = str_replace(['TRF-', 'trf-'], '', $filters['search']);
+            $query->where('id', (int)$searchId);
+        }
+
+        if (!empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        return $query->paginate($perPage);
     }
 }

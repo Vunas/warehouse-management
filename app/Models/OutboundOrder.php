@@ -6,18 +6,18 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class OutboundOrder extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'outbound_orders';
 
-    // ĐÃ THÊM warehouse_id VÀO ĐÂY
     protected $fillable = [
         'order_id',
         'staff_id',
-        'warehouse_id', // BẮT BUỘC PHẢI CÓ
+        'warehouse_id', 
         'type',
         'reason',
         'status',
