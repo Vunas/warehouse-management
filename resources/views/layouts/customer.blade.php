@@ -14,7 +14,7 @@
         .nav-link.active {
             background-color: #1e293b;
             color: white;
-            border-left: 4px solid #3b82f6;
+            border-bottom: 3px solid #3b82f6;
         }
         .nav-link {
             border-left: 4px solid transparent;
@@ -24,12 +24,12 @@
 
 <body class="bg-gray-100 font-sans text-gray-800">
 
-<div class="flex h-screen overflow-hidden">
+<div class="min-h-screen flex flex-col">
 
     {{-- Sidebar --}}
     @include('partials.customersidebar')
 
-    <div class="flex-1 flex flex-col ml-64 min-w-0">
+    <div class="flex-1 flex flex-col min-w-0">
 
         {{-- Header --}}
         @include('partials.header')
