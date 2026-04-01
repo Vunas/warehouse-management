@@ -6,29 +6,29 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class StockTransfer extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $table = 'stock_transfers';
 
     protected $fillable = [
-        'from_location_id',
-        'to_location_id',
+        'from_warehouse_id',
+        'to_warehouse_id',
         'staff_id',
-        'batch_id',
         'status',
     ];
 
-    public function fromLocation(): BelongsTo
+    public function fromWarehouse(): BelongsTo
     {
-        return $this->belongsTo(Location::class, 'from_location_id');
+        return $this->belongsTo(Warehouse::class, 'from_warehouse_id');
     }
 
-    public function toLocation(): BelongsTo
+    public function toWarehouse(): BelongsTo
     {
-        return $this->belongsTo(Location::class, 'to_location_id');
+        return $this->belongsTo(Warehouse::class, 'to_warehouse_id');
     }
 
     public function staff(): BelongsTo
@@ -39,9 +39,5 @@ class StockTransfer extends Model
     public function items(): HasMany
     {
         return $this->hasMany(TransferItem::class, 'transfer_id');
-    }
-    public function batch(): BelongsTo
-    {
-        return $this->belongsTo(ProductBatch::class, 'batch_id');
     }
 }

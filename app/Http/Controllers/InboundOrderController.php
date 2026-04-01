@@ -2,11 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\InboundOrder;
-use App\Models\InboundItem;
-use App\Models\Location;
-use App\Models\Supplier;
-use App\Models\Product;
+use App\Http\Requests\InboundOrder\AddInboundItemRequest;
+use App\Http\Requests\InboundOrder\CompleteInboundOrderRequest;
 use App\Services\InboundOrderService;
 use Illuminate\Http\Request;
 use Exception;
@@ -29,8 +26,8 @@ class InboundOrderController extends Controller
 
     public function create()
     {
-        $suppliers = Supplier::all();
-        return view('admin.inbounds.create', compact('suppliers'));
+        $data = $this->inboundOrderService->getCreateData();
+        return view('admin.inbounds.create', $data);
     }
 
     public function store(Request $request)
@@ -40,6 +37,7 @@ class InboundOrderController extends Controller
             $data = $request->only('supplier_id');
             $data['staff_id'] = Auth::id();
             $inbound = $this->inboundOrderService->createInboundOrder($data);
+            
             return redirect()->route('inbounds.show', $inbound->id)->with('success', 'Khởi tạo phiếu nhập kho thành công!');
         } catch (Exception $e) {
             return back()->with('error', $e->getMessage());
@@ -48,42 +46,14 @@ class InboundOrderController extends Controller
 
     public function show($id)
     {
-        // Load cả relation batch để show lịch sử
-        $inbound = InboundOrder::with(['items.product', 'items.batch', 'supplier', 'staff'])->findOrFail($id);
-        $locations = Location::where('is_store', true)->get();
-        $products = Product::where('is_active', 1)->get();
-        return view('admin.inbounds.show', compact('inbound', 'locations', 'products'));
+        $data = $this->inboundOrderService->getShowData($id);
+        return view('admin.inbounds.show', $data);
     }
 
-    public function addItem(Request $request, $id)
+    public function addItem(AddInboundItemRequest $request, $id)
     {
-        $request->validate([
-            'product_id' => 'required|exists:products,id',
-            'quantity' => 'required|integer|min:1',
-            'price' => 'required|numeric|min:0',
-        ]);
-        
         try {
-            $inbound = InboundOrder::findOrFail($id);
-            if ($inbound->status !== 'pending') throw new Exception("Không thể thêm SP vào phiếu đã duyệt.");
-
-            $existingItem = InboundItem::where('inbound_id', $id)->where('product_id', $request->product_id)->first();
-
-            if ($existingItem) {
-                $existingItem->update([
-                    'quantity' => $existingItem->quantity + $request->quantity,
-                    'price' => $request->price
-                ]);
-            } else {
-                InboundItem::create([
-                    'inbound_id' => $id,
-                    'product_id' => $request->product_id,
-                    'quantity' => $request->quantity,
-                    'price' => $request->price,
-                    'batch_id'   => $request->batch_id,
-                ]);
-            }
-
+            $this->inboundOrderService->addItem($id, $request->validated());
             return back()->with('success', 'Đã thêm sản phẩm vào phiếu nhập.');
         } catch (Exception $e) {
             return back()->with('error', $e->getMessage());
@@ -94,19 +64,11 @@ class InboundOrderController extends Controller
     {
         $request->validate([
             'quantity' => 'required|integer|min:1',
-            'price' => 'required|numeric|min:0',
+            'price'    => 'required|numeric|min:0',
         ]);
 
         try {
-            $inbound = InboundOrder::findOrFail($id);
-            if ($inbound->status !== 'pending') throw new Exception("Phiếu đã chốt, không thể chỉnh sửa.");
-
-            $item = InboundItem::findOrFail($itemId);
-            $item->update([
-                'quantity' => $request->quantity,
-                'price' => $request->price,
-            ]);
-
+            $this->inboundOrderService->updateItem($id, $itemId, $request->only('quantity', 'price'));
             return back()->with('success', 'Đã cập nhật số lượng và đơn giá.');
         } catch (Exception $e) {
             return back()->with('error', $e->getMessage());
@@ -116,29 +78,15 @@ class InboundOrderController extends Controller
     public function removeItem($id, $itemId)
     {
         try {
-            $item = InboundItem::findOrFail($itemId);
-            if ($item->inboundOrder->status !== 'pending') throw new Exception("Phiếu đã khóa, không thể xóa.");
-            $item->delete();
+            $this->inboundOrderService->removeItem($id, $itemId);
             return back()->with('success', 'Đã xóa sản phẩm khỏi phiếu.');
         } catch (Exception $e) {
             return back()->with('error', $e->getMessage());
         }
     }
 
-    public function complete(Request $request, $id)
+    public function complete(CompleteInboundOrderRequest $request, $id)
     {
-        $request->validate([
-            'assignments' => 'required|array',
-            'assignments.*.location_id' => 'required|exists:locations,id',
-            'assignments.*.batch_code' => 'nullable|string|max:100',
-            'assignments.*.manufacture_date' => 'nullable|date',
-            // Validate HSD phải lớn hơn hoặc bằng NSX
-            'assignments.*.expiry_date' => 'nullable|date|after_or_equal:assignments.*.manufacture_date',
-        ],[
-            'assignments.*.location_id.required' => 'Vui lòng chọn kệ lưu trữ cho tất cả sản phẩm.',
-            'assignments.*.expiry_date.after_or_equal' => 'Hạn sử dụng phải lớn hơn hoặc bằng Ngày sản xuất.'
-        ]);
-
         try {
             $this->inboundOrderService->completeInboundOrder($id, $request->assignments);
             return back()->with('success', 'Hoàn tất nhập kho, tồn kho đã được cộng!');

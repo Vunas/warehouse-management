@@ -11,9 +11,12 @@ return new class extends Migration
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users');
-            $table->foreignId('address_id')->constrained('addresses');
+            $table->foreignId('address_id')->nullable()->constrained('addresses'); // Có thể null nếu đến lấy tại kho
+            
             $table->decimal('total_price', 12, 2);
-            $table->enum('status', ['pending', 'paid', 'shipping', 'completed', 'cancelled'])->default('pending');
+            $table->enum('status', ['pending', 'paid', 'processing', 'shipping', 'completed', 'cancelled'])->default('pending'); // Thêm processing
+            $table->text('customer_note')->nullable();
+            
             $table->timestamp('order_date')->nullable();
             $table->timestamps();
             $table->softDeletes();
@@ -23,6 +26,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('order_id')->constrained('orders')->cascadeOnDelete();
             $table->foreignId('product_id')->constrained('products');
+            
             $table->integer('quantity');
             $table->decimal('price', 12, 2);
             $table->timestamps();
@@ -30,11 +34,16 @@ return new class extends Migration
 
         Schema::create('payments', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('order_id')->unique()->constrained('orders');
-            $table->enum('payment_method', ['cash', 'vnpay', 'bank_transfer']);
+            // ĐÃ BỎ UNIQUE(): Một đơn hàng có thể có nhiều lần thử thanh toán nếu lần trước thất bại
+            $table->foreignId('order_id')->constrained('orders'); 
+            
+            $table->enum('payment_method', ['cash', 'vnpay', 'bank_transfer', 'momo']);
+            $table->string('transaction_id')->nullable(); // Thêm mã giao dịch từ cổng thanh toán
             $table->decimal('amount', 12, 2);
-            $table->enum('status', ['pending', 'paid', 'failed'])->default('pending');
+            $table->enum('status', ['pending', 'paid', 'failed', 'refunded'])->default('pending');
+            
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

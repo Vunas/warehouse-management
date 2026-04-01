@@ -10,20 +10,28 @@ return new class extends Migration
     {
         Schema::create('stock_transfers', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('from_location_id')->constrained('locations');
-            $table->foreignId('to_location_id')->constrained('locations');
+            $table->foreignId('from_warehouse_id')->constrained('warehouses');
+            $table->foreignId('to_warehouse_id')->constrained('warehouses');
             $table->foreignId('staff_id')->constrained('users');
-            $table->enum('status', ['pending', 'completed', 'cancelled'])->default('pending');
+
+            $table->enum('status', ['pending', 'in_transit', 'completed', 'cancelled'])->default('pending');
+            $table->text('notes')->nullable();
+
             $table->timestamps();
+            $table->softDeletes(); // Thêm xóa mềm
         });
 
-        // Transfer items
         Schema::create('transfer_items', function (Blueprint $table) {
             $table->id();
             $table->foreignId('transfer_id')->constrained('stock_transfers')->cascadeOnDelete();
-            $table->foreignId('inventory_id')->constrained('inventory');
+
             $table->foreignId('product_id')->constrained('products');
-            $table->foreignId('batch_id')->constrained('product_batches');
+            $table->foreignId('batch_id')->nullable()->constrained('product_batches');
+            $table->foreignId('inventory_id')->constrained('inventory');
+
+            $table->foreignId('from_location_id')->nullable()->constrained('locations'); // Thêm rõ xuất từ đâu
+            $table->foreignId('to_location_id')->nullable()->constrained('locations');
+
             $table->integer('quantity');
             $table->timestamps();
         });
