@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('content')
-<div class="max-w-[90rem] mx-auto space-y-6">
+<div class="max-w-360 mx-auto space-y-6">
     <!-- Nút điều hướng -->
     <div class="mb-2">
         <a href="{{ route('inbounds.index') }}" class="inline-flex items-center text-slate-500 hover:text-indigo-600 font-bold transition text-sm">
@@ -14,7 +14,7 @@
     @if ($errors->any())
         <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-md shadow-sm">
             <div class="flex">
-                <div class="flex-shrink-0">
+                <div class="shrink-0">
                     <svg class="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
                 </div>
                 <div class="ml-3">
@@ -50,12 +50,12 @@
                 <div class="mt-3 flex flex-wrap items-center gap-3 text-sm bg-white px-4 py-2.5 rounded-lg border border-slate-200 shadow-sm">
                     <span class="text-slate-500">Nhà cung cấp: <strong class="text-slate-900">{{ $inbound->supplier->name ?? 'N/A' }}</strong></span>
                     <span class="text-slate-300">|</span>
-                    <span class="text-slate-500">Ngày lập: <strong class="text-slate-900">{{ $inbound->created_at->format('d/m/Y H:i') }}</strong></span>
+                    <span class="text-slate-500">Ngày lập: <strong class="text-slate-900">{{ $inbound->created_at->timezone('Asia/Ho_Chi_Minh')->format('d/m/Y H:i:s') }} (VN)</strong></span>
                     <span class="text-slate-300">|</span>
                     <span class="text-slate-500">Người lập: <strong class="text-slate-900">{{ $inbound->staff->full_name ?? 'N/A' }}</strong></span>
                 </div>
             </div>
-            <div class="flex-shrink-0">
+            <div class="shrink-0">
                 @if($inbound->status === 'pending') 
                     <span class="px-5 py-2.5 text-sm bg-amber-100 text-amber-800 rounded-lg font-bold shadow-sm border border-amber-200">⏳ Chờ Nhập Kho (Bản Nháp)</span>
                 @elseif($inbound->status === 'completed') 
@@ -76,7 +76,7 @@
         </h3>
         <form action="{{ route('inbounds.addItem', $inbound->id) }}" method="POST" class="flex flex-wrap lg:flex-nowrap gap-3 items-end">
             @csrf
-            <div class="flex-1 min-w-[250px]">
+            <div class="flex-1 min-w-62.5">
                 <label class="block text-[11px] uppercase tracking-wider font-bold text-slate-500 mb-1.5">Sản phẩm <span class="text-rose-500">*</span></label>
                 <select name="product_id" required class="block w-full border-slate-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 cursor-pointer font-semibold text-sm py-2">
                     <option value="">-- Tìm và chọn sản phẩm --</option>
@@ -143,11 +143,11 @@
                                 <td class="px-5 py-4">
                                     <div class="flex items-center gap-2 mb-2">
                                         <span class="text-xs font-bold text-slate-500 w-8">SL:</span>
-                                        <input type="number" name="quantity" value="{{ $item->quantity }}" form="update-{{$item->id}}" required min="1" class="w-full max-w-[100px] border-slate-300 rounded text-center text-sm shadow-inner focus:ring-indigo-500 focus:border-indigo-500 font-bold text-indigo-700 py-1.5 px-2">
+                                        <input type="number" name="quantity" value="{{ $item->quantity }}" form="update-{{$item->id}}" required min="1" class="w-full max-w-25 border-slate-300 rounded text-center text-sm shadow-inner focus:ring-indigo-500 focus:border-indigo-500 font-bold text-indigo-700 py-1.5 px-2">
                                     </div>
                                     <div class="flex items-center gap-2">
                                         <span class="text-xs font-bold text-slate-500 w-8">Giá:</span>
-                                        <input type="number" name="price" value="{{ round($item->price) }}" form="update-{{$item->id}}" required min="0" class="w-full max-w-[100px] border-slate-300 rounded text-right text-sm shadow-inner focus:ring-indigo-500 focus:border-indigo-500 text-slate-800 font-medium py-1.5 px-2">
+                                        <input type="number" name="price" value="{{ round($item->price) }}" form="update-{{$item->id}}" required min="0" class="w-full max-w-25 border-slate-300 rounded text-right text-sm shadow-inner focus:ring-indigo-500 focus:border-indigo-500 text-slate-800 font-medium py-1.5 px-2">
                                     </div>
                                 </td>
                                 
@@ -249,7 +249,6 @@
         
         @if($inbound->status === 'pending')
             @foreach($inbound->items ?? [] as $item)
-                <!-- ĐÃ FIX: Action có Hash Anchor (#item-id) để chống văng lên đầu trang -->
                 <form id="update-{{$item->id}}" action="{{ route('inbounds.items.update', [$inbound->id, $item->id]) }}#item-{{$item->id}}" method="POST" class="hidden">@csrf @method('PUT')</form>
                 <form id="del-{{$item->id}}" action="{{ route('inbounds.removeItem', [$inbound->id, $item->id]) }}" method="POST" class="hidden">@csrf @method('DELETE')</form>
             @endforeach

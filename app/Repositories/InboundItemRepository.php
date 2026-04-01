@@ -8,26 +8,26 @@ use App\Repositories\Traits\CanRead;
 use App\Repositories\Traits\CanWrite;
 use App\Repositories\Traits\CanDelete;
 
-class InboundItemRepository extends BaseRepository implements InboundItemRepositoryInterface
+class InboundItemRepository implements InboundItemRepositoryInterface
 {
-    use CanRead;
-    use CanWrite {
-        create as traitCreate;
-    }
-    use CanDelete;
+    use CanRead, CanWrite, CanDelete;
 
-    public function getModel()
-    {
-        return InboundItem::class;
-    }
+    protected $model;
 
-    public function create(array $payload)
+    public function __construct(InboundItem $model)
     {
-        return $this->traitCreate($payload);
+        $this->model = $model;
     }
 
     public function getByInboundId(int $inboundId)
     {
         return $this->model->with('product')->where('inbound_id', $inboundId)->get();
+    }
+
+    public function findByInboundAndProduct(int $inboundId, int $productId)
+    {
+        return $this->model->where('inbound_id', $inboundId)
+                           ->where('product_id', $productId)
+                           ->first();
     }
 }

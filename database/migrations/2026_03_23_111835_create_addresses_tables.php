@@ -12,28 +12,33 @@ return new class extends Migration
             $table->id();
             $table->string('name', 150);
             $table->timestamps();
+            $table->softDeletes();
         });
 
         Schema::create('districts', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('city_id')->constrained('cities');
+            $table->foreignId('city_id')->constrained('cities')->cascadeOnDelete();
             $table->string('name', 150);
             $table->timestamps();
+            $table->softDeletes();
         });
 
         Schema::create('wards', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('district_id')->constrained('districts');
+            $table->foreignId('district_id')->constrained('districts')->cascadeOnDelete();
             $table->string('name', 150);
             $table->timestamps();
+            $table->softDeletes();
         });
 
         Schema::create('addresses', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users');
+            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('ward_id')->constrained('wards');
             $table->string('detail', 255);
+            $table->boolean('is_default')->default(false);
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
