@@ -8,11 +8,10 @@
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
-
-    <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
         body {
@@ -21,89 +20,83 @@
     </style>
 </head>
 
-<body class="bg-slate-50 max-h-screen w-screen flex items-center justify-center p-4 lg:p-0">
+<body class="h-screen flex">
 
-    <div class="w-screen h-screen bg-white overflow-hidden flex flex-col lg:flex-row">
+    <!-- LEFT -->
+    <div class="hidden lg:flex w-1/2 relative">
+        <img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70"
+            class="w-full h-full object-cover">
 
-        {{-- LEFT BANNER --}}
-        <div class="hidden lg:w-6/12 lg:flex bg-slate-900 text-white p-12 relative">
-            <img src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d"
-                class="absolute inset-0 w-full h-full object-cover opacity-40">
-
-            <div class="relative z-10">
-                <h1 class="text-3xl font-bold mb-4">WMS PRO</h1>
-                <p class="text-slate-300">Hệ thống quản lý kho thông minh</p>
-            </div>
-            <!-- Divider -->
-            <div class="my-6 border-t"></div>
-
-            <!-- Terms -->
-            <div class="flex justify-center gap-4 text-xs text-slate-500 absolute bottom-10 right-5">
-                <a href="/terms" class="hover:text-blue-600 hover:underline text-[20px] font-bold">
-                    Điều khoản
-                </a>
-                <span>|</span>
-                <a href="/privacy" class="hover:text-blue-600 hover:underline text-[20px] font-bold">
-                    Bảo mật
-                </a>
-                <span>|</span>
-                <a href="/support" class="hover:text-blue-600 hover:underline text-[20px] font-bold">
-                    Hỗ trợ
-                </a>
+        <div class="absolute inset-0 bg-black/50 flex flex-col justify-between p-10">
+            <div>
+                <h1 class="text-3xl font-bold text-white">ALOVUA</h1>
+                <p class="text-gray-300 mt-2">Chuyên cung cấp phụ tùng ô tô số lượng lớn</p>
             </div>
 
-            <p class="text-center text-xs text-slate-400 mt-3 absolute bottom-4 right-5">
-                © {{ date('Y') }} WMS PRO. All rights reserved.
-            </p>
+            <div class="text-sm text-gray-400 space-x-3">
+                <a href="/terms" class="hover:text-white">Điều khoản</a>
+                <span>|</span>
+                <a href="/privacy" class="hover:text-white">Bảo mật</a>
+                <span>|</span>
+                <a href="/support" class="hover:text-white">Hỗ trợ</a>
 
+                <p class="mt-3 text-xs">
+                    © {{ date('Y') }} ALOVUA
+                </p>
+            </div>
         </div>
+    </div>
 
+    <!-- RIGHT -->
+    <div class="w-full lg:w-1/2 flex items-center justify-center bg-gray-900">
+        <div class="w-full max-w-md bg-gray-800 p-8 rounded-xl shadow-xl">
 
+            <h2 class="text-2xl font-bold text-white mb-2">Đăng nhập</h2>
+            <p class="text-gray-400 mb-6">Nhập thông tin để truy cập hệ thống</p>
 
+            {{-- ERROR --}}
+            @if ($errors->any())
+                <div class="bg-red-500/20 text-red-400 p-3 rounded mb-4 text-sm">
+                    {{ $errors->first() }}
+                </div>
+            @endif
 
+            <form action="/customer/login" method="POST" class="space-y-5">
+                @csrf
 
-        {{-- RIGHT FORM --}}
-        <div class="w-full lg:w-6/12 p-10 flex items-center">
-            <div class="max-w-md w-full mx-auto">
+                <!-- Email -->
+                <div>
+                    <label class="text-gray-300 text-sm">Username</label>
+                    <input type="text" name="email" value="{{ old('email') }}"
+                        class="w-full mt-1 px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white focus:ring-2 focus:ring-teal-400 outline-none"
+                        placeholder="vd: nguyenvana" required>
+                </div>
 
-                <h2 class="text-3xl font-bold mb-2">Đăng nhập</h2>
-                <p class="text-slate-500 mb-8">Nhập thông tin để truy cập hệ thống</p>
+                <!-- Password -->
+                <div>
+                    <label class="text-gray-300 text-sm">Mật khẩu</label>
+                    <input type="password" name="password"
+                        class="w-full mt-1 px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white focus:ring-2 focus:ring-teal-400 outline-none"
+                        placeholder="••••••••" required>
+                </div>
 
-                {{-- ERROR --}}
-                @if ($errors->any())
-                    <div class="bg-red-50 text-red-600 p-4 rounded-xl text-sm mb-5">
-                        {{ $errors->first() }}
-                    </div>
-                @endif
+                <input type="hidden" name="type" value="customer">
 
-                {{-- FORM --}}
-                <form action="/customer/login" method="POST" class="space-y-5">
-                    @csrf
-
-                    <div>
-                        <label class="block text-sm font-semibold mb-2">Username</label>
-                        <input type="text" name="email" value="{{ old('email') }}" placeholder="vd: nguyenvana"
-                            class="w-full border p-3 rounded-lg focus:ring-2 focus:ring-blue-500" required>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-semibold mb-2">Mật khẩu</label>
-                        <input type="password" name="password" placeholder="••••••••"
-                            class="w-full border p-3 rounded-lg focus:ring-2 focus:ring-blue-500" required>
-                    </div>
-                    <input type="hidden" name="type" value="customer">
-
-                    <div class="flex items-center">
+                <!-- Remember -->
+                <div class="flex items-center justify-between text-sm">
+                    <label class="flex items-center text-gray-400">
                         <input type="checkbox" name="remember" class="mr-2">
-                        <span class="text-sm text-slate-600">Ghi nhớ đăng nhập</span>
-                    </div>
+                        Ghi nhớ đăng nhập
+                    </label>
+                </div>
 
-                    <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg">
-                        Đăng nhập
-                    </button>
-                </form>
+                <!-- Button -->
+                <button
+                    class="w-full py-2.5 bg-teal-500 hover:bg-teal-600 text-white rounded-lg font-semibold transition">
+                    Đăng nhập
+                </button>
+            </form>
 
-            </div>
         </div>
     </div>
 
