@@ -21,7 +21,7 @@ class AuthController extends Controller
     public function showCustomerLoginForm()
     {
         if (Auth::guard('customer')->check()) {
-            return redirect()->route('customer.dashboard'); // customer
+            return redirect()->route('customer.overview'); // customer
         }
         return view('auth.customer_login');
     }
@@ -63,7 +63,7 @@ class AuthController extends Controller
                 return redirect()->route('dashboard')
                     ->with('success', 'Đăng nhập thành công!');
             } else {
-                return redirect()->route('customer.dashboard')
+                return redirect()->route('customer.overview')
                     ->with('success', 'Đăng nhập thành công!');
             }
         }

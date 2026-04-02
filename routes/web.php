@@ -132,7 +132,8 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
 Route::get('/api/inventory/{warehouse}', [App\Http\Controllers\OutboundOrderController::class, 'getInventoryApi']);
 Route::get('/api/locations/{warehouse}', [App\Http\Controllers\InventoryController::class, 'getLocationsApi']);
 
-Route::middleware(['auth:customer'])->name('customer.')->group(function () {
+Route::middleware(['auth:customer'])->prefix('customer')->name('customer.')->group(function () {
+    Route::get('/overview', [DashboardController::class, 'overview'])->name('overview');
     Route::get('/dashboard', [DashboardController::class, 'customerIndex'])->name('dashboard');
 
     // Profile Management
