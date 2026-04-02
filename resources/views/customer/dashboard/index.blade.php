@@ -11,6 +11,7 @@
         </div>
     </div>
 
+    {{--
     <!-- Hàng 1: Các Widget Thống Kê -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <!-- Tổng Sản Phẩm -->
@@ -57,6 +58,7 @@
             </div>
         </div>
     </div>
+    --}}
 
     <!-- Phần lọc và tìm kiếm -->
     <form method="GET" action="{{ route('customer.dashboard') }}" class="bg-white shadow-sm rounded-2xl border border-gray-100 p-6">
