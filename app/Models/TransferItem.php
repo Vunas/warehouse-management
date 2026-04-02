@@ -16,6 +16,8 @@ class TransferItem extends Model
         'transfer_id',
         'inventory_id',
         'product_id',
+        'batch_id',
+        'to_location_id',
         'quantity',
     ];
 
@@ -26,11 +28,21 @@ class TransferItem extends Model
 
     public function inventory(): BelongsTo
     {
-        return $this->belongsTo(Inventory::class);
+        return $this->belongsTo(Inventory::class, 'inventory_id');
     }
 
     public function product(): BelongsTo
     {
-        return $this->belongsTo(Product::class);
+        return $this->belongsTo(Product::class, 'product_id');
+    }
+
+    public function batch(): BelongsTo
+    {
+        return $this->belongsTo(ProductBatch::class, 'batch_id');
+    }
+
+    public function toLocation(): BelongsTo
+    {
+        return $this->belongsTo(Location::class, 'to_location_id');
     }
 }

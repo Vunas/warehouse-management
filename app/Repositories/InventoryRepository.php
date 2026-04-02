@@ -6,74 +6,88 @@ use App\Models\Inventory;
 use App\Repositories\Interfaces\InventoryRepositoryInterface;
 use App\Repositories\Traits\CanRead;
 use App\Repositories\Traits\CanWrite;
+use App\Repositories\Traits\CanDelete;
 
-class InventoryRepository extends BaseRepository implements InventoryRepositoryInterface
+class InventoryRepository implements InventoryRepositoryInterface
 {
-    use CanRead;
-    use CanWrite {
-        create as traitCreate;
-        update as traitUpdate;
-    }
+    use CanRead, CanWrite, CanDelete;
 
-    public function getModel()
+    protected $model;
+
+    public function __construct(Inventory $model)
     {
-        return Inventory::class;
+        $this->model = $model;
     }
 
-    public function create(array $payload)
+    public function getPaginated(int $perPage = 15)
     {
-        return $this->traitCreate($payload);
+        return $this->model->with(['product', 'location.warehouse'])
+            ->orderBy('id', 'desc')
+            ->paginate($perPage);
     }
 
-    public function update($id, array $payload)
+    // Ghi đè phương thức của CanRead để luôn tự động gọi quan hệ cần thiết
+    public function findById($id, array $columns = ['*'], array $relations = ['product', 'location.warehouse'])
     {
-        return $this->traitUpdate($id, $payload);
+        return $this->model->with($relations)->findOrFail($id, $columns);
     }
 
-    public function getByProductId(int $productId)
+    public function getStock(int $productId, int $locationId, ?int $batchId)
     {
-        return $this->model->with('location.warehouse')
-            ->where('product_id', $productId)
-            ->get();
+        $query = $this->model->where('product_id', $productId)->where('location_id', $locationId);
+        
+        if ($batchId) {
+            $query->where('batch_id', $batchId);
+        } else {
+            $query->whereNull('batch_id');
+        }
+
+        return $query->first();
     }
 
-    public function getByLocationId(int $locationId)
+    public function getLockedStock(int $productId, int $locationId, ?int $batchId)
     {
-        return $this->model->with('product')
-            ->where('location_id', $locationId)
-            ->get();
+        $query = $this->model->where('product_id', $productId)->where('location_id', $locationId);
+        
+        if ($batchId) {
+            $query->where('batch_id', $batchId);
+        } else {
+            $query->whereNull('batch_id');
+        }
+
+        return $query->lockForUpdate()->first();
     }
 
-    public function findByProductAndLocation(int $productId, int $locationId)
-    {
-        return $this->model->where('product_id', $productId)
-            ->where('location_id', $locationId)
-            ->first();
-    }
-
-    // Lấy các lô hàng có "tồn khả dụng" (Số lượng - Đã giữ > 0) để xuất bán mới hoặc xuất nội bộ
     public function getAvailableStockByProduct(int $productId)
     {
         return $this->model->where('product_id', $productId)
-            ->whereRaw('(quantity - reserved_quantity) > 0')
-            ->orderBy('created_at', 'asc') // FIFO
+            ->whereRaw('quantity > reserved_quantity')
             ->get();
     }
 
-    // Lấy các lô hàng đang được "giữ chỗ" (Dành cho việc xuất kho sau khi đã reserve)
     public function getReservedStockByProduct(int $productId)
     {
         return $this->model->where('product_id', $productId)
             ->where('reserved_quantity', '>', 0)
-            ->orderBy('created_at', 'asc') // FIFO
             ->get();
     }
 
-    public function findByProductLocationBatch($productId, $locationId, $batchId)
+    public function getFefoStockByProductAndWarehouse(int $productId, int $warehouseId)
     {
-        return Inventory::where('product_id', $productId)
-            ->where('location_id', $locationId)
-            ->where('batch_id', $batchId)
-            ->first();
+        return $this->model->leftJoin('product_batches', 'inventory.batch_id', '=', 'product_batches.id')
+            ->where('inventory.product_id', $productId)
+            ->whereHas('location', function ($q) use ($warehouseId) {
+                $q->where('warehouse_id', $warehouseId);
+            })
+            ->where('inventory.quantity', '>', 0)
+            ->orderByRaw('ISNULL(product_batches.expiry_date), product_batches.expiry_date ASC')
+            ->orderBy('inventory.created_at', 'ASC')
+            ->select('inventory.*', 'product_batches.expiry_date')
+            ->get();
+    }
+
+    public function getLockedById($id)
+    {
+        return $this->model->lockForUpdate()->find($id);
     }
 }

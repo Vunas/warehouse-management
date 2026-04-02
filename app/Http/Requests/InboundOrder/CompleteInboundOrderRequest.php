@@ -6,25 +6,27 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class CompleteInboundOrderRequest extends FormRequest
 {
-    public function authorize(): bool
+    public function authorize()
     {
         return true;
     }
 
-    public function rules(): array
+    public function rules()
     {
         return [
-            // Mảng ánh xạ [inbound_item_id => shelf_id]
-            'shelf_assignments'   => ['required', 'array'],
-            'shelf_assignments.*' => ['required', 'integer', 'exists:shelves,id'],
+            'assignments'                      => 'required|array',
+            'assignments.*.location_id'        => 'required|exists:locations,id',
+            'assignments.*.batch_code'         => 'nullable|string|max:100',
+            'assignments.*.manufacture_date'   => 'nullable|date',
+            'assignments.*.expiry_date'        => 'nullable|date|after_or_equal:assignments.*.manufacture_date',
         ];
     }
 
-    public function messages(): array
+    public function messages()
     {
         return [
-            'shelf_assignments.required' => 'Vui lòng chỉ định kệ cho các sản phẩm nhập kho.',
-            'shelf_assignments.*.exists' => 'Một trong các kệ được chọn không tồn tại.',
+            'assignments.*.location_id.required'         => 'Vui lòng chọn kệ lưu trữ cho tất cả sản phẩm.',
+            'assignments.*.expiry_date.after_or_equal'   => 'Hạn sử dụng phải lớn hơn hoặc bằng Ngày sản xuất.'
         ];
     }
 }

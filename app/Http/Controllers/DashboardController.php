@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Services\DashboardService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class DashboardController extends Controller
 {
@@ -16,6 +17,7 @@ class DashboardController extends Controller
 
     public function index()
     {
+        Gate::authorize('view_dashboard');
         $stats = $this->dashboardService->getSummaryStats();
         $lowStocks = $this->dashboardService->getLowStockAlerts(15); // Cảnh báo tồn kho dưới 15
         $recentTasks = $this->dashboardService->getRecentPendingTasks();
@@ -41,5 +43,9 @@ class DashboardController extends Controller
         $recentOrders = $this->dashboardService->getCustomerRecentOrders();
 
         return view('customer.dashboard.index', compact('products', 'categories', 'brands', 'cartStats', 'recentOrders'));
+    }
+    public function overview()
+    {
+        return view('customer.overview.index');
     }
 }

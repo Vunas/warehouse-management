@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\CategoryController;
@@ -21,6 +22,7 @@ use App\Http\Controllers\CustomerProfileController;
 use App\Http\Controllers\CustomerCartController;
 use App\Http\Controllers\CustomerOrderController;
 use App\Http\Controllers\CustomerAddressController;
+use App\Http\Controllers\StockTakeController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 
@@ -29,26 +31,31 @@ use Illuminate\Http\Request;
 | 1. PUBLIC & AUTH
 |--------------------------------------------------------------------------
 */
+
 Route::get('/', function () {
     return redirect()->route('customer_login');
+});
+
+Route::get('/admin', function () {
+    return redirect()->route('dashboard');
 });
 
 // Guest routes
 Route::middleware('guest')->group(function () {
     // Admin login
-    Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
-    Route::post('/login', [AuthController::class, 'login'])->name('login.post');
+    Route::get('/admin/login', [AuthController::class, 'showLoginForm'])->name('login');
+    Route::post('/admin/login', [AuthController::class, 'login'])->name('login.post');
 
     // Customer login
-    Route::get('/customer/login', [AuthController::class, 'showCustomerLoginForm'])->name('customer_login');
-    Route::post('/customer/login', [AuthController::class, 'login'])->name('customer_login.post');
+    Route::get('/login', [AuthController::class, 'showCustomerLoginForm'])->name('customer_login');
+    Route::post('/login', [AuthController::class, 'login'])->name('customer_login.post');
 });
 // Logout routes
-Route::post('/logout', function(Request $request) {
+Route::post('/admin/logout', function (Request $request) {
     return app(AuthController::class)->logout($request, 'web');
 })->name('logout')->middleware('auth:web');
 
-Route::post('/customer/logout', function(Request $request) {
+Route::post('/logout', function (Request $request) {
     return app(AuthController::class)->logout($request, 'customer');
 })->name('customer.logout')->middleware('auth:customer');
 
@@ -59,7 +66,7 @@ Route::post('/customer/logout', function(Request $request) {
 */
 
 Route::middleware(['auth'])->prefix('admin')->group(function () {
-    
+
     // Tổng quan (Dashboard)
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
@@ -90,6 +97,7 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
 
     // Luân chuyển kho (Stock Transfer)
     Route::resource('transfers', StockTransferController::class);
+    Route::put('/transfers/{transfer}/items/bulk', [StockTransferController::class, 'updateBulk'])->name('transfers.items.updateBulk');
     Route::post('transfers/{transfer}/items', [StockTransferController::class, 'addItem'])->name('transfers.items.add');
     Route::put('transfers/{transfer}/items/{item}', [StockTransferController::class, 'updateItem'])->name('transfers.items.update');
     Route::delete('transfers/{transfer}/items/{item}', [StockTransferController::class, 'removeItem'])->name('transfers.items.remove');
@@ -101,39 +109,53 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::post('outbounds/{outbound}/complete', [OutboundOrderController::class, 'complete'])->name('outbounds.complete');
     Route::post('outbounds/{outbound}/cancel', [OutboundOrderController::class, 'cancel'])->name('outbounds.cancel');
 
+
+    Route::resource('stock_takes', StockTakeController::class)->except(['edit', 'update', 'destroy']);
+    Route::post('stock_takes/{stock_take}/start', [StockTakeController::class, 'start'])->name('stock_takes.start');
+    Route::put('stock_takes/{stock_take}/bulk', [StockTakeController::class, 'updateBulk'])->name('stock_takes.updateBulk');
+    Route::post('stock_takes/{stock_take}/complete', [StockTakeController::class, 'complete'])->name('stock_takes.complete');
+    Route::post('stock_takes/{stock_take}/cancel', [StockTakeController::class, 'cancel'])->name('stock_takes.cancel');
+
+    Route::get('/inventory-transactions', [\App\Http\Controllers\InventoryTransactionController::class, 'index'])->name('inventory_transactions.index');
+
     // Tài chính & Khách hàng
     Route::resource('payments', PaymentController::class)->except(['create', 'store', 'destroy']);
     Route::resource('carts', CartItemController::class)->only(['index']);
 
-    Route::resource('orders', OrderController::class)->only(['index']);
+    Route::resource('orders', OrderController::class)->only(['index', 'show']);
+    Route::post('orders/{id}/updateStatus', [OrderController::class, 'updateStatus'])->name('orders.updateStatus');
+    Route::resource('product_alerts', \App\Http\Controllers\ProductAlertController::class)->except(['show']);
+    Route::patch('product_alerts/{product_alert}/toggle', [\App\Http\Controllers\ProductAlertController::class, 'toggleActive'])->name('product_alerts.toggle');
+    Route::resource('reports', ReportController::class)->only(['index', 'show']);
 });
 
 Route::get('/api/inventory/{warehouse}', [App\Http\Controllers\OutboundOrderController::class, 'getInventoryApi']);
 Route::get('/api/locations/{warehouse}', [App\Http\Controllers\InventoryController::class, 'getLocationsApi']);
 
 Route::middleware(['auth:customer'])->prefix('customer')->name('customer.')->group(function () {
+    Route::get('/overview', [DashboardController::class, 'overview'])->name('overview');
     Route::get('/dashboard', [DashboardController::class, 'customerIndex'])->name('dashboard');
-    
+
     // Profile Management
     Route::get('/profile', [CustomerProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [CustomerProfileController::class, 'updateProfile'])->name('profile.update');
     Route::put('/profile/password', [CustomerProfileController::class, 'updatePassword'])->name('profile.updatePassword');
     Route::delete('/profile', [CustomerProfileController::class, 'deleteAccount'])->name('profile.delete');
-    
+
     // Address Management
     Route::resource('address', CustomerAddressController::class)->except(['show']);
-    
+
     // Address API routes
     Route::get('address-api/districts/{cityId}', [CustomerAddressController::class, 'getDistricts'])->name('address.api.districts');
     Route::get('address-api/wards/{districtId}', [CustomerAddressController::class, 'getWards'])->name('address.api.wards');
-    
+
     // Cart Management
     Route::get('/cart', [CustomerCartController::class, 'index'])->name('cart.index');
     Route::post('/cart/add', [CustomerCartController::class, 'add'])->name('cart.add');
     Route::put('/cart/{cartItem}', [CustomerCartController::class, 'update'])->name('cart.update');
     Route::delete('/cart/{cartItem}', [CustomerCartController::class, 'remove'])->name('cart.remove');
     Route::post('/cart/checkout', [CustomerCartController::class, 'checkout'])->name('cart.checkout');
-    
+
     // Order Management
     Route::get('/order/{order}', [CustomerOrderController::class, 'show'])->name('order.show');
     Route::post('/order/{order}/cancel', [CustomerOrderController::class, 'cancel'])->name('order.cancel');
