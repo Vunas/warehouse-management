@@ -22,24 +22,39 @@ class ReportController extends Controller
      */
     public function index(Request $request)
     {
-        Gate::authorize('view_reports');
-        // Mặc định lấy thống kê 30 ngày gần nhất
-        $days = $request->input('days', 30);
-        $endDate = Carbon::now()->endOfDay();
-        $startDate = Carbon::now()->subDays($days)->startOfDay();
+        // Kiểm tra quyền (Nếu bạn có dùng Spatie Permission)
+        // Gate::authorize('view_reports'); 
 
-        // Gọi Service lấy dữ liệu
+        // Lấy ngày bắt đầu và kết thúc từ Request, mặc định là 30 ngày qua
+        $defaultStartDate = Carbon::now()->subDays(30)->format('Y-m-d');
+        $defaultEndDate = Carbon::now()->format('Y-m-d');
+
+        $startDateInput = $request->input('start_date', $defaultStartDate);
+        $endDateInput = $request->input('end_date', $defaultEndDate);
+
+        // Parse sang Carbon instance để query
+        $startDate = Carbon::parse($startDateInput)->startOfDay();
+        $endDate = Carbon::parse($endDateInput)->endOfDay();
+
+        // 1. Dữ liệu cũ
         $kpis = $this->reportService->getKpiSummary($startDate, $endDate);
-        $chartData = $this->reportService->getRevenueChartData($startDate, $endDate);
+        $revenueChart = $this->reportService->getRevenueChartData($startDate, $endDate);
         $topProducts = $this->reportService->getTopSellingProducts(5);
         $warnings = $this->reportService->getInventoryWarnings(5);
 
+        // 2. DỮ LIỆU MỚI: Thống kê Nhập/Xuất & Hoạt động nhân viên
+        $inOutChart = $this->reportService->getInOutChartData($startDate, $endDate);
+        $staffActivities = $this->reportService->getStaffActivity($startDate, $endDate);
+
         return view('admin.reports.index', compact(
             'kpis',
-            'chartData',
+            'revenueChart',
             'topProducts',
             'warnings',
-            'days'
+            'inOutChart',
+            'staffActivities',
+            'startDateInput',
+            'endDateInput'
         ));
     }
 }

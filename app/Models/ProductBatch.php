@@ -20,6 +20,11 @@ class ProductBatch extends Model
         'manufacture_date',
     ];
 
+    protected $casts = [
+        'expiry_date' => 'date',
+        'manufacture_date' => 'date',
+    ];
+
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);

@@ -50,7 +50,7 @@
                 <div class="mt-3 flex flex-wrap items-center gap-3 text-sm bg-white px-4 py-2.5 rounded-lg border border-slate-200 shadow-sm">
                     <span class="text-slate-500">Nhà cung cấp: <strong class="text-slate-900">{{ $inbound->supplier->name ?? 'N/A' }}</strong></span>
                     <span class="text-slate-300">|</span>
-                    <span class="text-slate-500">Ngày lập: <strong class="text-slate-900">{{ $inbound->created_at->timezone('Asia/Ho_Chi_Minh')->format('d/m/Y H:i:s') }} (VN)</strong></span>
+                    <span class="text-slate-500">Ngày lập: <strong class="text-slate-900">{{ $inbound->created_at->timezone('Asia/Ho_Chi_Minh')->format('d/m/Y H:i:s') }} </strong></span>
                     <span class="text-slate-300">|</span>
                     <span class="text-slate-500">Người lập: <strong class="text-slate-900">{{ $inbound->staff->full_name ?? 'N/A' }}</strong></span>
                 </div>

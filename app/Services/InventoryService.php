@@ -21,14 +21,143 @@ class InventoryService
         $this->inventoryRepo = $inventoryRepo;
     }
 
-    public function getPaginatedInventories(int $perPage)
+    // Đã cập nhật: Nhận thêm tham số $filters để tìm kiếm nâng cao
+    public function getPaginatedInventories(int $perPage, array $filters = [])
     {
-        return $this->inventoryRepo->getPaginated($perPage);
+        // Truyền filters xuống Repository. (Xem hướng dẫn cập nhật Repository ở cuối)
+        return $this->inventoryRepo->getPaginated($perPage, $filters);
     }
 
     public function getInventoryById($id)
     {
         return $this->inventoryRepo->findById($id);
+    }
+
+    public function reserveStock(int $productId, int $quantityToReserve)
+    {
+        return DB::transaction(function () use ($productId, $quantityToReserve) {
+            $inventories = $this->inventoryRepo->getAvailableStockByProduct($productId);
+            $remaining = $quantityToReserve;
+
+            foreach ($inventories as $inv) {
+                if ($remaining <= 0) break;
+
+                $available = $inv->quantity - $inv->reserved_quantity;
+                if ($available <= 0) continue;
+
+                $reserveAmount = min($available, $remaining);
+
+                $this->inventoryRepo->update($inv->id, [
+                    'reserved_quantity' => $inv->reserved_quantity + $reserveAmount
+                ]);
+
+                $remaining -= $reserveAmount;
+            }
+
+            if ($remaining > 0) {
+                throw new Exception("Sản phẩm ID {$productId} không đủ tồn kho thực tế khả dụng để giữ chỗ. Thiếu: {$remaining}");
+            }
+        });
+    }
+
+    /**
+     * HỦY ĐƠN HÀNG -> NHẢ TỒN KHO GIỮ CHỖ (RELEASE RESERVED STOCK)
+     * Giảm reserved_quantity, KHÔNG ảnh hưởng quantity (on_hand)
+     */
+    public function releaseReservedStock(int $productId, int $quantityToRelease)
+    {
+        return DB::transaction(function () use ($productId, $quantityToRelease) {
+            $inventories = $this->inventoryRepo->getReservedStockByProduct($productId);
+            $remaining = $quantityToRelease;
+
+            foreach ($inventories as $inv) {
+                if ($remaining <= 0) break;
+
+                if ($inv->reserved_quantity <= 0) continue;
+
+                $releaseAmount = min($inv->reserved_quantity, $remaining);
+
+                $this->inventoryRepo->update($inv->id, [
+                    'reserved_quantity' => $inv->reserved_quantity - $releaseAmount
+                ]);
+
+                $remaining -= $releaseAmount;
+            }
+        });
+    }
+
+    /**
+     * BƯỚC 3: XÁC NHẬN XUẤT KHO (PICKING CONFIRMED) -> TRỪ KHO THỰC TẾ
+     * Giảm CẢ quantity (on_hand) LẪN reserved_quantity
+     */
+    public function deductExactStock(int $productId, int $locationId, ?int $batchId, int $quantityToDeduct, bool $isSales = true, ?int $referenceId = null, string $note = '')
+    {
+        $inventory = $this->inventoryRepo->getLockedStock($productId, $locationId, $batchId);
+
+        if (!$inventory || $inventory->quantity < $quantityToDeduct) {
+            throw new Exception("Sản phẩm ID {$productId} tại vị trí ID {$locationId} không đủ số lượng tồn thực tế để trừ!");
+        }
+
+        if ($isSales && $inventory->reserved_quantity < $quantityToDeduct) {
+            throw new Exception("Lỗi đồng bộ: Số lượng hàng giữ chỗ (reserved) ít hơn số lượng thực xuất cho đơn bán hàng.");
+        }
+
+        $updateData = ['quantity' => $inventory->quantity - $quantityToDeduct];
+        if ($isSales) {
+            // Trừ đi lượng đã giữ chỗ vì hàng đã thực sự rời kho
+            $updateData['reserved_quantity'] = $inventory->reserved_quantity - $quantityToDeduct;
+        }
+
+        $this->inventoryRepo->update($inventory->id, $updateData);
+
+        InventoryTransactionRecorded::dispatch(array_merge([
+            'product_id'       => $productId,
+            'location_id'      => $locationId,
+            'batch_id'         => $batchId,
+            'transaction_type' => 'outbound',
+            'reference_id'     => $referenceId,
+            'quantity_change'  => -$quantityToDeduct,
+            'balance_after'    => $updateData['quantity'],
+            'staff_id'         => Auth::id() ?? null,
+            'note'             => $note ?: ($isSales ? 'Xuất kho bán hàng' : 'Xuất kho nội bộ/điều chỉnh')
+        ]));
+
+        return $inventory;
+    }
+
+    // THÊM MỚI: Hàm lấy thống kê cho một dòng tồn kho cụ thể
+    public function getInventoryStatistics($inventory)
+    {
+        // Lần cuối cùng nhập kho (inbound)
+        $lastImport = DB::table('inventory_transactions')
+            ->where('product_id', $inventory->product_id)
+            ->where('location_id', $inventory->location_id)
+            ->where('batch_id', $inventory->batch_id)
+            ->where('transaction_type', 'inbound')
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        // Tổng số lượng đã nhập
+        $totalImported = DB::table('inventory_transactions')
+            ->where('product_id', $inventory->product_id)
+            ->where('location_id', $inventory->location_id)
+            ->where('batch_id', $inventory->batch_id)
+            ->where('transaction_type', 'inbound')
+            ->sum('quantity_change');
+
+        // Tổng số lượng đã xuất (outbound thường lưu số âm, nên dùng abs để lấy số tuyệt đối)
+        $totalExported = DB::table('inventory_transactions')
+            ->where('product_id', $inventory->product_id)
+            ->where('location_id', $inventory->location_id)
+            ->where('batch_id', $inventory->batch_id)
+            ->where('transaction_type', 'outbound')
+            ->sum('quantity_change');
+
+        return [
+            'last_import_date' => $lastImport ? $lastImport->created_at : null,
+            'total_imported'   => $totalImported,
+            'total_exported'   => abs($totalExported),
+        ];
     }
 
     public function getFormData()
@@ -67,9 +196,8 @@ class InventoryService
                     'quantity'          => $balanceAfter,
                     'reserved_quantity' => 0
                 ]);
-            }       
+            }
 
-            // Bắn sự kiện ghi log Transaction
             InventoryTransactionRecorded::dispatch([
                 'product_id'       => $data['product_id'],
                 'location_id'      => $data['location_id'],
@@ -98,7 +226,6 @@ class InventoryService
                 'quantity' => $newQuantity
             ]);
 
-            // Chỉ ghi log nếu thực sự có thay đổi số lượng
             if ($variance != 0) {
                 InventoryTransactionRecorded::dispatch([
                     'product_id'       => $inventory->product_id,
@@ -121,7 +248,7 @@ class InventoryService
     {
         return DB::transaction(function () use ($id) {
             $inventory = $this->inventoryRepo->findById($id);
-            
+
             InventoryTransactionRecorded::dispatch([
                 'product_id'       => $inventory->product_id,
                 'location_id'      => $inventory->location_id,
@@ -138,82 +265,82 @@ class InventoryService
         });
     }
 
-    public function reserveStock(int $productId, int $quantityToReserve)
-    {
-        return DB::transaction(function () use ($productId, $quantityToReserve) {
-            $inventories = $this->inventoryRepo->getAvailableStockByProduct($productId);
-            $remaining = $quantityToReserve;
+    // public function reserveStock(int $productId, int $quantityToReserve)
+    // {
+    //     return DB::transaction(function () use ($productId, $quantityToReserve) {
+    //         $inventories = $this->inventoryRepo->getAvailableStockByProduct($productId);
+    //         $remaining = $quantityToReserve;
 
-            foreach ($inventories as $inv) {
-                if ($remaining <= 0) break;
+    //         foreach ($inventories as $inv) {
+    //             if ($remaining <= 0) break;
 
-                $available = $inv->quantity - $inv->reserved_quantity;
-                $reserveAmount = min($available, $remaining);
+    //             $available = $inv->quantity - $inv->reserved_quantity;
+    //             $reserveAmount = min($available, $remaining);
 
-                $this->inventoryRepo->update($inv->id, [
-                    'reserved_quantity' => $inv->reserved_quantity + $reserveAmount
-                ]);
+    //             $this->inventoryRepo->update($inv->id, [
+    //                 'reserved_quantity' => $inv->reserved_quantity + $reserveAmount
+    //             ]);
 
-                $remaining -= $reserveAmount;
-            }
+    //             $remaining -= $reserveAmount;
+    //         }
 
-            if ($remaining > 0) {
-                throw new Exception("Sản phẩm (ID: $productId) không đủ tồn kho khả dụng để giữ chỗ. Thiếu: $remaining.");
-            }
-        });
-    }
+    //         if ($remaining > 0) {
+    //             throw new Exception("Sản phẩm (ID: $productId) không đủ tồn kho khả dụng để giữ chỗ. Thiếu: $remaining.");
+    //         }
+    //     });
+    // }
 
-    public function releaseReservedStock(int $productId, int $quantityToRelease)
-    {
-        return DB::transaction(function () use ($productId, $quantityToRelease) {
-            $inventories = $this->inventoryRepo->getReservedStockByProduct($productId);
-            $remaining = $quantityToRelease;
+    // public function releaseReservedStock(int $productId, int $quantityToRelease)
+    // {
+    //     return DB::transaction(function () use ($productId, $quantityToRelease) {
+    //         $inventories = $this->inventoryRepo->getReservedStockByProduct($productId);
+    //         $remaining = $quantityToRelease;
 
-            foreach ($inventories as $inv) {
-                if ($remaining <= 0) break;
+    //         foreach ($inventories as $inv) {
+    //             if ($remaining <= 0) break;
 
-                $releaseAmount = min($inv->reserved_quantity, $remaining);
+    //             $releaseAmount = min($inv->reserved_quantity, $remaining);
 
-                $this->inventoryRepo->update($inv->id, [
-                    'reserved_quantity' => $inv->reserved_quantity - $releaseAmount
-                ]);
+    //             $this->inventoryRepo->update($inv->id, [
+    //                 'reserved_quantity' => $inv->reserved_quantity - $releaseAmount
+    //             ]);
 
-                $remaining -= $releaseAmount;
-            }
-        });
-    }
+    //             $remaining -= $releaseAmount;
+    //         }
+    //     });
+    // }
 
-        public function deductExactStock(int $productId, int $locationId, ?int $batchId, int $quantityToDeduct, bool $isSales = true, ?int $referenceId = null, string $note = '')
-    {
-        // Khóa dòng (Lock For Update) để tránh race condition
-        $inventory = $this->inventoryRepo->getLockedStock($productId, $locationId, $batchId);
+    // public function deductExactStock(int $productId, int $locationId, ?int $batchId, int $quantityToDeduct, bool $isSales = true, ?int $referenceId = null, string $note = '')
+    // {
+    //     // Khóa dòng (Lock For Update) để tránh race condition
+    //     $inventory = $this->inventoryRepo->getLockedStock($productId, $locationId, $batchId);
 
-        if (!$inventory || $inventory->quantity < $quantityToDeduct) {
-            throw new Exception("Lỗi: Sản phẩm ID {$productId} tại vị trí ID {$locationId} không đủ số lượng để trừ!");
-        }
+    //     if (!$inventory || $inventory->quantity < $quantityToDeduct) {
+    //         throw new Exception("Lỗi: Sản phẩm ID {$productId} tại vị trí ID {$locationId} không đủ số lượng để trừ!");
+    //     }
 
-        $updateData = ['quantity' => $inventory->quantity - $quantityToDeduct];
-        if ($isSales) {
-            $updateData['reserved_quantity'] = $inventory->reserved_quantity - $quantityToDeduct;
-        }
+    //     $updateData = ['quantity' => $inventory->quantity - $quantityToDeduct];
+    //     if ($isSales) {
+    //         $updateData['reserved_quantity'] = $inventory->reserved_quantity - $quantityToDeduct;
+    //     }
 
-        $this->inventoryRepo->update($inventory->id, $updateData);
+    //     $this->inventoryRepo->update($inventory->id, $updateData);
 
-        // Bắn sự kiện ghi log
-        InventoryTransactionRecorded::dispatch(array_merge([
-            'product_id'       => $productId,
-            'location_id'      => $locationId,
-            'batch_id'         => $batchId,
-            'transaction_type' => 'outbound',
-            'reference_id'     => $referenceId,
-            'quantity_change'  => -$quantityToDeduct,
-            'balance_after'    => $updateData['quantity'],
-            'staff_id'         => Auth::id() ?? null,
-            'note'             => $note ?: ($isSales ? 'Xuất kho bán hàng' : 'Xuất kho nội bộ/điều chỉnh')
-        ]));
+    //     // Bắn sự kiện ghi log
+    //     InventoryTransactionRecorded::dispatch(array_merge([
+    //         'product_id'       => $productId,
+    //         'location_id'      => $locationId,
+    //         'batch_id'         => $batchId,
+    //         'transaction_type' => 'outbound',
+    //         'reference_id'     => $referenceId,
+    //         'quantity_change'  => -$quantityToDeduct,
+    //         'balance_after'    => $updateData['quantity'],
+    //         'staff_id'         => Auth::id() ?? null,
+    //         'note'             => $note ?: ($isSales ? 'Xuất kho bán hàng' : 'Xuất kho nội bộ/điều chỉnh')
+    //     ]));
 
-        return $inventory;
-    }
+    //     return $inventory;
+    // }
 
     public function deductStockFifo(int $productId, int $quantityToDeduct, bool $isSales = true, ?int $referenceId = null)
     {
@@ -273,7 +400,7 @@ class InventoryService
 
             if ($inventory) {
                 $balanceAfter = $inventory->quantity + $variance;
-                
+
                 if ($balanceAfter < 0) {
                     throw new Exception("Lỗi: Số lượng kiểm kê thực tế gây ra tồn kho âm cho SP-{$productId}.");
                 }
@@ -281,7 +408,7 @@ class InventoryService
                 $this->inventoryRepo->update($inventory->id, ['quantity' => $balanceAfter]);
             } else {
                 if ($variance < 0) {
-                     throw new Exception("Lỗi: Không thể trừ kho SP-{$productId} ở vị trí này vì chưa từng có tồn kho.");
+                    throw new Exception("Lỗi: Không thể trừ kho SP-{$productId} ở vị trí này vì chưa từng có tồn kho.");
                 }
 
                 $this->inventoryRepo->create([
