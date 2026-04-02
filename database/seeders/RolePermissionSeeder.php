@@ -136,6 +136,20 @@ class RolePermissionSeeder extends Seeder
         }
 
         // Tạo một tài khoản dev để test
+        $exUser = User::firstOrCreate(
+            ['email' => 'customer@example.com'],
+            [
+                'username'  => 'user',
+                'full_name' => 'Example User',
+                'phone'     => '0123456788',
+                'password'  => Hash::make('123456'),
+                'is_active' => true,
+            ]
+        );
+        if (!$exUser->hasRole('customer')) {
+            $exUser->assignRole($customerRole);
+        }
+
         $devUser = User::firstOrCreate(
             ['email' => 'ngquvi461@gmail.com'],
             [
@@ -147,7 +161,7 @@ class RolePermissionSeeder extends Seeder
             ]
         );
         if (!$devUser->hasRole('customer')) {
-            $devUser->assignRole($customerRole);
+            $devUser->assignRole($staffRole);
         }
     }
 }

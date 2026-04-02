@@ -203,7 +203,7 @@
                 <thead class="bg-gray-50">
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Sản Phẩm</th>
-                        <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Nhà Xuất Bản</th>
+                        <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Thương hiệu</th>
                         <th class="px-6 py-3 text-center text-xs font-bold text-gray-500 uppercase">Số Lượng</th>
                         <th class="px-6 py-3 text-center text-xs font-bold text-gray-500 uppercase">Giá</th>
                         <th class="px-6 py-3 text-center text-xs font-bold text-gray-500 uppercase">Trạng Thái</th>
