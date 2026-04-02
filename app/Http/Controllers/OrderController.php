@@ -2,19 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Order;
 use App\Services\OrderService;
+use App\Services\AddressService;
 use Illuminate\Http\Request;
 use Exception;
-use Illuminate\Support\Facades\Auth;
 
 class OrderController extends Controller
 {
     protected $orderService;
+    protected $addressService;
 
-    public function __construct(OrderService $orderService)
+    public function __construct(OrderService $orderService, AddressService $addressService)
     {
         $this->orderService = $orderService;
+        $this->addressService = $addressService;
     }
 
     public function index(Request $request)
@@ -26,35 +27,29 @@ class OrderController extends Controller
     public function show($id)
     {
         $order = $this->orderService->getOrderById($id);
-        return view('admin.orders.show', compact('order'));
+        $address = $order->address_id ? $this->addressService->getAddressById($order->address_id) : null;
+
+        return view('admin.orders.show', compact('order', 'address'));
     }
 
-    /**
-     * Dành cho Khách hàng: Đặt hàng từ Giỏ hàng (Checkout)
-     */
-    public function placeOrder(Request $request)
+    // TỪ CHỐI NGUYÊN ĐƠN HÀNG
+    public function rejectOrder(Request $request, $orderId)
     {
-        $request->validate([
-            'address_id' => 'required|exists:addresses,id'
-        ]);
+        $request->validate(['reason' => 'required|string|max:255']);
 
         try {
-            $userId = Auth::id();
-            $order = $this->orderService->placeOrder($userId, $request->address_id);
-            
-            return redirect()->route('orders.success', $order->id)->with('success', 'Đặt hàng thành công!');
+            $this->orderService->rejectOrder($orderId, $request->reason);
+            return back()->with('success', 'Đã từ chối toàn bộ đơn hàng! Hàng hóa đã được hoàn về giỏ của khách và tồn kho đã được nhả giữ chỗ.');
         } catch (Exception $e) {
-            return back()->with('error', $e->getMessage());
+            return back()->with('error', 'Lỗi: ' . $e->getMessage());
         }
     }
 
-    /**
-     * Dành cho Admin/Nhân viên: Cập nhật trạng thái đơn hàng
-     */
     public function updateStatus(Request $request, $id)
     {
+        // Danh sách trạng thái chuẩn hóa
         $request->validate([
-            'status' => 'required|in:pending,paid,shipping,completed,cancelled'
+            'status' => 'required|in:pending,confirmed,processing,shipping,completed,cancelled'
         ]);
 
         try {

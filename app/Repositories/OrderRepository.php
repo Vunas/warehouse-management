@@ -16,4 +16,5 @@ class OrderRepository extends BaseRepository implements OrderRepositoryInterface
     {
         return Order::class;
     }
+    
 }

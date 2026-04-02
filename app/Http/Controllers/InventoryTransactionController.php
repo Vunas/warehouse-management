@@ -16,9 +16,21 @@ class InventoryTransactionController extends Controller
 
     public function index(Request $request)
     {
-        $filters = $request->only(['type', 'search']);
+        // Lấy toàn bộ các field cần thiết cho cả lọc cơ bản và nâng cao
+        $filters = $request->only([
+            'type', 
+            'search', 
+            'date_from', 
+            'date_to', 
+            'price_from', 
+            'price_to'
+        ]);
+
         $transactions = $this->transactionService->getFilteredTransactions($filters, 20);
 
-        return view('admin.inventory_transactions.index', compact('transactions'));
+        // Kiểm tra xem user có đang dùng bộ lọc nâng cao không để mở sẵn UI
+        $hasAdvancedFilters = $request->filled('date_from') || $request->filled('date_to') || $request->filled('price_from') || $request->filled('price_to');
+
+        return view('admin.inventory_transactions.index', compact('transactions', 'hasAdvancedFilters'));
     }
 }

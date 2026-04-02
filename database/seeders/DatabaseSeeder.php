@@ -9,12 +9,13 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            RolePermissionSeeder::class, // Tạo User Admin và Quyền
-            AddressSeeder::class,        // Tạo Tỉnh, Huyện, Xã
-            ProductSeeder::class,        // Tạo Danh mục, Brand, Sản phẩm
-            SupplierSeeder::class,       // Tạo NCC và map Sản phẩm
+            RolePermissionSeeder::class, 
+            AddressSeeder::class,        
+            ProductSeeder::class,        
+            SupplierSeeder::class,       
             WarehouseSeeder::class, 
-            UserSeeder::class,          // Tạo User Admin và 50 user thường
+            UserSeeder::class,          
+            ProductAlertSeeder::class,
         ]);
 
         echo "Database seeded successfully with FULL business logic & dummy data!\n";

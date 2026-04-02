@@ -3,7 +3,7 @@
 namespace App\Http\Middleware;
 
 use Closure;
-use Illuminate\Http\Request;    
+use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\Auth;
 
@@ -16,14 +16,13 @@ class RedirectIfLoggedIn
      */
     public function handle($request, Closure $next)
     {
-        if (Auth::check()) {
+        // Nếu admin đã login
+        if (Auth::guard('web')->check()) {
+            return redirect()->route('admin.dashboard');
+        }
 
-            $user = Auth::user();
-
-            if ($user->employee) {
-                return redirect()->route('admin.dashboard');
-            }
-
+        // Nếu customer đã login
+        if (Auth::guard('customer')->check()) {
             return redirect()->route('customer.dashboard');
         }
 

@@ -40,7 +40,13 @@ class RolePermissionSeeder extends Seeder
             'create_categories',
             'edit_categories',
             'delete_categories',
-            'manage_brands',     // Quản lý thương hiệu
+            'manage_brands',    
+
+            // ---------------- Quản lý ProductBatch  ----------------
+            'view_product_batches',
+            'create_product_batches',
+            'edit_product_batches',
+            'delete_product_batches',
 
             // ---------------- Quản lý Nhà cung cấp (Suppliers) ----------------
             'view_suppliers',
@@ -100,6 +106,8 @@ class RolePermissionSeeder extends Seeder
             'create_alerts',    // Tạo cấu hình cảnh báo mới
             'edit_alerts',      // Sửa cấu hình cảnh báo
             'delete_alerts',    // Xóa cấu hình cảnh báo
+
+            
         ];
 
         foreach ($permissions as $permission) {
