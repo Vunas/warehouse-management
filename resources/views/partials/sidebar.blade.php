@@ -95,6 +95,14 @@
                 </a>
             @endcan
 
+            @can('viewAny', App\Models\ProductBatch::class)
+                <a href="{{ route('product-batches.index') }}"
+                    class="nav-link flex items-center px-6 py-3 {{ request()->routeIs('product-batches.*') ? 'active bg-slate-800 text-white' : '' }}">
+                    <i class="fa-solid fa-box-open w-6 text-center"></i>
+                    <span class="ml-2 font-medium">Lô hàng</span>
+                </a>
+            @endcan
+
             @can('viewAny', App\Models\Warehouse::class)
                 <a href="{{ route('warehouses.index') }}"
                     class="nav-link flex items-center px-6 py-3 {{ request()->routeIs('warehouses.*') ? 'active bg-slate-800 text-white' : '' }}">

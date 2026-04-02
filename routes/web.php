@@ -25,6 +25,7 @@ use App\Http\Controllers\CustomerAddressController;
 use App\Http\Controllers\StockTakeController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 /*
 |--------------------------------------------------------------------------
@@ -33,23 +34,33 @@ use Illuminate\Http\Request;
 */
 
 Route::get('/', function () {
+    if (Auth::guard('customer')->check()) {
+        return redirect()->route('customer.dashboard');
+    }
+
     return redirect()->route('customer_login');
 });
 
 Route::get('/admin', function () {
-    return redirect()->route('dashboard');
+    if (Auth::guard('web')->check()) {
+        return redirect()->route('admin.dashboard');
+    }
+
+    return redirect()->route('login');
 });
 
-// Guest routes
-Route::middleware('guest')->group(function () {
-    // Admin login
+// Admin guest
+Route::middleware('guest:web')->group(function () {
     Route::get('/admin/login', [AuthController::class, 'showLoginForm'])->name('login');
     Route::post('/admin/login', [AuthController::class, 'login'])->name('login.post');
+});
 
-    // Customer login
+// Customer guest
+Route::middleware('guest:customer')->group(function () {
     Route::get('/login', [AuthController::class, 'showCustomerLoginForm'])->name('customer_login');
     Route::post('/login', [AuthController::class, 'login'])->name('customer_login.post');
 });
+
 // Logout routes
 Route::post('/admin/logout', function (Request $request) {
     return app(AuthController::class)->logout($request, 'web');
@@ -83,6 +94,7 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::resource('products', ProductController::class);
     Route::resource('warehouses', WarehouseController::class);
     Route::resource('locations', LocationController::class);
+    Route::resource('product-batches', \App\Http\Controllers\ProductBatchController::class);
 
     // Tồn kho (Inventory)
     Route::resource('inventory', InventoryController::class);
@@ -124,10 +136,14 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
 
     Route::resource('orders', OrderController::class)->only(['index', 'show']);
     Route::post('orders/{id}/updateStatus', [OrderController::class, 'updateStatus'])->name('orders.updateStatus');
+    Route::delete('orders/reject/{order}', [OrderController::class, 'rejectOrder'])
+        ->name('orders.rejectOrder');
+
     Route::resource('product_alerts', \App\Http\Controllers\ProductAlertController::class)->except(['show']);
     Route::patch('product_alerts/{product_alert}/toggle', [\App\Http\Controllers\ProductAlertController::class, 'toggleActive'])->name('product_alerts.toggle');
     Route::resource('reports', ReportController::class)->only(['index', 'show']);
 });
+Route::get('/api/orders/{id}/items', [App\Http\Controllers\OutboundOrderController::class, 'getOrderItemsApi']);
 
 Route::get('/api/inventory/{warehouse}', [App\Http\Controllers\OutboundOrderController::class, 'getInventoryApi']);
 Route::get('/api/locations/{warehouse}', [App\Http\Controllers\InventoryController::class, 'getLocationsApi']);

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Inventory\StoreInventoryRequest;
 use App\Http\Requests\Inventory\UpdateInventoryRequest;
 use App\Services\InventoryService;
+use App\Models\Warehouse;
 use Illuminate\Http\Request;
 use Exception;
 
@@ -17,7 +18,6 @@ class InventoryController extends Controller
         $this->inventoryService = $inventoryService;
     }
 
-    // API phục vụ AJAX
     public function getLocationsApi($warehouseId)
     {
         $locations = $this->inventoryService->getStoreLocations($warehouseId);
@@ -26,8 +26,21 @@ class InventoryController extends Controller
 
     public function index(Request $request)
     {
-        $inventories = $this->inventoryService->getPaginatedInventories($request->get('per_page', 15));
-        return view('admin.inventory.index', compact('inventories'));
+        // Lấy toàn bộ tham số cần thiết cho Filter & Sort
+        $filters = $request->only([
+            'keyword', 
+            'warehouse_id', 
+            'stock_status', 
+            'batch_code',
+            'sort', // Thêm param sort
+            'dir'   // Thêm param direction (chiều sắp xếp)
+        ]);
+        
+        $inventories = $this->inventoryService->getPaginatedInventories($request->get('per_page', 15), $filters);
+        
+        $warehouses = Warehouse::all();
+
+        return view('admin.inventory.index', compact('inventories', 'warehouses', 'filters'));
     }
 
     public function create()
@@ -39,9 +52,7 @@ class InventoryController extends Controller
     public function store(StoreInventoryRequest $request)
     {
         try {
-            // Truyền mảng dữ liệu đã được validate an toàn vào Service
             $this->inventoryService->addStock($request->validated());
-            
             return redirect()->route('inventory.index')->with('success', 'Thêm / Cộng dồn tồn kho thành công!');
         } catch (Exception $e) {
             return back()->withInput()->with('error', $e->getMessage());
@@ -51,7 +62,11 @@ class InventoryController extends Controller
     public function show($id)
     {
         $inventory = $this->inventoryService->getInventoryById($id);
-        return view('admin.inventory.show', compact('inventory'));
+        
+        // Lấy thêm thống kê nhập xuất cho View Chi tiết
+        $stats = $this->inventoryService->getInventoryStatistics($inventory);
+
+        return view('admin.inventory.show', compact('inventory', 'stats'));
     }
 
     public function edit($id)

@@ -17,7 +17,6 @@ class AddressRepository extends BaseRepository implements AddressRepositoryInter
         return Address::class;
     }
 
-    // Nghiệp vụ cụ thể: Lấy danh sách địa chỉ của 1 User
     public function getByUserId(int $userId)
     {
         return $this->model->with(['ward.district.city'])->where('user_id', $userId)->get();
