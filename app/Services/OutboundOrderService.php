@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Repositories\Interfaces\OutboundOrderRepositoryInterface;
 use App\Repositories\Interfaces\InventoryRepositoryInterface;
 use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\Warehouse;
 use App\Models\Product;
 use Illuminate\Support\Facades\DB;
@@ -26,6 +27,13 @@ class OutboundOrderService
         $this->inventoryService = $inventoryService;
     }
 
+    // TÍNH NĂNG MỚI: Lấy item của order
+    public function getOrderItemsApi($orderId)
+    {
+        // Lấy chi tiết món hàng của order
+        return OrderItem::where('order_id', $orderId)->get(['product_id', 'quantity']);
+    }
+
     public function getPaginatedOutbounds($perPage = 15)
     {
         return $this->outboundRepo->getPaginatedOrders($perPage);
@@ -34,7 +42,8 @@ class OutboundOrderService
     public function getFormData()
     {
         return [
-            'orders'     => Order::whereIn('status', ['paid', 'pending'])->get(),
+            // Chỉ lấy Order chưa hoàn thành / chưa xuất xong
+            'orders'     => Order::whereIn('status', ['paid', 'pending', 'processing', 'confirmed'])->get(),
             'warehouses' => Warehouse::all(),
             'products'   => Product::all()
         ];
@@ -49,9 +58,11 @@ class OutboundOrderService
     {
         return $this->inventoryRepo->all(['*'], ['product', 'location', 'batch'])
             ->filter(function ($inv) use ($warehouseId) {
+                // FEFO: Lấy Tồn kho On Hand trừ đi Hàng đã giữ chỗ (Reserved)
                 return $inv->location->warehouse_id == $warehouseId && ($inv->quantity - $inv->reserved_quantity) > 0;
             })
             ->sortBy(function($inventory) {
+                // Ưu tiên HSD gần nhất (FEFO)
                 return optional($inventory->batch)->expiry_date ?: '9999-12-31';
             })
             ->values();
@@ -83,6 +94,12 @@ class OutboundOrderService
                     ]);
                 }
             }
+            
+            // Cập nhật Order thành đang xử lý kho
+            if ($data['type'] === 'sales' && !empty($data['order_id'])) {
+                Order::where('id', $data['order_id'])->update(['status' => 'processing']);
+            }
+
             return $outbound;
         });
     }
@@ -125,7 +142,7 @@ class OutboundOrderService
             $isSales = ($outbound->type === 'sales');
 
             foreach ($outbound->items as $item) {
-                // ĐÃ FIX: Chuyển trách nhiệm trừ kho và ghi Log sang InventoryService
+                // Trừ kho thật
                 $this->inventoryService->deductExactStock(
                     $item->product_id,
                     $item->location_id,
@@ -147,6 +164,16 @@ class OutboundOrderService
 
     public function cancelOutboundOrder($outboundId)
     {
-        return $this->outboundRepo->update($outboundId, ['status' => 'cancelled']);
+        return DB::transaction(function () use ($outboundId) {
+            $outbound = $this->outboundRepo->findById($outboundId);
+            $this->outboundRepo->update($outboundId, ['status' => 'cancelled']);
+
+            // Trả order về confirmed nếu cancel phiếu xuất
+            if ($outbound->type === 'sales' && $outbound->order_id) {
+                Order::where('id', $outbound->order_id)->update(['status' => 'confirmed']);
+            }
+
+            return $outbound;
+        });
     }
 }

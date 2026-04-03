@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\User;
 use App\Policies\RolePolicy;
+use App\Repositories\AddressRepository;
 use App\Repositories\BrandRepository;
 use App\Repositories\CartItemRepository;
 use Illuminate\Support\ServiceProvider;
@@ -25,6 +26,7 @@ use App\Repositories\WarehouseRepository;
 use App\Repositories\CategoryRepository;
 use App\Repositories\InboundItemRepository;
 use App\Repositories\InboundOrderRepository;
+use App\Repositories\Interfaces\AddressRepositoryInterface;
 use App\Repositories\Interfaces\BrandRepositoryInterface;
 use App\Repositories\Interfaces\CartItemRepositoryInterface;
 use App\Repositories\Interfaces\InboundItemRepositoryInterface;
@@ -35,6 +37,7 @@ use App\Repositories\Interfaces\OrderItemRepositoryInterface;
 use App\Repositories\Interfaces\OrderRepositoryInterface;
 use App\Repositories\Interfaces\OutboundOrderRepositoryInterface;
 use App\Repositories\Interfaces\PaymentRepositoryInterface;
+use App\Repositories\Interfaces\ProductBatchRepositoryInterface;
 use App\Repositories\Interfaces\StockTransferRepositoryInterface;
 use App\Repositories\Interfaces\SupplierRepositoryInterface;
 use App\Repositories\Interfaces\TransferItemRepositoryInterface;
@@ -44,6 +47,7 @@ use App\Repositories\OrderItemRepository;
 use App\Repositories\OrderRepository;
 use App\Repositories\OutboundOrderRepository;
 use App\Repositories\PaymentRepository;
+use App\Repositories\ProductBatchRepository;
 use App\Repositories\StockTransferRepository;
 use App\Repositories\SupplierRepository;
 use App\Repositories\TransferItemRepository;
@@ -59,9 +63,11 @@ class AppServiceProvider extends ServiceProvider
     {
         // 1. Nhóm Auth & Nhân sự
         $this->app->bind(UserRepositoryInterface::class, UserRepository::class);
+        $this->app->bind(AddressRepositoryInterface::class, AddressRepository::class);
 
         // 2. Nhóm Sản phẩm & Cấu hình
         $this->app->bind(ProductRepositoryInterface::class, ProductRepository::class);
+        $this->app->bind(ProductBatchRepositoryInterface::class, ProductBatchRepository::class);
         $this->app->bind(CategoryRepositoryInterface::class, CategoryRepository::class);
 
         // 3. Nhóm Kho & Hợp đồng

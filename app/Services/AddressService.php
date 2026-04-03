@@ -13,6 +13,15 @@ class AddressService
         $this->addressRepo = $addressRepo;
     }
 
+    public function getAddressById($id)
+    {
+        return $this->addressRepo->findById($id);
+    }
+
+    public function getUserAddress($userId)
+    {
+        return $this->addressRepo->getByUserId($userId);
+    }
     public function getUserAddresses($userId)
     {
         return $this->addressRepo->getByUserId($userId);

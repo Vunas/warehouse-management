@@ -19,11 +19,74 @@ class InventoryRepository implements InventoryRepositoryInterface
         $this->model = $model;
     }
 
-    public function getPaginated(int $perPage = 15)
+ public function getPaginated(int $perPage = 15, array $filters = [])
     {
-        return $this->model->with(['product', 'location.warehouse'])
-            ->orderBy('id', 'desc')
-            ->paginate($perPage);
+        $query = $this->model->with(['product', 'location.warehouse', 'batch']);
+
+        // --- 1. XỬ LÝ LỌC DỮ LIỆU (FILTERING) ---
+        
+        // Tìm theo tên/mã SP
+        if (!empty($filters['keyword'])) {
+            $keyword = $filters['keyword'];
+            $query->whereHas('product', function ($q) use ($keyword) {
+                $q->where('name', 'LIKE', "%{$keyword}%")
+                  ->orWhere('id', $keyword);
+            });
+        }
+
+        // Lọc theo Kho
+        if (!empty($filters['warehouse_id'])) {
+            $warehouseId = $filters['warehouse_id'];
+            $query->whereHas('location', function ($q) use ($warehouseId) {
+                $q->where('warehouse_id', $warehouseId);
+            });
+        }
+
+        // Lọc theo Trạng thái
+        if (!empty($filters['stock_status'])) {
+            switch ($filters['stock_status']) {
+                case 'in_stock':
+                    $query->where('quantity', '>', 0);
+                    break;
+                case 'out_of_stock':
+                    $query->where('quantity', '<=', 0);
+                    break;
+                case 'available':
+                    $query->whereRaw('quantity > reserved_quantity');
+                    break;
+                case 'reserved':
+                    $query->where('reserved_quantity', '>', 0);
+                    break;
+            }
+        }
+
+        // Lọc theo Lô hàng
+        if (!empty($filters['batch_code'])) {
+            $batchCode = $filters['batch_code'];
+            $query->whereHas('batch', function ($q) use ($batchCode) {
+                $q->where('batch_code', 'LIKE', "%{$batchCode}%");
+            });
+        }
+
+        // --- 2. XỬ LÝ SẮP XẾP (SORTING) ---
+        
+        $sortColumn = $filters['sort'] ?? 'updated_at'; // Mặc định xếp theo ngày cập nhật
+        $sortDirection = strtolower($filters['dir'] ?? 'desc'); // Mặc định giảm dần
+        
+        // Danh sách các cột ĐƯỢC PHÉP sắp xếp (Bảo mật: Tránh SQL Injection)
+        $allowedSortColumns = ['id', 'quantity', 'reserved_quantity', 'updated_at', 'created_at'];
+        
+        // Đảm bảo direction chỉ là asc hoặc desc
+        $sortDirection = in_array($sortDirection, ['asc', 'desc']) ? $sortDirection : 'desc';
+
+        if (in_array($sortColumn, $allowedSortColumns)) {
+            $query->orderBy($sortColumn, $sortDirection);
+        } else {
+            // Sắp xếp mặc định nếu param sai
+            $query->orderBy('updated_at', 'desc');
+        }
+
+        return $query->paginate($perPage);
     }
 
     // Ghi đè phương thức của CanRead để luôn tự động gọi quan hệ cần thiết

@@ -17,11 +17,23 @@ class OutboundOrderController extends Controller
         $this->outboundService = $outboundService;
     }
 
+    // API lấy tồn kho theo Warehouse (Phục vụ FEFO)
     public function getInventoryApi($warehouseId)
     {
         try {
             $inventory = $this->outboundService->getInventoryForDropdown($warehouseId);
             return response()->json($inventory);
+        } catch (Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    // TÍNH NĂNG MỚI: API lấy chi tiết Order để tự động điền vào Phiếu xuất
+    public function getOrderItemsApi($orderId)
+    {
+        try {
+            $items = $this->outboundService->getOrderItemsApi($orderId);
+            return response()->json($items);
         } catch (Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
         }
