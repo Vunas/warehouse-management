@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             InboundSeeder::class,
             OrderSeeder::class,
             OutboundSeeder::class,
+            ProductImageSeeder::class,
         ]);
 
         echo "Database seeded successfully with FULL business logic & dummy data!\n";

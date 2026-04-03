@@ -50,13 +50,13 @@ Route::get('/admin', function () {
 });
 
 // Admin guest
-Route::middleware(['guest:web','throttle:5,1'])->group(function () {
+Route::middleware(['guest:web','throttle:50,1'])->group(function () {
     Route::get('/admin/login', [AuthController::class, 'showLoginForm'])->name('login');
     Route::post('/admin/login', [AuthController::class, 'login'])->name('login.post');
 });
 
 // Customer guest
-Route::middleware(['guest:customer','throttle:5,1'])->group(function () {
+Route::middleware(['guest:customer','throttle:50,1'])->group(function () {
     Route::get('/login', [AuthController::class, 'showCustomerLoginForm'])->name('customer_login');
     Route::post('/login', [AuthController::class, 'login'])->name('customer_login.post');
 });
