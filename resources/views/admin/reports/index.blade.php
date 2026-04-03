@@ -4,7 +4,6 @@
 
 @section('content')
     <div class="container mx-auto px-4 py-6 max-w-[90rem]">
-        <!-- Header & Date Filter -->
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
             <div>
                 <h1 class="text-2xl font-extrabold text-slate-800">Tổng quan Báo cáo & Thống kê</h1>
@@ -15,12 +14,12 @@
                 class="flex items-center gap-2 bg-white p-2 rounded-lg shadow-sm border border-slate-200">
                 <div class="flex items-center gap-2 px-2">
                     <span class="text-sm font-medium text-slate-600">Từ</span>
-                    <input type="date" name="start_date" value="{{ $startDateInput }}"
+                    <input type="date" name="start_date" value="{{ $startDateInput ?? '' }}"
                         class="border-slate-300 rounded-md text-sm focus:ring-indigo-500 py-1.5 px-3">
                 </div>
                 <div class="flex items-center gap-2 px-2 border-l border-slate-100">
                     <span class="text-sm font-medium text-slate-600">Đến</span>
-                    <input type="date" name="end_date" value="{{ $endDateInput }}"
+                    <input type="date" name="end_date" value="{{ $endDateInput ?? '' }}"
                         class="border-slate-300 rounded-md text-sm focus:ring-indigo-500 py-1.5 px-3">
                 </div>
                 <button type="submit"
@@ -30,9 +29,7 @@
             </form>
         </div>
 
-        <!-- KPI Cards -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-            <!-- Revenue Card -->
             <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-100 flex items-center">
                 <div class="p-3 rounded-xl bg-emerald-100 text-emerald-600 mr-4">
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -43,11 +40,10 @@
                 </div>
                 <div>
                     <p class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-1">Doanh thu bán ra</p>
-                    <p class="text-2xl font-black text-slate-800">{{ number_format($kpis['total_revenue']) }} đ</p>
+                    <p class="text-2xl font-black text-slate-800">{{ number_format($kpis['total_revenue'] ?? 0) }} đ</p>
                 </div>
             </div>
 
-            <!-- Orders Card -->
             <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-100 flex items-center">
                 <div class="p-3 rounded-xl bg-blue-100 text-blue-600 mr-4">
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -57,11 +53,10 @@
                 </div>
                 <div>
                     <p class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-1">Đơn hàng thành công</p>
-                    <p class="text-2xl font-black text-slate-800">{{ number_format($kpis['total_orders']) }}</p>
+                    <p class="text-2xl font-black text-slate-800">{{ number_format($kpis['total_orders'] ?? 0) }}</p>
                 </div>
             </div>
 
-            <!-- Inbound Card -->
             <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-100 flex items-center">
                 <div class="p-3 rounded-xl bg-purple-100 text-purple-600 mr-4">
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -71,11 +66,10 @@
                 </div>
                 <div>
                     <p class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-1">Phiếu nhập kho</p>
-                    <p class="text-2xl font-black text-slate-800">{{ number_format($kpis['total_inbounds']) }}</p>
+                    <p class="text-2xl font-black text-slate-800">{{ number_format($kpis['total_inbounds'] ?? 0) }}</p>
                 </div>
             </div>
 
-            <!-- Low Stock Alert Card -->
             <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-100 flex items-center">
                 <div class="p-3 rounded-xl bg-rose-100 text-rose-600 mr-4">
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -86,14 +80,12 @@
                 </div>
                 <div>
                     <p class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-1">Cảnh báo sắp hết</p>
-                    <p class="text-2xl font-black text-slate-800">{{ number_format($kpis['low_stock']) }} SP</p>
+                    <p class="text-2xl font-black text-slate-800">{{ number_format($kpis['low_stock'] ?? 0) }} SP</p>
                 </div>
             </div>
         </div>
 
-        <!-- Charts Area (2 Columns) -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            <!-- Revenue Chart -->
             <div class="bg-white rounded-2xl shadow-sm p-6 border border-slate-200">
                 <h3 class="text-lg font-bold text-slate-800 mb-4">Biểu đồ doanh thu</h3>
                 <div class="relative h-72 w-full">
@@ -101,7 +93,6 @@
                 </div>
             </div>
 
-            <!-- Inbound/Outbound Chart -->
             <div class="bg-white rounded-2xl shadow-sm p-6 border border-slate-200">
                 <h3 class="text-lg font-bold text-slate-800 mb-4">Biểu đồ Nhập / Xuất kho (Số lượng)</h3>
                 <div class="relative h-72 w-full">
@@ -110,10 +101,8 @@
             </div>
         </div>
 
-        <!-- Tables Area (3 Columns: Top Products, Staff Activity, Warnings) -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-            <!-- Top Selling Products -->
             <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden lg:col-span-1">
                 <div class="p-5 border-b border-slate-100 bg-slate-50/50">
                     <h3 class="text-base font-bold text-slate-800">Top 5 SP Bán chạy</h3>
@@ -142,7 +131,6 @@
                 </div>
             </div>
 
-            <!-- Staff Activity Table -->
             <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden lg:col-span-1">
                 <div class="p-5 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
                     <h3 class="text-base font-bold text-slate-800">Hoạt động Nhân viên</h3>
@@ -186,7 +174,6 @@
                 </div>
             </div>
 
-            <!-- Inventory Warnings -->
             <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden lg:col-span-1">
                 <div class="p-5 border-b border-slate-100 bg-rose-50/50">
                     <h3 class="text-base font-bold text-rose-800 flex items-center gap-2">
@@ -230,130 +217,111 @@
 
         </div>
     </div>
-@endsection
 
-@push('scripts')
-    <!-- Nhúng thư viện Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
 
             // 1. BIỂU ĐỒ DOANH THU (Line Chart)
-            const revCtx = document.getElementById('revenueChart').getContext('2d');
-            const revLabels = {!! json_encode($revenueChart['labels']) !!};
-            const revData = {!! json_encode($revenueChart['values']) !!};
+            const revCtx = document.getElementById('revenueChart');
+            if (revCtx) {
+                const revLabels = {!! json_encode($revenueChart['labels'] ?? []) !!};
+                const revData = {!! json_encode($revenueChart['values'] ?? []) !!};
 
-            new Chart(revCtx, {
-                type: 'line',
-                data: {
-                    labels: revLabels,
-                    datasets: [{
-                        label: 'Doanh thu',
-                        data: revData,
-                        borderColor: '#4f46e5', // indigo-600
-                        backgroundColor: 'rgba(79, 70, 229, 0.1)',
-                        borderWidth: 3,
-                        pointBackgroundColor: '#fff',
-                        pointBorderColor: '#4f46e5',
-                        pointBorderWidth: 2,
-                        pointRadius: 4,
-                        fill: true,
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return new Intl.NumberFormat('vi-VN', {
-                                        style: 'currency',
-                                        currency: 'VND'
-                                    }).format(context.raw);
-                                }
-                            }
-                        }
+                new Chart(revCtx.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: revLabels,
+                        datasets: [{
+                            label: 'Doanh thu',
+                            data: revData,
+                            borderColor: '#4f46e5', // indigo-600
+                            backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                            borderWidth: 3,
+                            pointBackgroundColor: '#fff',
+                            pointBorderColor: '#4f46e5',
+                            pointBorderWidth: 2,
+                            pointRadius: 4,
+                            fill: true,
+                            tension: 0.4
+                        }]
                     },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            suggestedMax: 1000000, // <--- ĐIỂM FIX LỖI Ở ĐÂY
-                            ticks: {
-                                callback: function(value) {
-                                    if (value === 0) return '0 đ';
-                                    if (value >= 1000000) return (value / 1000000) + ' Tr';
-                                    if (value >= 1000) return (value / 1000) + ' K';
-                                    return value;
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return new Intl.NumberFormat('vi-VN', {
+                                            style: 'currency',
+                                            currency: 'VND'
+                                        }).format(context.raw);
+                                    }
                                 }
                             }
                         },
-                        x: {
-                            grid: {
-                                display: false
-                            }
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        if (value === 0) return '0 đ';
+                                        if (value >= 1000000) return (value / 1000000) + ' Tr';
+                                        if (value >= 1000) return (value / 1000) + ' K';
+                                        return value;
+                                    }
+                                }
+                            },
+                            x: { grid: { display: false } }
                         }
                     }
-                }
-            });
+                });
+            }
 
             // 2. BIỂU ĐỒ NHẬP XUẤT KHO (Bar Chart)
-            const inOutCtx = document.getElementById('inOutChart').getContext('2d');
-            const ioLabels = {!! json_encode($inOutChart['labels']) !!};
-            const inData = {!! json_encode($inOutChart['in_values']) !!};
-            const outData = {!! json_encode($inOutChart['out_values']) !!};
+            const inOutCtx = document.getElementById('inOutChart');
+            if (inOutCtx) {
+                const ioLabels = {!! json_encode($inOutChart['labels'] ?? []) !!};
+                const inData = {!! json_encode($inOutChart['in_values'] ?? []) !!};
+                const outData = {!! json_encode($inOutChart['out_values'] ?? []) !!};
 
-            new Chart(inOutCtx, {
-                type: 'bar',
-                data: {
-                    labels: ioLabels,
-                    datasets: [{
-                            label: 'Nhập kho (SL)',
-                            data: inData,
-                            backgroundColor: '#10b981', // emerald-500
-                            borderRadius: 4,
-                        },
-                        {
-                            label: 'Xuất kho (SL)',
-                            data: outData,
-                            backgroundColor: '#f43f5e', // rose-500
-                            borderRadius: 4,
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'top'
-                        },
-                        tooltip: {
-                            mode: 'index',
-                            intersect: false
-                        }
+                new Chart(inOutCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: ioLabels,
+                        datasets: [{
+                                label: 'Nhập kho (SL)',
+                                data: inData,
+                                backgroundColor: '#10b981', // emerald-500
+                                borderRadius: 4,
+                            },
+                            {
+                                label: 'Xuất kho (SL)',
+                                data: outData,
+                                backgroundColor: '#f43f5e', // rose-500
+                                borderRadius: 4,
+                            }
+                        ]
                     },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            suggestedMax: 10, // <--- ĐIỂM FIX LỖI Ở ĐÂY
-                            ticks: {
-                                stepSize: 1
-                            }
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'top' },
+                            tooltip: { mode: 'index', intersect: false }
                         },
-                        x: {
-                            grid: {
-                                display: false
-                            }
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: { stepSize: 1 }
+                            },
+                            x: { grid: { display: false } }
                         }
                     }
-                }
-            });
-
+                });
+            }
         });
     </script>
-@endpush
+@endsection

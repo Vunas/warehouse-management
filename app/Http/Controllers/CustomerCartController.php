@@ -79,7 +79,6 @@ class CustomerCartController extends Controller
             }
             $cartItem->update(['quantity' => $newQuantity]);
         } else {
-            // Thêm mới
             CartItem::create([
                 'user_id' => $userId,
                 'product_id' => $product->id,

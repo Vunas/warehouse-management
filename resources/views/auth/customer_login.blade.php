@@ -80,6 +80,8 @@
                         placeholder="••••••••" required>
                 </div>
 
+                <input type="hidden" name="type" value="customer">
+
                 <!-- Remember -->
                 <div class="flex items-center justify-between text-sm">
                     <label class="flex items-center text-gray-400">

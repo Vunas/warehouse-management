@@ -25,7 +25,6 @@ class ProductService
 
     public function createProduct(array $data)
     {
-        // Tại đây sau này bạn có thể gọi thêm ProductImageService để lưu ảnh
         return $this->productRepo->create($data);
     }
 
