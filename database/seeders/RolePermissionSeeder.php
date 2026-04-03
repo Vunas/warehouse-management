@@ -24,6 +24,7 @@ class RolePermissionSeeder extends Seeder
             'view_reports',      // Xem báo cáo tổng quan trên Dashboard
             // ---------------- Hệ thống & Phân quyền ----------------
             'manage_roles',      // Quản lý vai trò (CRUD Roles)
+            'receive_alert_emails',
 
             // ---------------- Quản lý Người dùng ----------------
             'view_users',
@@ -40,7 +41,7 @@ class RolePermissionSeeder extends Seeder
             'create_categories',
             'edit_categories',
             'delete_categories',
-            'manage_brands',    
+            'manage_brands',
 
             // ---------------- Quản lý ProductBatch  ----------------
             'view_product_batches',
@@ -107,7 +108,7 @@ class RolePermissionSeeder extends Seeder
             'edit_alerts',      // Sửa cấu hình cảnh báo
             'delete_alerts',    // Xóa cấu hình cảnh báo
 
-            
+
         ];
 
         foreach ($permissions as $permission) {
@@ -123,13 +124,29 @@ class RolePermissionSeeder extends Seeder
         $staffRole = Role::firstOrCreate(['name' => 'staff']);
         $staffRole->givePermissionTo([
             'view_dashboard',
-            'view_product_batches', 'create_product_batches', 'edit_product_batches', 'delete_product_batches',
+            'view_product_batches',
+            'create_product_batches',
+            'edit_product_batches',
+            'delete_product_batches',
             'view_inventory',
-            'view_inbounds', 'create_inbounds', 'edit_inbounds', 'approve_inbounds', 'delete_inbounds',
-            'view_outbounds', 'create_outbounds', 'edit_outbounds', 'approve_outbounds', 'delete_outbounds',
-            'view_transfers', 'create_transfers', 'edit_transfers', 'approve_transfers', 'delete_transfers',
+            'view_inbounds',
+            'create_inbounds',
+            'edit_inbounds',
+            'approve_inbounds',
+            'delete_inbounds',
+            'view_outbounds',
+            'create_outbounds',
+            'edit_outbounds',
+            'approve_outbounds',
+            'delete_outbounds',
+            'view_transfers',
+            'create_transfers',
+            'edit_transfers',
+            'approve_transfers',
+            'delete_transfers',
             'view_inventory_transactions',
-            'view_stock_takes', 'create_stock_takes',  // Nhân viên có thể tạo phiếu kiểm kê nhưng không được xóa/sửa
+            'view_stock_takes',
+            'create_stock_takes',  // Nhân viên có thể tạo phiếu kiểm kê nhưng không được xóa/sửa
         ]);
 
         // Role customer: cho khách hàng đăng nhập vào hệ thống
@@ -137,7 +154,7 @@ class RolePermissionSeeder extends Seeder
 
         // 3. Tạo một tài khoản Admin mặc định để test
         $adminUser = User::firstOrCreate(
-            ['email' => 'admin@example.com'], // Kiểm tra xem email này có chưa
+            ['email' => 'admin@gmail.com'], // Kiểm tra xem email này có chưa
             [
                 'username'  => 'admin',
                 'full_name' => 'Quản trị viên Hệ thống',

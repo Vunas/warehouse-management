@@ -24,7 +24,7 @@
                         <i class="fa-solid fa-warehouse mr-2 text-gray-400"></i> {{ $warehouse->name }}
                     </td>
                     <td class="px-6 py-4 text-sm text-gray-600">{{ $warehouse->location }}</td>
-                    <td class="px-6 py-4 text-sm text-gray-500">{{ $warehouse->created_at ? $warehouse->created_at->format('d/m/Y') : '' }}</td>
+                    <td class="px-6 py-4 text-sm text-gray-500">{{ $warehouse->created_at ? $warehouse->created_at->timezone('Asia/Ho_Chi_Minh')->format('d/m/Y') : '' }}</td>
                     <td class="px-6 py-4 text-right">
                         <div class="flex justify-end space-x-2">
                             @can('update', $warehouse)

@@ -54,7 +54,7 @@
             <div class="mt-4 pt-4 border-t border-gray-100 space-y-2 text-sm">
                 <div class="flex justify-between">
                     <span class="text-gray-600">Ngày đặt:</span>
-                    <span class="font-bold">{{ $order->created_at->format('d/m/Y H:i') }}</span>
+                    <span class="font-bold">{{ $order->created_at->timezone('Asia/Ho_Chi_Minh')->format('d/m/Y H:i') }}</span>
                 </div>
                 <div class="flex justify-between">
                     <span class="text-gray-600">Cập nhật:</span>

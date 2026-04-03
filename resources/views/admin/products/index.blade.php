@@ -58,7 +58,7 @@
                     
                     <td class="px-6 py-4">
                         <div class="flex items-center">
-                            <div class="h-10 w-10 flex-shrink-0 bg-gray-100 rounded flex items-center justify-center">
+                            <div class="h-10 w-10 shrink-0 bg-gray-100 rounded flex items-center justify-center">
                                 <i class="fa-solid fa-box text-gray-400"></i>
                             </div>
                             <div class="ml-4">

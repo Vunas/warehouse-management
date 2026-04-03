@@ -59,7 +59,7 @@
                             @foreach($recentOrders as $order)
                                 <tr class="hover:bg-gray-50">
                                     <td class="px-6 py-4 text-sm font-bold text-indigo-700">ORD-{{ str_pad($order->id, 5, '0', STR_PAD_LEFT) }}</td>
-                                    <td class="px-6 py-4 text-sm text-gray-600">{{ $order->created_at->format('d/m/Y H:i') }}</td>
+                                    <td class="px-6 py-4 text-sm text-gray-600">{{ $order->created_at->timezone('Asia/Ho_Chi_Minh')->format('d/m/Y H:i') }}</td>
                                     <td class="px-6 py-4 text-sm text-center font-bold text-gray-800">{{ $order->items->sum('quantity') }}</td>
                                     <td class="px-6 py-4 text-sm text-right font-bold text-green-600">{{ number_format($order->total_price, 0, ',', '.') }} ₫</td>
                                     <td class="px-6 py-4 text-sm text-center">
@@ -259,7 +259,7 @@
                             @foreach($recentOrders as $order)
                                 <tr class="hover:bg-gray-50">
                                     <td class="px-6 py-4 text-sm font-bold text-indigo-700">ORD-{{ str_pad($order->id, 5, '0', STR_PAD_LEFT) }}</td>
-                                    <td class="px-6 py-4 text-sm text-gray-600">{{ $order->created_at->format('d/m/Y H:i') }}</td>
+                                    <td class="px-6 py-4 text-sm text-gray-600">{{ $order->created_at->timezone('Asia/Ho_Chi_Minh')->format('d/m/Y H:i') }}</td>
                                     <td class="px-6 py-4 text-sm text-center font-bold text-gray-800">{{ $order->items->sum('quantity') }}</td>
                                     <td class="px-6 py-4 text-sm text-right font-bold text-green-600">{{ number_format($order->total_price, 0, ',', '.') }} ₫</td>
                                     <td class="px-6 py-4 text-sm text-center">
