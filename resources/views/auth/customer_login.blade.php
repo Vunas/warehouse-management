@@ -66,10 +66,10 @@
 
                 <!-- Email -->
                 <div>
-                    <label class="text-gray-300 text-sm">Username</label>
-                    <input type="text" name="email" value="{{ old('email') }}"
+                    <label class="text-gray-300 text-sm">Gmail</label>
+                    <input type="email" name="email" value="{{ old('email') }}"
                         class="w-full mt-1 px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white focus:ring-2 focus:ring-teal-400 outline-none"
-                        placeholder="vd: nguyenvana" required>
+                        placeholder="vd: customer@example.com" required>
                 </div>
 
                 <!-- Password -->
