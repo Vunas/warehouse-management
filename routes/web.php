@@ -50,13 +50,13 @@ Route::get('/admin', function () {
 });
 
 // Admin guest
-Route::middleware('guest:web')->group(function () {
+Route::middleware(['guest:web','throttle:5,1'])->group(function () {
     Route::get('/admin/login', [AuthController::class, 'showLoginForm'])->name('login');
     Route::post('/admin/login', [AuthController::class, 'login'])->name('login.post');
 });
 
 // Customer guest
-Route::middleware('guest:customer')->group(function () {
+Route::middleware(['guest:customer','throttle:5,1'])->group(function () {
     Route::get('/login', [AuthController::class, 'showCustomerLoginForm'])->name('customer_login');
     Route::post('/login', [AuthController::class, 'login'])->name('customer_login.post');
 });
@@ -76,7 +76,7 @@ Route::post('/logout', function (Request $request) {
 |--------------------------------------------------------------------------
 */
 
-Route::middleware(['auth'])->prefix('admin')->group(function () {
+Route::middleware(['auth:web'])->prefix('admin')->group(function () {
 
     // Tổng quan (Dashboard)
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -143,36 +143,53 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::patch('product_alerts/{product_alert}/toggle', [\App\Http\Controllers\ProductAlertController::class, 'toggleActive'])->name('product_alerts.toggle');
     Route::resource('reports', ReportController::class)->only(['index', 'show']);
 });
+
+Route::middleware('throttle:30,1')->group(function () {
 Route::get('/api/orders/{id}/items', [App\Http\Controllers\OutboundOrderController::class, 'getOrderItemsApi']);
 
 Route::get('/api/inventory/{warehouse}', [App\Http\Controllers\OutboundOrderController::class, 'getInventoryApi']);
 Route::get('/api/locations/{warehouse}', [App\Http\Controllers\InventoryController::class, 'getLocationsApi']);
+});
+/*
+|--------------------------------------------------------------------------
+| 3. CUSTOMER MODULES
+|--------------------------------------------------------------------------
+*/
 
 Route::middleware(['auth:customer'])->prefix('customer')->name('customer.')->group(function () {
     Route::get('/overview', [DashboardController::class, 'overview'])->name('overview');
     Route::get('/dashboard', [DashboardController::class, 'customerIndex'])->name('dashboard');
 
     // Profile Management
-    Route::get('/profile', [CustomerProfileController::class, 'edit'])->name('profile.edit');
-    Route::put('/profile', [CustomerProfileController::class, 'updateProfile'])->name('profile.update');
-    Route::put('/profile/password', [CustomerProfileController::class, 'updatePassword'])->name('profile.updatePassword');
-    Route::delete('/profile', [CustomerProfileController::class, 'deleteAccount'])->name('profile.delete');
+    Route::get('/profile', [CustomerProfileController::class, 'edit'])->name('profile.edit')->middleware('throttle:5,1');
+    Route::put('/profile', [CustomerProfileController::class, 'updateProfile'])->name('profile.update')->middleware('throttle:5,1');
+    Route::put('/profile/password', [CustomerProfileController::class, 'updatePassword'])->name('profile.updatePassword')->middleware('throttle:5,1');
+    Route::delete('/profile', [CustomerProfileController::class, 'deleteAccount'])->name('profile.delete')->middleware('throttle:5,1');
 
     // Address Management
     Route::resource('address', CustomerAddressController::class)->except(['show']);
 
     // Address API routes
-    Route::get('address-api/districts/{cityId}', [CustomerAddressController::class, 'getDistricts'])->name('address.api.districts');
-    Route::get('address-api/wards/{districtId}', [CustomerAddressController::class, 'getWards'])->name('address.api.wards');
+    Route::get('address-api/districts/{cityId}', [CustomerAddressController::class, 'getDistricts'])->name('address.api.districts')->middleware('throttle:5,1');
+
+    Route::get('address-api/wards/{districtId}', [CustomerAddressController::class, 'getWards'])->name('address.api.wards')->middleware('throttle:5,1');
+
 
     // Cart Management
-    Route::get('/cart', [CustomerCartController::class, 'index'])->name('cart.index');
-    Route::post('/cart/add', [CustomerCartController::class, 'add'])->name('cart.add');
-    Route::put('/cart/{cartItem}', [CustomerCartController::class, 'update'])->name('cart.update');
+    Route::get('/cart', [CustomerCartController::class, 'index'])->name('cart.index')->middleware('throttle:15,1');
+
+    Route::post('/cart/add', [CustomerCartController::class, 'add'])->name('cart.add')->middleware('throttle:15,1');
+
+    Route::put('/cart/{cartItem}', [CustomerCartController::class, 'update'])->name('cart.update')->middleware('throttle:15,1');
+
     Route::delete('/cart/{cartItem}', [CustomerCartController::class, 'remove'])->name('cart.remove');
-    Route::post('/cart/checkout', [CustomerCartController::class, 'checkout'])->name('cart.checkout');
+
+    Route::post('/cart/checkout', [CustomerCartController::class, 'checkout'])->name('cart.checkout')->middleware('throttle:15,1');
+
 
     // Order Management
-    Route::get('/order/{order}', [CustomerOrderController::class, 'show'])->name('order.show');
-    Route::post('/order/{order}/cancel', [CustomerOrderController::class, 'cancel'])->name('order.cancel');
+    Route::get('/order/{order}', [CustomerOrderController::class, 'show'])->name('order.show')->middleware('throttle:15,1');
+
+    Route::post('/order/{order}/cancel', [CustomerOrderController::class, 'cancel'])->name('order.cancel')->middleware('throttle:15,1');
+
 });
