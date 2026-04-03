@@ -161,10 +161,10 @@ Route::middleware(['auth:customer'])->prefix('customer')->name('customer.')->gro
     Route::get('/dashboard', [DashboardController::class, 'customerIndex'])->name('dashboard');
 
     // Profile Management
-    Route::get('/profile', [CustomerProfileController::class, 'edit'])->name('profile.edit')->middleware('throttle:5,1');
-    Route::put('/profile', [CustomerProfileController::class, 'updateProfile'])->name('profile.update')->middleware('throttle:5,1');
-    Route::put('/profile/password', [CustomerProfileController::class, 'updatePassword'])->name('profile.updatePassword')->middleware('throttle:5,1');
-    Route::delete('/profile', [CustomerProfileController::class, 'deleteAccount'])->name('profile.delete')->middleware('throttle:5,1');
+    Route::get('/profile', [CustomerProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile', [CustomerProfileController::class, 'updateProfile'])->name('profile.update')->middleware('throttle:15,1');
+    Route::put('/profile/password', [CustomerProfileController::class, 'updatePassword'])->name('profile.updatePassword')->middleware('throttle:15,1');
+    Route::delete('/profile', [CustomerProfileController::class, 'deleteAccount'])->name('profile.delete');
 
     // Address Management
     Route::resource('address', CustomerAddressController::class)->except(['show']);
