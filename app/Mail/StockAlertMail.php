@@ -14,6 +14,7 @@ class StockAlertMail extends Mailable
 
     public $alertData;
 
+
     public function __construct(array $alertData)
     {
         $this->alertData = $alertData;
@@ -22,7 +23,7 @@ class StockAlertMail extends Mailable
     public function envelope(): Envelope
     {
         $totalAlerts = count($this->alertData['low_stock']) + count($this->alertData['expiring']);
-        $subject = "🚨 [BÁO CÁO WMS] Có {$totalAlerts} cảnh báo Tồn kho & Hạn sử dụng cần xử lý!";
+        $subject = " [BÁO CÁO WMS] Có {$totalAlerts} cảnh báo Tồn kho & Hạn sử dụng cần xử lý!";
 
         return new Envelope(subject: $subject);
     }

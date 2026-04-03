@@ -79,7 +79,9 @@
                         class="w-full mt-1 px-4 py-2 rounded-lg bg-gray-700 border border-gray-600 text-white focus:ring-2 focus:ring-teal-400 outline-none"
                         placeholder="••••••••" required>
                 </div>
+
                 <input type="hidden" name="type" value="customer">
+
                 <!-- Remember -->
                 <div class="flex items-center justify-between text-sm">
                     <label class="flex items-center text-gray-400">

@@ -105,7 +105,7 @@ class ProductAlertService
     {
         $alerts = ProductAlert::with('product')->where('is_active', true)->get();
         $now = Carbon::now();
-        $adminEmail = env('ADMIN_ALERT_EMAIL', 'admin@yourcompany.com');
+        $adminEmail = env('ADMIN_ALERT_EMAIL', 'none.pazo@gmail.com');
 
         // Khởi tạo mảng chứa toàn bộ dữ liệu để gửi 1 mail duy nhất
         $mailData = [
@@ -209,7 +209,6 @@ class ProductAlertService
         // ==========================================
         if (count($mailData['low_stock']) > 0 || count($mailData['expiring']) > 0) {
 
-            // Dispatch đúng 1 Job cho tất cả dữ liệu
             SendStockAlertEmail::dispatch($mailData, $adminEmail);
 
             // Chỉ cập nhật thời gian "Đã cảnh báo" cho những sản phẩm thực sự nằm trong danh sách gửi đi
