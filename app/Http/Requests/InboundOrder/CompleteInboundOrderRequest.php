@@ -19,6 +19,8 @@ class CompleteInboundOrderRequest extends FormRequest
             'assignments.*.batch_code'         => 'nullable|string|max:100',
             'assignments.*.manufacture_date'   => 'nullable|date',
             'assignments.*.expiry_date'        => 'nullable|date|after_or_equal:assignments.*.manufacture_date',
+            'assignments.*.batch_id' => 'nullable|exists:product_batches,id',
+
         ];
     }
 
