@@ -119,9 +119,18 @@ class RolePermissionSeeder extends Seeder
         $adminRole = Role::firstOrCreate(['name' => 'admin']);
         $adminRole->givePermissionTo(Permission::all());
 
-        // Role Staff (Nhân viên): Chỉ có quyền xem danh sách (Ví dụ)
+        // Role Staff (Nhân viên)
         $staffRole = Role::firstOrCreate(['name' => 'staff']);
-        $staffRole->givePermissionTo(['view_users']);
+        $staffRole->givePermissionTo([
+            'view_dashboard',
+            'view_product_batches', 'create_product_batches', 'edit_product_batches', 'delete_product_batches',
+            'view_inventory',
+            'view_inbounds', 'create_inbounds', 'edit_inbounds', 'approve_inbounds', 'delete_inbounds',
+            'view_outbounds', 'create_outbounds', 'edit_outbounds', 'approve_outbounds', 'delete_outbounds',
+            'view_transfers', 'create_transfers', 'edit_transfers', 'approve_transfers', 'delete_transfers',
+            'view_inventory_transactions',
+            'view_stock_takes', 'create_stock_takes',  // Nhân viên có thể tạo phiếu kiểm kê nhưng không được xóa/sửa
+        ]);
 
         // Role customer: cho khách hàng đăng nhập vào hệ thống
         $customerRole = Role::firstOrCreate(['name' => 'customer']);
@@ -144,18 +153,32 @@ class RolePermissionSeeder extends Seeder
         }
 
         // Tạo một tài khoản dev để test
-        $devUser = User::firstOrCreate(
-            ['email' => 'ngquvi461@gmail.com'],
+        $exUser = User::firstOrCreate(
+            ['email' => 'customer@example.com'],
             [
-                'username'  => 'vinh',
-                'full_name' => 'Vinh Nguyen',
+                'username'  => 'customer',
+                'full_name' => 'Example customer',
+                'phone'     => '0123456788',
+                'password'  => Hash::make('123456'),
+                'is_active' => true,
+            ]
+        );
+        if (!$exUser->hasRole('customer')) {
+            $exUser->assignRole($customerRole);
+        }
+
+        $staffUser = User::firstOrCreate(
+            ['email' => 'staff@example.com'],
+            [
+                'username'  => 'staff',
+                'full_name' => 'Example staff',
                 'phone'     => '0123456789',
                 'password'  => Hash::make('123456'),
                 'is_active' => true,
             ]
         );
-        if (!$devUser->hasRole('customer')) {
-            $devUser->assignRole($customerRole);
+        if (!$staffUser->hasRole('staff')) {
+            $staffUser->assignRole($staffRole);
         }
     }
 }
