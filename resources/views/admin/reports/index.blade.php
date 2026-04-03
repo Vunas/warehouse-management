@@ -3,7 +3,7 @@
 @section('title', 'Báo cáo thống kê WMS')
 
 @section('content')
-    <div class="container mx-auto px-4 py-6 max-w-[90rem]">
+    <div class="container mx-auto px-4 py-6 max-w-360">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
             <div>
                 <h1 class="text-2xl font-extrabold text-slate-800">Tổng quan Báo cáo & Thống kê</h1>
@@ -112,8 +112,9 @@
                         @forelse($topProducts as $product)
                             <li class="p-4 hover:bg-slate-50 flex items-center justify-between">
                                 <div class="flex items-center gap-3">
-                                    <img src="{{ $product->image_url ?? 'https://via.placeholder.com/40' }}"
-                                        class="w-10 h-10 rounded-lg object-cover border border-slate-200">
+                                    <div class="h-10 w-10 shrink-0 bg-gray-100 rounded flex items-center justify-center">
+                                        <i class="fa-solid fa-box text-gray-400"></i>
+                                    </div>
                                     <div>
                                         <p class="text-sm font-bold text-slate-800 line-clamp-1">{{ $product->name }}</p>
                                         <p class="text-xs text-emerald-600 font-semibold">
@@ -250,7 +251,9 @@
                         responsive: true,
                         maintainAspectRatio: false,
                         plugins: {
-                            legend: { display: false },
+                            legend: {
+                                display: false
+                            },
                             tooltip: {
                                 callbacks: {
                                     label: function(context) {
@@ -274,7 +277,11 @@
                                     }
                                 }
                             },
-                            x: { grid: { display: false } }
+                            x: {
+                                grid: {
+                                    display: false
+                                }
+                            }
                         }
                     }
                 });
@@ -309,15 +316,26 @@
                         responsive: true,
                         maintainAspectRatio: false,
                         plugins: {
-                            legend: { position: 'top' },
-                            tooltip: { mode: 'index', intersect: false }
+                            legend: {
+                                position: 'top'
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false
+                            }
                         },
                         scales: {
                             y: {
                                 beginAtZero: true,
-                                ticks: { stepSize: 1 }
+                                ticks: {
+                                    stepSize: 1
+                                }
                             },
-                            x: { grid: { display: false } }
+                            x: {
+                                grid: {
+                                    display: false
+                                }
+                            }
                         }
                     }
                 });

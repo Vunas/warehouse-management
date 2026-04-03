@@ -119,7 +119,7 @@
                                     <span class="text-xs font-bold uppercase {{ $payment->status === 'paid' ? 'text-green-600' : 'text-yellow-600' }}">
                                         {{ $payment->status === 'paid' ? 'Thành công' : 'Chờ TT' }}
                                     </span>
-                                    <span class="text-xs text-gray-500">{{ \Carbon\Carbon::parse($payment->created_at)->format('d/m/Y') }}</span>
+                                    <span class="text-xs text-gray-500">{{ \Carbon\Carbon::parse($payment->created_at)->timezone('Asia/Ho_Chi_Minh')->format('d/m/Y') }}</span>
                                 </div>
                                 <div class="text-sm mt-1 pt-1 border-t border-gray-200 flex justify-between items-center">
                                     <span class="font-medium text-gray-500 uppercase">{{ $payment->payment_method }}</span> 

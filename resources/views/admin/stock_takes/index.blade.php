@@ -34,14 +34,14 @@
                     <tr class="hover:bg-slate-50 transition-colors">
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-black text-indigo-600">{{ $st->code }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-slate-700">{{ $st->warehouse->name ?? 'N/A' }}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">{{ $st->staff->name ?? 'N/A' }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-slate-600">{{ $st->staff->username ?? 'N/A' }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-center">
                             @if($st->status == 'draft') <span class="px-3 py-1 bg-slate-100 text-slate-600 rounded text-xs font-bold border border-slate-200">Nháp</span>
                             @elseif($st->status == 'counting') <span class="px-3 py-1 bg-amber-100 text-amber-700 rounded text-xs font-bold border border-amber-200">Đang đếm</span>
                             @elseif($st->status == 'completed') <span class="px-3 py-1 bg-emerald-100 text-emerald-700 rounded text-xs font-bold border border-emerald-200">Đã chốt sổ</span>
                             @else <span class="px-3 py-1 bg-rose-100 text-rose-700 rounded text-xs font-bold border border-rose-200">Đã Hủy</span> @endif
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-slate-500">{{ $st->created_at->format('d/m/Y H:i') }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-slate-500">{{ $st->created_at->timezone('Asia/Ho_Chi_Minh')->format('d/m/Y H:i') }}</td>
                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             <a href="{{ route('stock_takes.show', $st->id) }}" class="text-indigo-600 hover:text-white hover:bg-indigo-600 border border-indigo-200 bg-indigo-50 px-4 py-2 rounded-md transition-colors text-xs font-bold shadow-sm">
                                 Xem / Xử lý

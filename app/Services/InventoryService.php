@@ -21,7 +21,6 @@ class InventoryService
         $this->inventoryRepo = $inventoryRepo;
     }
 
-    // Đã cập nhật: Nhận thêm tham số $filters để tìm kiếm nâng cao
     public function getPaginatedInventories(int $perPage, array $filters = [])
     {
         // Truyền filters xuống Repository. (Xem hướng dẫn cập nhật Repository ở cuối)
@@ -341,6 +340,7 @@ class InventoryService
     //     return $inventory;
     // }
 
+    //Xuất kho theo nguyên tắc FIFO (First In, First Out).
     public function deductStockFifo(int $productId, int $quantityToDeduct, bool $isSales = true, ?int $referenceId = null)
     {
         return DB::transaction(function () use ($productId, $quantityToDeduct, $isSales, $referenceId) {
@@ -353,29 +353,31 @@ class InventoryService
             foreach ($inventories as $inv) {
                 if ($remaining <= 0) break;
 
+                $currentInv = $this->inventoryRepo->getLockedById($inv->id);
+
                 $takeable = $isSales
-                    ? $inv->reserved_quantity
-                    : ($inv->quantity - $inv->reserved_quantity);
+                    ? $currentInv->reserved_quantity
+                    : ($currentInv->quantity - $currentInv->reserved_quantity);
 
                 if ($takeable <= 0) continue;
 
                 $take = min($takeable, $remaining);
 
-                $updateData = ['quantity' => $inv->quantity - $take];
+                $updateData = ['quantity' => $currentInv->quantity - $take];
                 if ($isSales) {
-                    $updateData['reserved_quantity'] = $inv->reserved_quantity - $take;
+                    $updateData['reserved_quantity'] = $currentInv->reserved_quantity - $take;
                 }
 
-                $this->inventoryRepo->update($inv->id, $updateData);
+                $this->inventoryRepo->update($currentInv->id, $updateData);
 
                 InventoryTransactionRecorded::dispatch([
-                    'product_id'       => $inv->product_id,
-                    'location_id'      => $inv->location_id,
-                    'batch_id'         => $inv->batch_id,
+                    'product_id'       => $currentInv->product_id,
+                    'location_id'      => $currentInv->location_id,
+                    'batch_id'         => $currentInv->batch_id,
                     'transaction_type' => 'outbound',
                     'reference_id'     => $referenceId,
                     'quantity_change'  => -$take,
-                    'balance_after'    => $inv->quantity - $take,
+                    'balance_after'    => $updateData['quantity'],
                     'staff_id'         => Auth::id() ?? null,
                     'note'             => $isSales ? 'Xuất kho bán hàng' : 'Xuất kho nội bộ/điều chỉnh'
                 ]);

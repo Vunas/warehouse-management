@@ -19,18 +19,18 @@ class InventoryRepository implements InventoryRepositoryInterface
         $this->model = $model;
     }
 
- public function getPaginated(int $perPage = 15, array $filters = [])
+    public function getPaginated(int $perPage = 15, array $filters = [])
     {
         $query = $this->model->with(['product', 'location.warehouse', 'batch']);
 
         // --- 1. XỬ LÝ LỌC DỮ LIỆU (FILTERING) ---
-        
+
         // Tìm theo tên/mã SP
         if (!empty($filters['keyword'])) {
             $keyword = $filters['keyword'];
             $query->whereHas('product', function ($q) use ($keyword) {
                 $q->where('name', 'LIKE', "%{$keyword}%")
-                  ->orWhere('id', $keyword);
+                    ->orWhere('id', $keyword);
             });
         }
 
@@ -69,13 +69,13 @@ class InventoryRepository implements InventoryRepositoryInterface
         }
 
         // --- 2. XỬ LÝ SẮP XẾP (SORTING) ---
-        
+
         $sortColumn = $filters['sort'] ?? 'updated_at'; // Mặc định xếp theo ngày cập nhật
         $sortDirection = strtolower($filters['dir'] ?? 'desc'); // Mặc định giảm dần
-        
+
         // Danh sách các cột ĐƯỢC PHÉP sắp xếp (Bảo mật: Tránh SQL Injection)
         $allowedSortColumns = ['id', 'quantity', 'reserved_quantity', 'updated_at', 'created_at'];
-        
+
         // Đảm bảo direction chỉ là asc hoặc desc
         $sortDirection = in_array($sortDirection, ['asc', 'desc']) ? $sortDirection : 'desc';
 
@@ -98,7 +98,7 @@ class InventoryRepository implements InventoryRepositoryInterface
     public function getStock(int $productId, int $locationId, ?int $batchId)
     {
         $query = $this->model->where('product_id', $productId)->where('location_id', $locationId);
-        
+
         if ($batchId) {
             $query->where('batch_id', $batchId);
         } else {
@@ -111,7 +111,7 @@ class InventoryRepository implements InventoryRepositoryInterface
     public function getLockedStock(int $productId, int $locationId, ?int $batchId)
     {
         $query = $this->model->where('product_id', $productId)->where('location_id', $locationId);
-        
+
         if ($batchId) {
             $query->where('batch_id', $batchId);
         } else {
@@ -125,6 +125,7 @@ class InventoryRepository implements InventoryRepositoryInterface
     {
         return $this->model->where('product_id', $productId)
             ->whereRaw('quantity > reserved_quantity')
+            ->orderBy('created_at', 'ASC')
             ->get();
     }
 
@@ -132,8 +133,10 @@ class InventoryRepository implements InventoryRepositoryInterface
     {
         return $this->model->where('product_id', $productId)
             ->where('reserved_quantity', '>', 0)
+            ->orderBy('created_at', 'ASC') // FIFO
             ->get();
     }
+
 
     public function getFefoStockByProductAndWarehouse(int $productId, int $warehouseId)
     {

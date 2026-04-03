@@ -28,7 +28,7 @@
                         @endif
                     </td>
 
-                    <td class="px-6 py-4 text-sm text-gray-500">{{ $inbound->created_at->format('d/m/Y H:i') }}</td>
+                    <td class="px-6 py-4 text-sm text-gray-500">{{ $inbound->created_at->timezone('Asia/Ho_Chi_Minh')->format('d/m/Y H:i') }}</td>
                     
                     <td class="px-6 py-4 text-right">
                         <a href="{{ route('inbounds.show', $inbound->id) }}" class="text-indigo-600 hover:text-indigo-900 bg-indigo-50 px-3 py-1.5 rounded-md font-medium text-sm transition">

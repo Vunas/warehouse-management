@@ -12,7 +12,7 @@
         </div>
         <div class="flex items-center gap-2 text-sm text-indigo-700 font-semibold bg-indigo-50 px-5 py-2.5 rounded-xl shadow-sm border border-indigo-100">
             <i class="fa-regular fa-clock animate-pulse"></i>
-            Cập nhật lúc: {{ now()->format('H:i - d/m/Y') }}
+            Cập nhật lúc: {{ now()->timezone('Asia/Ho_Chi_Minh')->format('H:i - d/m/Y') }}
         </div>
     </div>
 

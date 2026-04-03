@@ -20,7 +20,7 @@
                 <tr class="hover:bg-gray-50">
                     <td class="px-6 py-4 font-medium">{{ $category->id }}</td>
                     <td class="px-6 py-4 font-semibold text-indigo-600">{{ $category->name }}</td>
-                    <td class="px-6 py-4 text-sm text-gray-500">{{ $category->created_at ? $category->created_at->format('d/m/Y') : '' }}</td>
+                    <td class="px-6 py-4 text-sm text-gray-500">{{ $category->created_at ? $category->created_at->timezone('Asia/Ho_Chi_Minh')->format('d/m/Y') : '' }}</td>
                     <td class="px-6 py-4 text-right">
                         <div class="flex justify-end space-x-2">
                             @can('update', $category)

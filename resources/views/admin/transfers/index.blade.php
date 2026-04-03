@@ -54,7 +54,7 @@
                         <tr class="hover:bg-slate-50 transition-colors align-middle">
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-black text-indigo-700">
                                 TRF-{{ str_pad($transfer->id, 5, '0', STR_PAD_LEFT) }}
-                                <p class="text-[10px] text-slate-400 font-medium mt-1">{{ $transfer->created_at->format('d/m/Y') }}</p>
+                                <p class="text-[10px] text-slate-400 font-medium mt-1">{{ $transfer->created_at->timezone('Asia/Ho_Chi_Minh')->format('d/m/Y') }}</p>
                             </td>
                             
                             <td class="px-6 py-4">

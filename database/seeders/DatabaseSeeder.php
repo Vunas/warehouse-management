@@ -9,13 +9,17 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            RolePermissionSeeder::class, 
-            AddressSeeder::class,        
-            ProductSeeder::class,        
-            SupplierSeeder::class,       
-            WarehouseSeeder::class, 
-            UserSeeder::class,          
+            RolePermissionSeeder::class,
+            AddressSeeder::class,
+            ProductSeeder::class,
+            SupplierSeeder::class,
+            WarehouseSeeder::class,
+            UserSeeder::class,
             ProductAlertSeeder::class,
+            InboundSeeder::class,
+            OrderSeeder::class,
+            OutboundSeeder::class,
+            ProductImageSeeder::class,
         ]);
 
         echo "Database seeded successfully with FULL business logic & dummy data!\n";
