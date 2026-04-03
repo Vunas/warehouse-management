@@ -67,11 +67,10 @@ class StockTakeController extends Controller
         }
     }
 
-    // ĐÃ SỬA LẠI HÀM NÀY: Gộp tính năng Lưu tạm và Hoàn tất
     public function updateBulk(Request $request, $id)
     {
         $request->validate([
-            'action' => 'required|in:save,complete', // Phân biệt người dùng ấn nút nào
+            'action' => 'required|in:save,complete', 
             'items' => 'required|array',
             'items.*.counted_quantity' => 'nullable|integer|min:0',
             'items.*.reason' => 'nullable|string'

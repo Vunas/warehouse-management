@@ -125,7 +125,6 @@ class InventoryService
         return $inventory;
     }
 
-    // THÊM MỚI: Hàm lấy thống kê cho một dòng tồn kho cụ thể
     public function getInventoryStatistics($inventory)
     {
         // Lần cuối cùng nhập kho (inbound)
