@@ -16,6 +16,9 @@ trait CanRead
 
     public function paginate(int $perPage = 15, array $columns = ['*'], array $relations = [])
     {
-        return $this->model->with($relations)->paginate($perPage, $columns);
+        return $this->model
+            ->with($relations)
+            ->orderBy('id', 'desc')
+            ->paginate($perPage, $columns);
     }
 }

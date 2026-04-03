@@ -42,8 +42,9 @@ class InboundOrderService
         $inbound = $this->inboundOrderRepo->findById($id, ['*'], ['items.product', 'items.batch', 'supplier', 'staff']);
         $locations = Location::where('is_store', true)->get();
         $products = Product::where('is_active', 1)->get();
+        $productbatches = ProductBatch::all();
 
-        return compact('inbound', 'locations', 'products');
+        return compact('inbound', 'locations', 'products', 'productbatches');
     }
 
     public function createInboundOrder(array $data)
@@ -122,20 +123,32 @@ class InboundOrderService
                 $locationId = $assign['location_id'];
                 $batchId = null;
 
-                if (!empty($assign['batch_code'])) {
+                // ✅ 1. Nếu chọn batch có sẵn
+                if (!empty($assign['batch_id'])) {
+                    $batchId = $assign['batch_id'];
+                }
+
+                // ✅ 2. Nếu nhập batch mới
+                elseif (!empty($assign['batch_code'])) {
                     $batch = ProductBatch::firstOrCreate(
                         [
-                            'product_id' => $item->product_id, 
-                            'batch_code' => $assign['batch_code']
+                            'product_id' => $item->product_id,
+                            'batch_code' => strtoupper(trim($assign['batch_code']))
                         ],
                         [
-                            'expiry_date'      => $assign['expiry_date'] ?? null, 
+                            'expiry_date'      => $assign['expiry_date'] ?? null,
                             'manufacture_date' => $assign['manufacture_date'] ?? null
                         ]
                     );
+
                     $batchId = $batch->id;
-                    $this->inboundItemRepo->update($item->id, ['batch_id' => $batchId]);
                 }
+
+                // lưu lại batch cho item
+                $this->inboundItemRepo->update($item->id, [
+                    'batch_id' => $batchId
+                ]);
+
 
                 $this->inventoryService->addStock([
                     'product_id'   => $item->product_id,
