@@ -2,6 +2,8 @@
 <html>
 
 <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -13,7 +15,9 @@
         }
 
         .container {
-            max-w-[700px] margin: 20px auto;
+            /* FIX: Sửa cú pháp lỗi max-w-[700px] thành chuẩn CSS */
+            max-width: 700px;
+            margin: 20px auto;
             padding: 20px;
             background-color: #ffffff;
             border: 1px solid #e5e7eb;
@@ -91,7 +95,7 @@
             lý:</p>
 
         <!-- BẢNG 1: CẢNH BÁO TỒN KHO -->
-        @if (count($alertData['low_stock']) > 0)
+        @if (isset($alertData['low_stock']) && count($alertData['low_stock']) > 0)
             <div class="section-title" style="color: #991b1b;">
                 🚨 1. Danh sách Cần nhập hàng (Dưới ngưỡng an toàn)
             </div>
@@ -108,11 +112,11 @@
                     @foreach ($alertData['low_stock'] as $item)
                         <tr>
                             <td><strong>{{ $item['warehouse_name'] }}</strong></td>
-                            <td>{{ $item['product_name'] }} <br><span
-                                    style="color:#64748b; font-size:11px;">SP-{{ $item['product_id'] }}</span></td>
+                            <td>{{ $item['product_name'] }} <br>
+                                <span style="color:#64748b; font-size:11px;">SP-{{ $item['product_id'] }}</span>
+                            </td>
                             <td class="text-red">{{ $item['current_stock'] }}</td>
-                            <td>
-                                <= {{ $item['threshold'] }}</td>
+                            <td>&le; {{ $item['threshold'] }}</td>
                         </tr>
                     @endforeach
                 </tbody>
@@ -120,7 +124,7 @@
         @endif
 
         <!-- BẢNG 2: CẢNH BÁO HẠN SỬ DỤNG -->
-        @if (count($alertData['expiring']) > 0)
+        @if (isset($alertData['expiring']) && count($alertData['expiring']) > 0)
             <div class="section-title" style="color: #92400e;">
                 ⚠️ 2. Danh sách Lô hàng Cận Date / Hết hạn
             </div>
@@ -136,8 +140,9 @@
                 <tbody>
                     @foreach ($alertData['expiring'] as $item)
                         <tr>
-                            <td>{{ $item['product_name'] }} <br><span
-                                    style="color:#64748b; font-size:11px;">SP-{{ $item['product_id'] }}</span></td>
+                            <td>{{ $item['product_name'] }} <br>
+                                <span style="color:#64748b; font-size:11px;">SP-{{ $item['product_id'] }}</span>
+                            </td>
                             <td><strong>{{ $item['batch_code'] }}</strong></td>
                             <td>{{ $item['expiry_date'] }}</td>
                             <td>

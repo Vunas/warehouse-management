@@ -82,13 +82,13 @@
 
                 <input type="hidden" name="type" value="customer">
 
-                <!-- Remember -->
+                {{-- <!-- Remember -->
                 <div class="flex items-center justify-between text-sm">
                     <label class="flex items-center text-gray-400">
                         <input type="checkbox" name="remember" class="mr-2">
                         Ghi nhớ đăng nhập
                     </label>
-                </div>
+                </div> --}}
 
                 <!-- Button -->
                 <button

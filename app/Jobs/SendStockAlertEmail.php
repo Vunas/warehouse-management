@@ -15,10 +15,12 @@ class SendStockAlertEmail implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    protected $alertData;
-    protected $emailTo;
+    protected array $alertData;
 
-    public function __construct(array $alertData, string $emailTo)
+    // FIX: Cho phép truyền vào 1 mảng các email hoặc 1 chuỗi email
+    protected array|string $emailTo;
+
+    public function __construct(array $alertData, array|string $emailTo)
     {
         $this->alertData = $alertData;
         $this->emailTo = $emailTo;
