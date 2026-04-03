@@ -33,7 +33,6 @@ class AuthController extends Controller
     {
         $guard = $type ?? $request->input('type', 'web');
 
-
         // 1. Validate
         $credentials = $request->validate([
             'email' => ['required', 'email'],
