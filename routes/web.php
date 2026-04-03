@@ -50,13 +50,13 @@ Route::get('/admin', function () {
 });
 
 // Admin guest
-Route::middleware(['guest:web','throttle:5,1'])->group(function () {
+Route::middleware(['guest:web','throttle:50,1'])->group(function () {
     Route::get('/admin/login', [AuthController::class, 'showLoginForm'])->name('login');
     Route::post('/admin/login', [AuthController::class, 'login'])->name('login.post');
 });
 
 // Customer guest
-Route::middleware(['guest:customer','throttle:5,1'])->group(function () {
+Route::middleware(['guest:customer','throttle:50,1'])->group(function () {
     Route::get('/login', [AuthController::class, 'showCustomerLoginForm'])->name('customer_login');
     Route::post('/login', [AuthController::class, 'login'])->name('customer_login.post');
 });
@@ -178,18 +178,18 @@ Route::middleware(['auth:customer'])->prefix('customer')->name('customer.')->gro
     // Cart Management
     Route::get('/cart', [CustomerCartController::class, 'index'])->name('cart.index');
 
-    Route::post('/cart/add', [CustomerCartController::class, 'add'])->name('cart.add')->middleware('throttle:10,1');
+    Route::post('/cart/add', [CustomerCartController::class, 'add'])->name('cart.add')->middleware('throttle:15,1');
 
-    Route::put('/cart/{cartItem}', [CustomerCartController::class, 'update'])->name('cart.update')->middleware('throttle:10,1');
+    Route::put('/cart/{cartItem}', [CustomerCartController::class, 'update'])->name('cart.update')->middleware('throttle:15,1');
 
     Route::delete('/cart/{cartItem}', [CustomerCartController::class, 'remove'])->name('cart.remove');
 
-    Route::post('/cart/checkout', [CustomerCartController::class, 'checkout'])->name('cart.checkout')->middleware('throttle:10,1');
+    Route::post('/cart/checkout', [CustomerCartController::class, 'checkout'])->name('cart.checkout')->middleware('throttle:15,1');
 
 
     // Order Management
     Route::get('/order/{order}', [CustomerOrderController::class, 'show'])->name('order.show');
 
-    Route::post('/order/{order}/cancel', [CustomerOrderController::class, 'cancel'])->name('order.cancel')->middleware('throttle:10,1');
+    Route::post('/order/{order}/cancel', [CustomerOrderController::class, 'cancel'])->name('order.cancel')->middleware('throttle:15,1');
 
 });
