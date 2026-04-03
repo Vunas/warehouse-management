@@ -28,7 +28,6 @@ class OutboundOrderController extends Controller
         }
     }
 
-    // TÍNH NĂNG MỚI: API lấy chi tiết Order để tự động điền vào Phiếu xuất
     public function getOrderItemsApi($orderId)
     {
         try {

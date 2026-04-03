@@ -284,7 +284,6 @@ $(document).ready(function() {
                 data: $('#bulk-update-form').serialize(),
                 success: function(response) {
                     if (typeof response === 'string') {
-                        // FIX TẠI ĐÂY: Dùng DOMParser thay vì includes() để tránh lỗi trùng lặp text trong script
                         let parser = new DOMParser();
                         let doc = parser.parseFromString(response, "text/html");
                         

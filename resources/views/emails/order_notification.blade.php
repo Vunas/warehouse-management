@@ -45,9 +45,9 @@
                 <p><strong>Tổng giá trị:</strong> {{ number_format($order->total_price, 0, ',', '.') }} đ</p>
             </div>
 
-            <div style="text-align: center;">
+            {{-- <div style="text-align: center;">
                 <a href="{{ config('app.url') }}/cart" class="btn">Đến Giỏ hàng của bạn</a>
-            </div>
+            </div> --}}
         </div>
         <div class="footer">
             Đây là email tự động từ Hệ thống Quản lý Bán Hàng & WMS. Vui lòng không trả lời email này.

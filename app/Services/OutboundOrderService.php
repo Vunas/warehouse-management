@@ -27,7 +27,6 @@ class OutboundOrderService
         $this->inventoryService = $inventoryService;
     }
 
-    // TÍNH NĂNG MỚI: Lấy item của order
     public function getOrderItemsApi($orderId)
     {
         // Lấy chi tiết món hàng của order

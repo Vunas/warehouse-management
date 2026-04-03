@@ -134,9 +134,6 @@ class ReportService
         ];
     }
 
-    /**
-     * 🌟 TÍNH NĂNG MỚI: Thống kê hiệu suất Nhân viên
-     */
     public function getStaffActivity($startDate, $endDate, $limit = 10)
     {
         return DB::table('inventory_transactions')
