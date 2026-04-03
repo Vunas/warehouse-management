@@ -4,8 +4,8 @@
 <div class="max-w-7xl mx-auto">
     <!-- Tiêu đề -->
     <div class="mb-8">
-        <h1 class="text-3xl font-black text-gray-800">Giỏ Hàng</h1>
-        <p class="text-gray-600 mt-2">Xem và quản lý các sản phẩm trong giỏ hàng của bạn</p>
+        <h1 class="text-3xl font-black text-gray-800">Đơn Nhập Hàng</h1>
+        <p class="text-gray-600 mt-2">Xem và quản lý các sản phẩm trong đơn</p>
     </div>
 
     @if($errors->any())
@@ -89,10 +89,10 @@
             <!-- Giỏ Hàng Trống và Không Có Lịch Sử -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center">
                 <i class="fa-solid fa-cart-shopping text-5xl text-gray-300 mb-4"></i>
-                <h2 class="text-2xl font-bold text-gray-800 mb-2">Giỏ Hàng Trống</h2>
-                <p class="text-gray-600 mb-6">Bạn chưa thêm sản phẩm nào vào giỏ hàng</p>
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">Đơn Trống</h2>
+                <p class="text-gray-600 mb-6">Bạn chưa chọn hàng để nhập</p>
                 <a href="{{ route('customer.dashboard') }}" class="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-700 transition">
-                    <i class="fa-solid fa-arrow-left mr-2"></i>Tiếp tục mua sắm
+                    <i class="fa-solid fa-arrow-left mr-2"></i>Tiếp tục nhập hàng
                 </a>
             </div>
         @endif
