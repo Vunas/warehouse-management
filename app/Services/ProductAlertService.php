@@ -13,7 +13,7 @@ class ProductAlertService
 {
     /**
      * ===============================
-     * 1. BUILD DATA DÙNG CHUNG
+     * BUILD CORE ALERT DATA (REUSABLE)
      * ===============================
      */
     private function buildAlertData(ProductAlert $alert): ?array
@@ -26,7 +26,7 @@ class ProductAlertService
         ];
 
         // ===============================
-        // LOW STOCK
+        // 1. LOW STOCK
         // ===============================
         $stocks = Inventory::where('inventory.product_id', $alert->product_id)
             ->join('locations', 'inventory.location_id', '=', 'locations.id')
@@ -37,34 +37,30 @@ class ProductAlertService
 
         if ($stocks->isEmpty()) {
             if (0 <= $alert->stock_threshold) {
-                $key = $alert->product_id . '-0';
-
-                $data['low_stock'][$key] = [
-                    'product_id'     => $alert->product->id,
-                    'product_name'   => $alert->product->name,
+                $data['low_stock'][] = (object)[
+                    'product'        => $alert->product,
                     'warehouse_name' => 'Toàn hệ thống (Chưa từng nhập kho)',
                     'current_stock'  => 0,
                     'threshold'      => $alert->stock_threshold,
+                    'is_out_of_stock'=> true,
                 ];
             }
         } else {
             foreach ($stocks as $s) {
                 if ($s->total_stock <= $alert->stock_threshold) {
-                    $key = $alert->product_id . '-' . $s->warehouse_id;
-
-                    $data['low_stock'][$key] = [
-                        'product_id'     => $alert->product->id,
-                        'product_name'   => $alert->product->name,
+                    $data['low_stock'][] = (object)[
+                        'product'        => $alert->product,
                         'warehouse_name' => $s->warehouse_name,
                         'current_stock'  => $s->total_stock,
                         'threshold'      => $alert->stock_threshold,
+                        'is_out_of_stock'=> $s->total_stock <= 0,
                     ];
                 }
             }
         }
 
         // ===============================
-        // EXPIRY
+        // 2. EXPIRING
         // ===============================
         $limitDate = Carbon::now()->addDays($alert->expiry_threshold_days);
 
@@ -81,19 +77,14 @@ class ProductAlertService
                 ->get();
 
             foreach ($batches as $b) {
-                $key = $alert->product_id . '-' . $b->id;
-
                 $daysLeft = Carbon::now()
                     ->startOfDay()
                     ->diffInDays(Carbon::parse($b->expiry_date)->startOfDay(), false);
 
-                $data['expiring'][$key] = [
-                    'product_id'     => $alert->product->id,
-                    'product_name'   => $alert->product->name,
-                    'batch_code'     => $b->batch_code,
-                    'expiry_date'    => Carbon::parse($b->expiry_date)->format('d/m/Y'),
-                    'days_left'      => $daysLeft,
-                    'threshold_days' => $alert->expiry_threshold_days,
+                $data['expiring'][] = (object)[
+                    'product'   => $alert->product,
+                    'batch'     => $b,
+                    'days_left' => $daysLeft,
                 ];
             }
         }
@@ -103,7 +94,7 @@ class ProductAlertService
 
     /**
      * ===============================
-     * 2. DASHBOARD (REALTIME)
+     * DASHBOARD REALTIME
      * ===============================
      */
     public function getTriggeredAlerts(): array
@@ -121,20 +112,20 @@ class ProductAlertService
             $data = $this->buildAlertData($alert);
             if (!$data) continue;
 
-            $result['low_stock'] = array_merge($result['low_stock'], array_values($data['low_stock']));
-            $result['expiring_soon'] = array_merge($result['expiring_soon'], array_values($data['expiring']));
+            $result['low_stock'] = array_merge($result['low_stock'], $data['low_stock']);
+            $result['expiring_soon'] = array_merge($result['expiring_soon'], $data['expiring']);
         }
 
-        // sort
-        usort($result['low_stock'], fn($a, $b) => $a['current_stock'] <=> $b['current_stock']);
-        usort($result['expiring_soon'], fn($a, $b) => $a['days_left'] <=> $b['days_left']);
+        // Sort
+        usort($result['low_stock'], fn($a, $b) => $a->current_stock <=> $b->current_stock);
+        usort($result['expiring_soon'], fn($a, $b) => $a->days_left <=> $b->days_left);
 
         return $result;
     }
 
     /**
      * ===============================
-     * 3. LẤY EMAIL NGƯỜI NHẬN
+     * GET EMAIL RECEIVERS
      * ===============================
      */
     private function getNotifyEmails(): array
@@ -147,13 +138,12 @@ class ProductAlertService
 
     /**
      * ===============================
-     * 4. CHECK & SEND MAIL CRONJOB
+     * CRONJOB SEND MAIL
      * ===============================
      */
     public function checkAndSendEmailAlerts(): void
     {
         $emails = $this->getNotifyEmails();
-
         if (empty($emails)) return;
 
         $alerts = ProductAlert::with('product')
@@ -167,49 +157,62 @@ class ProductAlertService
             'expiring'  => []
         ];
 
-        $triggeredStockAlertIds = [];
-        $triggeredExpiryAlertIds = [];
+        $triggeredStockIds = [];
+        $triggeredExpiryIds = [];
 
         foreach ($alerts as $alert) {
-            if (!$alert->product) continue;
-
             $data = $this->buildAlertData($alert);
             if (!$data) continue;
 
-            // ================= LOW STOCK =================
-            if (!$alert->last_stock_alert_at || $alert->last_stock_alert_at->diffInHours($now) >= 24) {
+            // LOW STOCK
+            if (
+                !$alert->last_stock_alert_at ||
+                $alert->last_stock_alert_at->diffInHours($now) >= 24
+            ) {
                 if (!empty($data['low_stock'])) {
-                    $mailData['low_stock'] = array_merge($mailData['low_stock'], array_values($data['low_stock']));
-                    $triggeredStockAlertIds[] = $alert->id;
+                    $mailData['low_stock'] = array_merge(
+                        $mailData['low_stock'],
+                        array_map(fn($a) => (array)$a, $data['low_stock'])
+                    );
+                    $triggeredStockIds[] = $alert->id;
                 }
             }
 
-            // ================= EXPIRY =================
-            if (!$alert->last_expiry_alert_at || $alert->last_expiry_alert_at->diffInHours($now) >= 24) {
+            // EXPIRING
+            if (
+                !$alert->last_expiry_alert_at ||
+                $alert->last_expiry_alert_at->diffInHours($now) >= 24
+            ) {
                 if (!empty($data['expiring'])) {
-                    $mailData['expiring'] = array_merge($mailData['expiring'], array_values($data['expiring']));
-                    $triggeredExpiryAlertIds[] = $alert->id;
+                    $mailData['expiring'] = array_merge(
+                        $mailData['expiring'],
+                        array_map(fn($a) => [
+                            'product_name' => $a->product->name,
+                            'batch_code'  => $a->batch->batch_code,
+                            'days_left'   => $a->days_left,
+                            'expiry_date' => Carbon::parse($a->batch->expiry_date)->format('d/m/Y'),
+                        ], $data['expiring'])
+                    );
+                    $triggeredExpiryIds[] = $alert->id;
                 }
             }
         }
 
-        // ================= SEND 1 MAIL & UPDATE DB =================
         if (!empty($mailData['low_stock']) || !empty($mailData['expiring'])) {
 
-            // Sort mảng trước khi gửi mail cho đẹp
             usort($mailData['low_stock'], fn($a, $b) => $a['current_stock'] <=> $b['current_stock']);
             usort($mailData['expiring'], fn($a, $b) => $a['days_left'] <=> $b['days_left']);
 
-            // Gửi job
             SendStockAlertEmail::dispatch($mailData, $emails);
 
-            // FIX: Tối ưu Update Database (Bulk update thay vì foreach)
-            if (!empty($triggeredStockAlertIds)) {
-                ProductAlert::whereIn('id', $triggeredStockAlertIds)->update(['last_stock_alert_at' => $now]);
+            if (!empty($triggeredStockIds)) {
+                ProductAlert::whereIn('id', $triggeredStockIds)
+                    ->update(['last_stock_alert_at' => $now]);
             }
 
-            if (!empty($triggeredExpiryAlertIds)) {
-                ProductAlert::whereIn('id', $triggeredExpiryAlertIds)->update(['last_expiry_alert_at' => $now]);
+            if (!empty($triggeredExpiryIds)) {
+                ProductAlert::whereIn('id', $triggeredExpiryIds)
+                    ->update(['last_expiry_alert_at' => $now]);
             }
         }
     }
