@@ -169,7 +169,7 @@
                                 @foreach ($groupPerms as $perm)
                                     @if (in_array($perm, $availablePermissions))
                                         <label class="flex items-start gap-3 cursor-pointer group/item">
-                                            <div class="flex-shrink-0 mt-0.5">
+                                            <div class="shrink-0 mt-0.5">
                                                 <input type="checkbox" name="permissions[]" value="{{ $perm }}"
                                                     class="permission-checkbox w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500 transition-colors cursor-pointer disabled:opacity-50"
                                                     {{ in_array($perm, $oldPermissions) ? 'checked' : '' }}
