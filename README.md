@@ -150,10 +150,11 @@ npm run dev
 
 ## 8 TÀI KHOẢN MẪU (NẾU CÓ SEED)
 
-| Role  | Username | Password |
-| ----- | -------- | -------- |
-| Admin | admin    | password |
-| Staff | staff    | password |
+| Role     | Username             | Password |
+| -----    | --------             | -------- |
+| Admin    | admin@gmail.com      | 123456   |
+| Staff    | staff@example.com    | 123456   |
+| Customer | customer@example.com | 123456   |
 
 *(Có thể chỉnh trong DatabaseSeeder)*
 

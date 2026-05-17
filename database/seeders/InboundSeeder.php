@@ -10,13 +10,22 @@ class InboundSeeder extends Seeder
 {
     public function run(): void
     {
+        // 1. Đồng bộ lại Sequence của Postgres trước khi chạy để tránh lỗi ID cũ còn sót
+        $this->fixPostgresSequence('product_batches');
+        $this->fixPostgresSequence('inbound_orders');
+        $this->fixPostgresSequence('inbound_items');
+        $this->fixPostgresSequence('inventory');
+        $this->fixPostgresSequence('inventory_transactions');
+
         // Lấy danh sách ID để random
         $suppliers = DB::table('suppliers')->pluck('id')->toArray();
         $staffs = DB::table('model_has_roles')
             ->join('roles', 'model_has_roles.role_id', '=', 'roles.id')
             ->whereIn('roles.name', ['admin', 'staff'])
             ->pluck('model_has_roles.model_id')->toArray();
-        $products = DB::table('products')->pluck('id', 'price')->toArray();
+        
+        // SỬA TẠI ĐÂY: Lấy mảng object chứa cả id lẫn price thay vì pluck trùng key price
+        $products = DB::table('products')->select('id', 'price')->get()->toArray();
         $locations = DB::table('locations')->where('is_store', true)->pluck('id')->toArray();
 
         if (empty($suppliers) || empty($staffs) || empty($products) || empty($locations)) {
@@ -40,11 +49,13 @@ class InboundSeeder extends Seeder
 
             // Mỗi phiếu nhập 2-5 mặt hàng
             $numItems = rand(2, 5);
-            $productPrices = array_keys($products);
             
             for ($j = 0; $j < $numItems; $j++) {
-                $price = $productPrices[array_rand($productPrices)];
-                $productId = $products[$price];
+                // SỬA TẠI ĐÂY: Bốc ngẫu nhiên nguyên Object Product để tránh lệch ID và Price
+                $randomProduct = $products[array_rand($products)];
+                $productId = $randomProduct->id;
+                $price = $randomProduct->price;
+
                 $quantity = rand(10, 50);
                 $locationId = $locations[array_rand($locations)];
 
@@ -101,7 +112,7 @@ class InboundSeeder extends Seeder
                     'batch_id' => $batchId,
                     'transaction_type' => 'inbound',
                     'reference_id' => $inboundId,
-                    'quantity_change' => $quantity, // Số dương vì là nhập kho
+                    'quantity_change' => $quantity,
                     'balance_after' => $balanceAfter,
                     'staff_id' => $staffId,
                     'note' => 'Nhập hàng từ phiếu INB-' . $inboundId,
@@ -109,6 +120,16 @@ class InboundSeeder extends Seeder
                     'updated_at' => $createdAt,
                 ]);
             }
+        }
+    }
+
+    /**
+     * Hàm hỗ trợ tự động đồng bộ lại chuỗi tự tăng (Sequence) trên PostgreSQL
+     */
+    private function fixPostgresSequence(string $tableName): void
+    {
+        if (config('database.default') === 'pgsql') {
+            DB::statement("SELECT setval(pg_get_serial_sequence('{$tableName}', 'id'), coalesce(max(id), 0) + 1, false) FROM {$tableName};");
         }
     }
 }

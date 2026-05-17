@@ -2,9 +2,10 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Đăng ký - WMS PRO</title>
+    <title>Đăng ký - ALOVUA</title>
 
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+{{ Vite::useBuildDirectory('build') }}
+@vite(['resources/css/app.css', 'resources/js/app.js'])
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 

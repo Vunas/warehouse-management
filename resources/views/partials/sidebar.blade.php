@@ -21,7 +21,7 @@
     {{-- Brand --}}
     <div class="h-16 flex items-center justify-center border-b border-slate-800 bg-slate-950">
         <span class="text-xl font-bold text-white">
-            <i class="fa-solid fa-boxes-stacked text-blue-500 mr-2"></i> WMS PRO
+            <i class="fa-solid fa-boxes-stacked text-blue-500 mr-2"></i> ALOVUA
         </span>
     </div>
 
