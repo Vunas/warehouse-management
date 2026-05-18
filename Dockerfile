@@ -22,4 +22,4 @@ RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cac
 
 EXPOSE 80
 
-CMD php artisan config:clear && php artisan view:clear && php artisan migrate:fresh --force && php artisan db:seed --class=InboundSeeder --force && php artisan serve --host=0.0.0.0 --port=80
+CMD php artisan config:clear && php artisan view:clear && php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=80
