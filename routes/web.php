@@ -34,29 +34,35 @@ use Illuminate\Support\Facades\Auth;
 */
 
 Route::get('/', function () {
-    if (Auth::guard('customer')->check()) {
-        return redirect()->route('customer.dashboard');
+    try {
+        if (Auth::guard('customer')->check()) {
+            return redirect()->to('/customer/dashboard'); 
+        }
+    } catch (\Exception $e) {
+        Auth::guard('customer')->logout();
     }
-
     return redirect()->route('customer_login');
 });
 
 Route::get('/admin', function () {
-    if (Auth::guard('web')->check()) {
-        return redirect()->route('admin.dashboard');
+    try {
+        if (Auth::guard('web')->check()) {
+            return redirect()->to('/admin/dashboard');
+        }
+    } catch (\Exception $e) {
+        Auth::guard('web')->logout();
     }
-
     return redirect()->route('login');
 });
 
 // Admin guest
-Route::middleware(['guest:web','throttle:50,1'])->group(function () {
+Route::middleware(['guest:web', 'throttle:50,1'])->group(function () {
     Route::get('/admin/login', [AuthController::class, 'showLoginForm'])->name('login');
     Route::post('/admin/login', [AuthController::class, 'login'])->name('login.post');
 });
 
 // Customer guest
-Route::middleware(['guest:customer','throttle:50,1'])->group(function () {
+Route::middleware(['guest:customer', 'throttle:50,1'])->group(function () {
     Route::get('/login', [AuthController::class, 'showCustomerLoginForm'])->name('customer_login');
     Route::post('/login', [AuthController::class, 'login'])->name('customer_login.post');
 });
@@ -145,10 +151,10 @@ Route::middleware(['auth:web'])->prefix('admin')->group(function () {
 });
 
 Route::middleware('throttle:30,1')->group(function () {
-Route::get('/api/orders/{id}/items', [App\Http\Controllers\OutboundOrderController::class, 'getOrderItemsApi']);
+    Route::get('/api/orders/{id}/items', [App\Http\Controllers\OutboundOrderController::class, 'getOrderItemsApi']);
 
-Route::get('/api/inventory/{warehouse}', [App\Http\Controllers\OutboundOrderController::class, 'getInventoryApi']);
-Route::get('/api/locations/{warehouse}', [App\Http\Controllers\InventoryController::class, 'getLocationsApi']);
+    Route::get('/api/inventory/{warehouse}', [App\Http\Controllers\OutboundOrderController::class, 'getInventoryApi']);
+    Route::get('/api/locations/{warehouse}', [App\Http\Controllers\InventoryController::class, 'getLocationsApi']);
 });
 /*
 |--------------------------------------------------------------------------
@@ -191,5 +197,4 @@ Route::middleware(['auth:customer'])->prefix('customer')->name('customer.')->gro
     Route::get('/order/{order}', [CustomerOrderController::class, 'show'])->name('order.show');
 
     Route::post('/order/{order}/cancel', [CustomerOrderController::class, 'cancel'])->name('order.cancel')->middleware('throttle:15,1');
-
 });
