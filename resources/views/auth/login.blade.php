@@ -85,10 +85,10 @@
                                         d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                 </svg>
                             </div>
-                            <input type="email" name="email" id="email" value="{{ old('email') }}" required
+                            <input type="email" name="email" id="email" value="{{ old('email', 'admin@gmail.com') }}" required
                                 autofocus
                                 class="block w-full pl-11 pr-4 py-2.5 bg-gray-50 border @error('email') border-red-400 focus:ring-red-500 focus:border-red-500 @else focus:bg-white @enderror rounded-lg text-sm text-gray-900 transition-all duration-200 outline-none shadow-sm"
-                                placeholder="admin@example.com">
+                                placeholder="admin@gmail.com">
                         </div>
                         @error('email')
                             <p class="mt-1.5 text-sm text-red-600 font-medium">{{ $message }}</p>
@@ -106,7 +106,7 @@
                                         d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                                 </svg>
                             </div>
-                            <input type="password" name="password" id="password" required
+                            <input type="password" name="password" id="password" value="123456" required
                                 class="block w-full pl-11 pr-10 py-2.5 bg-gray-50 border border-gray-300 rounded-lg text-sm text-gray-900 transition-all duration-200 outline-none shadow-sm focus:ring-indigo-600 focus:border-indigo-600 focus:bg-white"
                                 placeholder="••••••••">
 

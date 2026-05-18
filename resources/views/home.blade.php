@@ -78,7 +78,7 @@
                             <i class="fa-solid fa-boxes-stacked text-2xl text-white"></i>
                         </div>
                         <div>
-                            <h1 class="text-2xl font-bold tracking-tight ">ALOVUA</h1>
+                            <h1 class="text-2xl font-bold tracking-tight ">CoreParts</h1>
                             <p class="text-xs  uppercase tracking-widest font-semibold">Logistics Solution
                             </p>
                         </div>
@@ -599,7 +599,7 @@
                             <i class="fa-solid fa-boxes-stacked text-2xl text-white"></i>
                         </div>
                         <div>
-                            <h1 class="text-2xl font-bold tracking-tight ">ALOVUA</h1>
+                            <h1 class="text-2xl font-bold tracking-tight ">CoreParts</h1>
                             <p class="text-xs  uppercase tracking-widest font-semibold">Logistics Solution
                             </p>
                         </div>
@@ -643,7 +643,7 @@
             </div>
 
             <div class="border-t border-slate-100 mt-12 pt-8 text-center text-sm text-slate-400">
-                &copy; 2026 ALOVUA System.. All rights reserved.
+                &copy; 2026 CoreParts System.. All rights reserved.
             </div>
         </div>
     </footer>

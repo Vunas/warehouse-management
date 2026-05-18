@@ -7,7 +7,7 @@
             {{-- LEFT: LOGO --}}
             <div class="flex items-center">
                 <span class="text-xl font-bold text-white">
-                    <i class="fa-solid fa-boxes-stacked text-blue-500 mr-2"></i> ALOVUA
+                    <i class="fa-solid fa-boxes-stacked text-blue-500 mr-2"></i> CoreParts
                 </span>
             </div>
 

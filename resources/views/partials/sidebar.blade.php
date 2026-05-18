@@ -20,8 +20,12 @@
 
     {{-- Brand --}}
     <div class="h-16 flex items-center justify-center border-b border-slate-800 bg-slate-950">
+        <div
+            class="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center text-sm font-bold shadow-sm">
+            C
+        </div>
         <span class="text-xl font-bold text-white">
-            <i class="fa-solid fa-boxes-stacked text-blue-500 mr-2"></i> ALOVUA
+            CoreParts
         </span>
     </div>
 
@@ -29,11 +33,11 @@
 
         {{-- Dashboard --}}
         @can('view_dashboard')
-        <a href="{{ route('dashboard') }}"
-            class="nav-link flex items-center px-6 py-3 {{ request()->routeIs('dashboard') ? 'active bg-slate-800 text-white border-l-4 border-blue-500' : '' }}">
-            <i class="fa-solid fa-chart-pie w-6 text-center"></i>
-            <span class="ml-2 font-bold uppercase tracking-wider text-sm">Dashboard</span>
-        </a>
+            <a href="{{ route('dashboard') }}"
+                class="nav-link flex items-center px-6 py-3 {{ request()->routeIs('dashboard') ? 'active bg-slate-800 text-white border-l-4 border-blue-500' : '' }}">
+                <i class="fa-solid fa-chart-pie w-6 text-center"></i>
+                <span class="ml-2 font-bold uppercase tracking-wider text-sm">Dashboard</span>
+            </a>
         @endcan
 
         @if ($canViewUsers || $canViewRoles)
@@ -213,11 +217,11 @@
             @endcan
 
             @can('view_reports')
-            <a href="{{ route('reports.index') }}"
-                class="nav-link flex items-center px-6 py-3 {{ request()->routeIs('reports.index') ? 'active bg-slate-800 text-white border-l-4 border-blue-500' : '' }}">
-                <i class="fa-solid fa-chart-pie w-6 text-center"></i>
-                <span class="ml-2 font-bold uppercase tracking-wider text-sm">Báo cáo</span>
-            </a>
+                <a href="{{ route('reports.index') }}"
+                    class="nav-link flex items-center px-6 py-3 {{ request()->routeIs('reports.index') ? 'active bg-slate-800 text-white border-l-4 border-blue-500' : '' }}">
+                    <i class="fa-solid fa-chart-pie w-6 text-center"></i>
+                    <span class="ml-2 font-bold uppercase tracking-wider text-sm">Báo cáo</span>
+                </a>
             @endcan
         @endif
     </nav>

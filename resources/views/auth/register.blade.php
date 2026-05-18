@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Đăng ký - ALOVUA</title>
+    <title>Đăng ký - CoreParts</title>
 
 {{ Vite::useBuildDirectory('build') }}
 @vite(['resources/css/app.css', 'resources/js/app.js'])
