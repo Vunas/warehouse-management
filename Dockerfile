@@ -29,7 +29,7 @@ RUN composer install --no-dev --optimize-autoloader --no-scripts
 COPY . .
 
 # Hứng toàn bộ file CSS/JS đã được biên dịch sang đây
-COPY --from=frontend_builder /app/public/build ./public/build
+COPY --chown=www-data:www-data --from=frontend_builder /app/public/build /var/www/html/public/build
 
 # Phân quyền cho www-data sở hữu và gán quyền ghi 775 công nghiệp
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && \
