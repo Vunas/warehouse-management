@@ -6,9 +6,16 @@
 
             {{-- LEFT: LOGO --}}
             <div class="flex items-center">
-                <span class="text-xl font-bold text-white">
-                    <i class="fa-solid fa-boxes-stacked text-blue-500 mr-2"></i> CoreParts
-                </span>
+                <a href="/" class="flex items-center gap-2">
+                    <div
+                        class="w-9 h-9 rounded-xl bg-slate-900 text-white flex items-center justify-center text-sm font-bold shadow-sm">
+                        C
+                    </div>
+
+                    <span class="text-xl font-semibold tracking-tight">
+                        CoreParts
+                    </span>
+                </a>
             </div>
 
             {{-- CENTER: MENU --}}
@@ -35,10 +42,12 @@
                     Hàng Chờ Nhập
 
                     @php
-                        $cartCount = Auth::check() ? \App\Models\CartItem::where('user_id', Auth::id())->sum('quantity') : 0;
+                        $cartCount = Auth::check()
+                            ? \App\Models\CartItem::where('user_id', Auth::id())->sum('quantity')
+                            : 0;
                     @endphp
 
-                    @if($cartCount > 0)
+                    @if ($cartCount > 0)
                         <span class="ml-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
                             {{ $cartCount }}
                         </span>
@@ -65,7 +74,8 @@
             <div class="flex items-center gap-4">
 
                 <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-xs">
+                    <div
+                        class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-xs">
                         {{ substr(Auth::user()->full_name ?? 'U', 0, 1) }}
                     </div>
 
@@ -81,8 +91,7 @@
 
                 <form method="POST" action="{{ route('customer.logout') }}">
                     @csrf
-                    <button type="submit"
-                        class="text-red-400 hover:text-white transition flex items-center">
+                    <button type="submit" class="text-red-400 hover:text-white transition flex items-center">
                         <i class="fa-solid fa-sign-out-alt"></i>
                     </button>
                 </form>

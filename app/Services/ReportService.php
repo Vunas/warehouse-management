@@ -27,19 +27,19 @@ class ReportService
             ->whereBetween('created_at', [$startDate, $endDate])
             ->count();
 
-        $lowStockCount = DB::table(DB::raw("
-            (
-                SELECT 
-                    inventory.product_id,
-                    SUM(inventory.quantity) as total_qty,
-                    MAX(COALESCE(product_alerts.stock_threshold, 10)) as threshold
-                FROM inventory
-                LEFT JOIN product_alerts 
-                    ON inventory.product_id = product_alerts.product_id
-                GROUP BY inventory.product_id
-                HAVING total_qty <= threshold
-            ) as sub
-        "))->count();
+        $lowStockCount = DB::table('inventory')
+            ->leftJoin(
+                'product_alerts',
+                'inventory.product_id',
+                '=',
+                'product_alerts.product_id'
+            )
+            ->select('inventory.product_id')
+            ->groupBy('inventory.product_id')
+            ->havingRaw(
+                'SUM(inventory.quantity) <= MAX(COALESCE(product_alerts.stock_threshold, 10))'
+            )
+            ->count();
 
         return [
             'total_revenue' => $totalRevenue,
@@ -86,9 +86,9 @@ class ReportService
      */
     public function getInOutChartData($startDate, $endDate)
     {
-        // 1. Tạo sẵn mảng chứa TẤT CẢ các ngày, mặc định in = 0, out = 0
         $period = CarbonPeriod::create($startDate, $endDate);
         $chartData = [];
+
         foreach ($period as $date) {
             $chartData[$date->format('Y-m-d')] = [
                 'in' => 0,
@@ -96,19 +96,17 @@ class ReportService
             ];
         }
 
-        // 2. Query DB lấy dữ liệu thực tế
         $data = DB::table('inventory_transactions')
-            ->selectRaw('
-                DATE(created_at) as date, 
-                SUM(CASE WHEN transaction_type = "inbound" THEN quantity_change ELSE 0 END) as total_in,
-                SUM(CASE WHEN transaction_type = "outbound" THEN ABS(quantity_change) ELSE 0 END) as total_out
-            ')
+            ->selectRaw("
+            DATE(created_at) as date,
+            SUM(CASE WHEN transaction_type = 'inbound' THEN quantity_change ELSE 0 END) as total_in,
+            SUM(CASE WHEN transaction_type = 'outbound' THEN ABS(quantity_change) ELSE 0 END) as total_out
+        ")
             ->whereIn('transaction_type', ['inbound', 'outbound'])
             ->whereBetween('created_at', [$startDate, $endDate])
             ->groupByRaw('DATE(created_at)')
             ->get();
 
-        // 3. Ghi đè dữ liệu thực tế
         foreach ($data as $item) {
             if (isset($chartData[$item->date])) {
                 $chartData[$item->date]['in'] = (int) $item->total_in;
@@ -116,7 +114,6 @@ class ReportService
             }
         }
 
-        // 4. Format lại để trả về
         $labels = [];
         $inValues = [];
         $outValues = [];
@@ -142,9 +139,33 @@ class ReportService
                 'users.id',
                 'users.username',
                 DB::raw('COUNT(inventory_transactions.id) as total_transactions'),
-                DB::raw('SUM(CASE WHEN inventory_transactions.transaction_type = "inbound" THEN 1 ELSE 0 END) as inbound_count'),
-                DB::raw('SUM(CASE WHEN inventory_transactions.transaction_type = "outbound" THEN 1 ELSE 0 END) as outbound_count'),
-                DB::raw('SUM(CASE WHEN inventory_transactions.transaction_type = "transfer" THEN 1 ELSE 0 END) as transfer_count')
+                DB::raw("
+                SUM(
+                    CASE
+                        WHEN inventory_transactions.transaction_type = 'inbound'
+                        THEN 1
+                        ELSE 0
+                    END
+                ) as inbound_count
+            "),
+                DB::raw("
+                SUM(
+                    CASE
+                        WHEN inventory_transactions.transaction_type = 'outbound'
+                        THEN 1
+                        ELSE 0
+                    END
+                ) as outbound_count
+            "),
+                DB::raw("
+                SUM(
+                    CASE
+                        WHEN inventory_transactions.transaction_type = 'transfer'
+                        THEN 1
+                        ELSE 0
+                    END
+                ) as transfer_count
+            ")
             )
             ->whereBetween('inventory_transactions.created_at', [$startDate, $endDate])
             ->groupBy('users.id', 'users.username')
@@ -198,7 +219,9 @@ class ReportService
                 DB::raw('MAX(COALESCE(product_alerts.stock_threshold, 10)) as alert_threshold')
             )
             ->groupBy('products.id', 'products.name')
-            ->havingRaw('current_stock <= alert_threshold')
+            ->havingRaw(
+                'SUM(inventory.quantity) <= MAX(COALESCE(product_alerts.stock_threshold, 10))'
+            )
             ->orderBy('current_stock', 'ASC')
             ->limit($limit)
             ->get();

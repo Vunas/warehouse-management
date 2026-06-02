@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Services;
 
 use App\Models\Product;
@@ -93,16 +94,33 @@ class DashboardService
 
         return $query->get()
             ->map(function ($product) {
-                $totalStock = Inventory::where('product_id', $product->id)->sum('quantity') ?? 0;
-                $product->total_stock = $totalStock;
-                $product->status = $totalStock > 0 ? 'Còn hàng' : 'Hết hàng';
-                $product->status_color = $totalStock > 0 ? 'green' : 'red';
+
+                $stock = Inventory::where('product_id', $product->id)
+                    ->selectRaw('
+            COALESCE(SUM(quantity),0) -
+            COALESCE(SUM(reserved_quantity),0)
+            as available_stock
+        ')
+                    ->value('available_stock');
+
+                $product->total_stock = max(0, $stock);
+
+                $product->status =
+                    $product->total_stock > 0
+                    ? 'Còn hàng'
+                    : 'Hết hàng';
+
+                $product->status_color =
+                    $product->total_stock > 0
+                    ? 'green'
+                    : 'red';
+
                 return $product;
             })
-            ->when(isset($filters['stock_status']) && $filters['stock_status'] === 'in_stock', function($products) {
+            ->when(isset($filters['stock_status']) && $filters['stock_status'] === 'in_stock', function ($products) {
                 return $products->filter(fn($p) => $p->total_stock > 0);
             })
-            ->when(isset($filters['stock_status']) && $filters['stock_status'] === 'out_of_stock', function($products) {
+            ->when(isset($filters['stock_status']) && $filters['stock_status'] === 'out_of_stock', function ($products) {
                 return $products->filter(fn($p) => $p->total_stock <= 0);
             });
     }
@@ -152,5 +170,6 @@ class DashboardService
 
     public function getBrands()
     {        // Lấy danh sách tất cả thương hiệu
-        return Brand::orderBy('name')->get();}
+        return Brand::orderBy('name')->get();
+    }
 }
