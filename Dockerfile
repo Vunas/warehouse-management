@@ -13,7 +13,6 @@ RUN apk update && apk upgrade && \
     apk add --no-cache curl zip unzip libpng-dev libxml2-dev postgresql-dev nginx supervisor bash
 
 # Cài đặt extension PHP cần thiết cho WMS
-# Bổ sung thêm 'opcache' để RAM nạp sẵn code PHP, boot trong chớp mắt
 RUN docker-php-ext-install pdo pdo_pgsql bcmath gd opcache && \
     docker-php-ext-enable opcache
 
@@ -32,16 +31,16 @@ COPY . .
 # Hứng toàn bộ file CSS/JS đã được biên dịch sang đây
 COPY --from=frontend_builder /app/public/build ./public/build
 
-# Phân quyền chuẩn xác cho Nginx/PHP-FPM đọc ghi log
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
-
+# Phân quyền cho www-data sở hữu và gán quyền ghi 775 công nghiệp
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache && \
+    chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 # ==========================================
 # KHÓA BỘ NHỚ ĐỆM (Ép Laravel ngậm sẵn cấu hình)
 # ==========================================
-RUN composer dump-autoload --optimize && \
-    php artisan config:cache && \
-    php artisan route:cache && \
-    php artisan view:cache
+# RUN composer dump-autoload --optimize && \
+#     php artisan config:cache && \
+#     php artisan route:cache && \
+#     php artisan view:cache
 
 # Copy 2 file cấu hình Server 
 COPY docker/nginx.conf /etc/nginx/nginx.conf
