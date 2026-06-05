@@ -140,13 +140,14 @@ class InventoryRepository implements InventoryRepositoryInterface
 
     public function getFefoStockByProductAndWarehouse(int $productId, int $warehouseId)
     {
-        return $this->model->leftJoin('product_batches', 'inventory.batch_id', '=', 'product_batches.id')
+        return $this->model
+            ->leftJoin('product_batches', 'inventory.batch_id', '=', 'product_batches.id')
             ->where('inventory.product_id', $productId)
             ->whereHas('location', function ($q) use ($warehouseId) {
                 $q->where('warehouse_id', $warehouseId);
             })
             ->where('inventory.quantity', '>', 0)
-            ->orderByRaw('ISNULL(product_batches.expiry_date), product_batches.expiry_date ASC')
+            ->orderByRaw('product_batches.expiry_date ASC NULLS LAST')
             ->orderBy('inventory.created_at', 'ASC')
             ->select('inventory.*', 'product_batches.expiry_date')
             ->get();

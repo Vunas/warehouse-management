@@ -1,195 +1,319 @@
 @extends('layouts.admin')
 
 @section('content')
-<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
-<div class="space-y-8 max-w-7xl mx-auto pb-10">
-    
-    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div>
-            <h1 class="text-3xl font-black text-gray-800 tracking-tight">Tổng quan Hệ thống Kho</h1>
-            <p class="text-gray-500 mt-1">Theo dõi các chỉ số và hoạt động kho theo thời gian thực.</p>
-        </div>
-        <div class="flex items-center gap-2 text-sm text-indigo-700 font-semibold bg-indigo-50 px-5 py-2.5 rounded-xl shadow-sm border border-indigo-100">
-            <i class="fa-regular fa-clock animate-pulse"></i>
-            Cập nhật lúc: {{ now()->timezone('Asia/Ho_Chi_Minh')->format('H:i - d/m/Y') }}
-        </div>
-    </div>
+    <div class="space-y-6 max-w-7xl mx-auto pb-10 font-sans">
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div class="relative bg-linear-to-br from-blue-500 to-indigo-600 rounded-2xl p-6 shadow-lg shadow-blue-200 text-white transform transition duration-300 hover:-translate-y-1 hover:shadow-xl overflow-hidden">
-            <div class="absolute -right-6 -top-6 opacity-20 text-8xl"><i class="fa-solid fa-box-open"></i></div>
-            <p class="text-blue-100 font-medium uppercase tracking-wider text-sm mb-1">Mã Sản Phẩm</p>
-            <h3 class="text-4xl font-black">{{ number_format($stats['total_products']) }}</h3>
-            <p class="text-sm mt-3 text-blue-100"><i class="fa-solid fa-arrow-trend-up mr-1"></i> Tăng 5% so với tháng trước</p>
-        </div>
-
-        <div class="relative bg-linear-to-br from-emerald-400 to-teal-600 rounded-2xl p-6 shadow-lg shadow-teal-200 text-white transform transition duration-300 hover:-translate-y-1 hover:shadow-xl overflow-hidden">
-            <div class="absolute -right-6 -top-6 opacity-20 text-8xl"><i class="fa-solid fa-boxes-stacked"></i></div>
-            <p class="text-teal-100 font-medium uppercase tracking-wider text-sm mb-1">Tổng SP Tồn Kho</p>
-            <h3 class="text-4xl font-black">{{ number_format($stats['total_inventory']) }}</h3>
-            <p class="text-sm mt-3 text-teal-100"><i class="fa-solid fa-circle-check mr-1"></i> Sức chứa an toàn</p>
-        </div>
-
-        <div class="relative bg-linear-to-br from-amber-400 to-orange-500 rounded-2xl p-6 shadow-lg shadow-orange-200 text-white transform transition duration-300 hover:-translate-y-1 hover:shadow-xl overflow-hidden">
-            <div class="absolute -right-6 -top-6 opacity-20 text-8xl"><i class="fa-solid fa-truck-arrow-right"></i></div>
-            <p class="text-orange-100 font-medium uppercase tracking-wider text-sm mb-1">Phiếu chờ Nhập</p>
-            <h3 class="text-4xl font-black">{{ number_format($stats['pending_inbounds']) }}</h3>
-            <a href="#" class="inline-block mt-3 text-sm text-white hover:text-orange-200 font-medium hover:underline">Xem chi tiết <i class="fa-solid fa-arrow-right text-xs"></i></a>
-        </div>
-
-        <div class="relative bg-linear-to-br from-rose-500 to-red-600 rounded-2xl p-6 shadow-lg shadow-red-200 text-white transform transition duration-300 hover:-translate-y-1 hover:shadow-xl overflow-hidden">
-            <div class="absolute -right-6 -top-6 opacity-20 text-8xl"><i class="fa-solid fa-truck-fast"></i></div>
-            <p class="text-red-100 font-medium uppercase tracking-wider text-sm mb-1">Phiếu chờ Xuất</p>
-            <h3 class="text-4xl font-black">{{ number_format($stats['pending_outbounds']) }}</h3>
-            <a href="{{ route('outbounds.index', ['status' => 'pending']) }}" class="inline-block mt-3 text-sm text-white hover:text-red-200 font-medium hover:underline">Xử lý ngay <i class="fa-solid fa-arrow-right text-xs"></i></a>
-        </div>
-    </div>
-
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-        <h3 class="text-lg font-bold text-gray-800 mb-4"><i class="fa-solid fa-chart-line text-indigo-500 mr-2"></i>Lưu lượng Nhập / Xuất kho (7 ngày qua)</h3>
-        <div id="inventoryChart" class="w-full h-80"></div>
-    </div>
-
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        
-        <div class="bg-white shadow-sm rounded-2xl border border-gray-100 flex flex-col">
-            <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center">
-                <h3 class="text-lg font-bold text-gray-800 flex items-center">
-                    <span class="bg-red-100 text-red-600 w-8 h-8 rounded-lg flex items-center justify-center mr-3"><i class="fa-solid fa-triangle-exclamation"></i></span>
-                    Cảnh báo Sắp hết hàng
-                </h3>
-                <a href="{{ route('inventory.index') }}" class="text-sm font-semibold text-indigo-600 hover:text-indigo-800 bg-indigo-50 px-3 py-1.5 rounded-lg transition">Xem tất cả</a>
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div>
+                <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Tổng quan Hệ thống Kho</h1>
+                <p class="text-sm text-slate-500 mt-1">Theo dõi các chỉ số và hoạt động kho theo thời gian thực.</p>
             </div>
-            <div class="overflow-x-auto flex-1 p-2">
-                <table class="min-w-full">
-                    <thead>
-                        <tr class="text-left text-xs font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100">
-                            <th class="px-4 py-3">Sản phẩm</th>
-                            <th class="px-4 py-3">Vị trí</th>
-                            <th class="px-4 py-3 text-right">Tồn kho</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-50">
-                        @forelse($lowStocks as $stock)
-                            <tr class="hover:bg-slate-50 transition group">
-                                <td class="px-4 py-4">
-                                    <div class="flex items-center">
-                                        <div class="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 mr-3">
-                                            <i class="fa-solid fa-image"></i> </div>
-                                        <span class="text-sm font-bold text-gray-700 group-hover:text-indigo-600 transition">{{ $stock->product->name ?? 'N/A' }}</span>
-                                    </div>
-                                </td>
-                                <td class="px-4 py-4">
-                                    <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-600">
-                                        <i class="fa-solid fa-location-dot mr-1.5 text-gray-400"></i>{{ $stock->location->name ?? 'N/A' }}
-                                    </span>
-                                </td>
-                                <td class="px-4 py-4 text-right">
-                                    <span class="inline-flex items-center justify-center min-w-10 px-2 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700 animate-pulse">
-                                        {{ $stock->quantity }}
-                                    </span>
-                                </td>
+            <div
+                class="flex items-center gap-2 text-xs font-medium text-slate-500 bg-white px-4 py-2 rounded-lg border border-slate-200 shadow-sm">
+                <i class="fa-solid fa-clock-rotate-left text-slate-400"></i>
+                Cập nhật lúc: <span
+                    class="text-slate-700">{{ now()->timezone('Asia/Ho_Chi_Minh')->format('H:i - d/m/Y') }}</span>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+
+            <div
+                class="bg-white rounded-xl border border-slate-200 p-5 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.05)] flex flex-col justify-between">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-sm font-semibold text-slate-500 mb-1">Mã Sản Phẩm</p>
+                        <h3 class="text-3xl font-bold text-slate-900">{{ number_format($stats['total_products'] ?? 0) }}
+                        </h3>
+                    </div>
+                    <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-box-open"></i>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center text-xs">
+                    <span class="text-emerald-600 font-medium bg-emerald-50 px-2 py-0.5 rounded flex items-center">
+                        <i class="fa-solid fa-arrow-trend-up mr-1"></i> +5.2%
+                    </span>
+                    <span class="text-slate-400 ml-2">so với tháng trước</span>
+                </div>
+            </div>
+
+            <div
+                class="bg-white rounded-xl border border-slate-200 p-5 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.05)] flex flex-col justify-between">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-sm font-semibold text-slate-500 mb-1">Tổng Tồn Kho</p>
+                        <h3 class="text-3xl font-bold text-slate-900">{{ number_format($stats['total_inventory'] ?? 0) }}
+                        </h3>
+                    </div>
+                    <div
+                        class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-boxes-stacked"></i>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center text-xs">
+                    <span class="text-slate-500 font-medium flex items-center">
+                        <i class="fa-solid fa-circle-check text-emerald-500 mr-1.5"></i> Mức lưu trữ an toàn
+                    </span>
+                </div>
+            </div>
+
+            <div
+                class="bg-white rounded-xl border border-slate-200 p-5 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.05)] flex flex-col justify-between">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-sm font-semibold text-slate-500 mb-1">Phiếu chờ Nhập</p>
+                        <h3 class="text-3xl font-bold text-slate-900">{{ number_format($stats['pending_inbounds'] ?? 0) }}
+                        </h3>
+                    </div>
+                    <div class="w-10 h-10 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-truck-arrow-right"></i>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <a href="#"
+                        class="text-xs font-semibold text-indigo-600 hover:text-indigo-800 flex items-center transition">
+                        Xem chi tiết phiếu <i class="fa-solid fa-arrow-right ml-1"></i>
+                    </a>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.05)] flex flex-col justify-between group cursor-pointer hover:border-indigo-300 transition-colors"
+                onclick="window.location.href='{{ route('outbounds.index', ['status' => 'pending']) }}'">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-sm font-semibold text-slate-500 mb-1">Phiếu chờ Xuất</p>
+                        <h3 class="text-3xl font-bold text-rose-600">{{ number_format($stats['pending_outbounds'] ?? 0) }}
+                        </h3>
+                    </div>
+                    <div class="w-10 h-10 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center text-lg">
+                        <i class="fa-solid fa-truck-fast"></i>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <span
+                        class="text-xs font-semibold text-rose-600 group-hover:text-rose-700 flex items-center transition">
+                        Xử lý ngay <i
+                            class="fa-solid fa-arrow-right ml-1 transform group-hover:translate-x-1 transition-transform"></i>
+                    </span>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="bg-white rounded-xl border border-slate-200 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.05)] p-6">
+            <div class="mb-4">
+                <h3 class="text-base font-bold text-slate-800">Lưu lượng Nhập / Xuất kho (7 ngày qua)</h3>
+            </div>
+            <div id="inventoryChart" class="w-full h-75"></div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+            <div
+                class="bg-white rounded-xl border border-slate-200 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.05)] flex flex-col overflow-hidden">
+                <div class="px-5 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                    <h3 class="text-sm font-bold text-slate-800 flex items-center">
+                        <div class="w-2 h-2 rounded-full bg-rose-500 mr-2 animate-pulse"></div>
+                        Sắp hết hàng
+                    </h3>
+                    <a href="{{ route('inventory.index') }}"
+                        class="text-xs font-semibold text-slate-500 hover:text-indigo-600 transition">Xem tất cả</a>
+                </div>
+                <div class="overflow-x-auto flex-1">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr
+                                class="bg-white text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200">
+                                <th class="px-5 py-3 font-medium">Sản phẩm</th>
+                                <th class="px-5 py-3 font-medium">Vị trí</th>
+                                <th class="px-5 py-3 font-medium text-right">Tồn kho</th>
                             </tr>
-                        @empty
-                            <tr><td colspan="3" class="px-6 py-10 text-center text-gray-400 font-medium">Tuyệt vời! Không có sản phẩm nào sắp hết hàng.</td></tr>
-                        @endforelse
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 text-sm">
+                            @forelse($lowStocks as $stock)
+                                <tr class="hover:bg-slate-50/70 transition">
+                                    <td class="px-5 py-3 align-middle">
+                                        <span class="font-medium text-slate-800">{{ $stock->product->name ?? 'N/A' }}</span>
+                                    </td>
+                                    <td class="px-5 py-3 align-middle">
+                                        <span
+                                            class="inline-flex items-center text-xs text-slate-600 bg-slate-100 px-2 py-1 rounded">
+                                            <i
+                                                class="fa-solid fa-location-dot mr-1.5 text-slate-400"></i>{{ $stock->location->name ?? 'N/A' }}
+                                        </span>
+                                    </td>
+                                    <td class="px-5 py-3 align-middle text-right">
+                                        <span
+                                            class="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-50 text-rose-600 border border-rose-100">
+                                            {{ $stock->quantity }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="3" class="px-5 py-8 text-center text-sm text-slate-400">Không có cảnh
+                                        báo tồn kho thấp.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </div>
 
-        <div class="bg-white shadow-sm rounded-2xl border border-gray-100 flex flex-col">
-            <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center">
-                <h3 class="text-lg font-bold text-gray-800 flex items-center">
-                    <span class="bg-blue-100 text-blue-600 w-8 h-8 rounded-lg flex items-center justify-center mr-3"><i class="fa-solid fa-clipboard-list"></i></span>
-                    Pick List Cần Xử Lý
-                </h3>
-            </div>
-            <div class="overflow-x-auto flex-1 p-2">
-                <table class="min-w-full">
-                    <thead>
-                        <tr class="text-left text-xs font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100">
-                            <th class="px-4 py-3">Mã Phiếu</th>
-                            <th class="px-4 py-3">Trạng thái</th>
-                            <th class="px-4 py-3 text-right">Hành động</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-50">
-                        @forelse($recentTasks as $task)
-                            <tr class="hover:bg-slate-50 transition">
-                                <td class="px-4 py-4">
-                                    <p class="text-sm font-bold text-indigo-700">OUT-{{ str_pad($task->id, 5, '0', STR_PAD_LEFT) }}</p>
-                                    <p class="text-xs text-gray-500 mt-1"><i class="fa-regular fa-user mr-1"></i>{{ $task->staff->full_name ?? 'Hệ thống' }}</p>
-                                </td>
-                                <td class="px-4 py-4">
-                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-700 border border-orange-200">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-orange-500 mr-1.5"></span> Chờ xử lý
-                                    </span>
-                                    <p class="text-xs text-gray-400 mt-1">{{ $task->created_at->diffForHumans() }}</p>
-                                </td>
-                                <td class="px-4 py-4 text-right">
-                                    <a href="{{ route('outbounds.show', $task->id) }}" class="inline-flex items-center bg-gray-900 text-white hover:bg-indigo-600 px-4 py-2 rounded-lg text-sm font-semibold transition shadow-sm">
-                                        Xử lý <i class="fa-solid fa-arrow-right ml-2 text-xs"></i>
-                                    </a>
-                                </td>
+            <div
+                class="bg-white rounded-xl border border-slate-200 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.05)] flex flex-col overflow-hidden">
+                <div class="px-5 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                    <h3 class="text-sm font-bold text-slate-800 flex items-center">
+                        <div class="w-2 h-2 rounded-full bg-amber-500 mr-2"></div>
+                        Pick List Cần Xử Lý
+                    </h3>
+                </div>
+                <div class="overflow-x-auto flex-1">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr
+                                class="bg-white text-xs font-semibold text-slate-500 uppercase tracking-wider border-b border-slate-200">
+                                <th class="px-5 py-3 font-medium">Mã Phiếu</th>
+                                <th class="px-5 py-3 font-medium">Trạng thái</th>
+                                <th class="px-5 py-3 font-medium text-right">Thao tác</th>
                             </tr>
-                        @empty
-                            <tr><td colspan="3" class="px-6 py-10 text-center text-gray-400 font-medium">Hiện không có phiếu xuất kho nào đang chờ.</td></tr>
-                        @endforelse
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 text-sm">
+                            @forelse($recentTasks as $task)
+                                <tr class="hover:bg-slate-50/70 transition">
+                                    <td class="px-5 py-3 align-middle">
+                                        <div class="font-semibold text-slate-800">
+                                            OUT-{{ str_pad($task->id, 5, '0', STR_PAD_LEFT) }}</div>
+                                        <div class="text-xs text-slate-500 mt-0.5">
+                                            {{ $task->staff->full_name ?? 'Hệ thống' }}</div>
+                                    </td>
+                                    <td class="px-5 py-3 align-middle">
+                                        <span
+                                            class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-amber-50 text-amber-700 border border-amber-100">
+                                            Chờ xử lý
+                                        </span>
+                                        <div class="text-[11px] text-slate-400 mt-1">
+                                            {{ $task->created_at->diffForHumans() }}</div>
+                                    </td>
+                                    <td class="px-5 py-3 align-middle text-right">
+                                        <a href="{{ route('outbounds.show', $task->id) }}"
+                                            class="inline-flex items-center justify-center px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 hover:text-indigo-600 transition shadow-sm">
+                                            Chi tiết
+                                        </a>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="3" class="px-5 py-8 text-center text-sm text-slate-400">Hiện không có
+                                        phiếu chờ xuất.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
             </div>
+
         </div>
-
     </div>
-</div>
 
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        var options = {
-            series: [{
-                name: 'Nhập kho',
-                data: [31, 40, 28, 51, 42, 109, 100] // Data mẫu, bạn sẽ truyền biến từ Controller vào đây
-            }, {
-                name: 'Xuất kho',
-                data: [11, 32, 45, 32, 34, 52, 41]
-            }],
-            chart: {
-                height: 320,
-                type: 'area',
-                fontFamily: 'inherit',
-                toolbar: { show: false }
-            },
-            colors: ['#10b981', '#f43f5e'], // Xanh lá (Nhập) và Đỏ (Xuất)
-            dataLabels: { enabled: false },
-            stroke: { curve: 'smooth', width: 2 },
-            fill: {
-                type: 'gradient',
-                gradient: {
-                    shadeIntensity: 1,
-                    opacityFrom: 0.4,
-                    opacityTo: 0.05,
-                    stops: [0, 90, 100]
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            var options = {
+                series: [{
+                    name: 'Nhập kho',
+                    data: [31, 40, 28, 51, 42, 109, 100] // Tích hợp data động sau
+                }, {
+                    name: 'Xuất kho',
+                    data: [11, 32, 45, 32, 34, 52, 41]
+                }],
+                chart: {
+                    height: 300,
+                    type: 'area',
+                    fontFamily: 'inherit',
+                    toolbar: {
+                        show: false
+                    },
+                    zoom: {
+                        enabled: false
+                    }
+                },
+                colors: ['#0ea5e9', '#6366f1'], // Xanh nhạt và Indigo chuẩn Enterprise
+                dataLabels: {
+                    enabled: false
+                },
+                stroke: {
+                    curve: 'smooth',
+                    width: 2
+                },
+                fill: {
+                    type: 'gradient',
+                    gradient: {
+                        shadeIntensity: 1,
+                        opacityFrom: 0.15,
+                        opacityTo: 0.0,
+                        stops: [0, 100]
+                    }
+                },
+                xaxis: {
+                    categories: ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'],
+                    axisBorder: {
+                        show: false
+                    },
+                    axisTicks: {
+                        show: false
+                    },
+                    labels: {
+                        style: {
+                            colors: '#64748b',
+                            fontSize: '12px'
+                        }
+                    }
+                },
+                yaxis: {
+                    labels: {
+                        style: {
+                            colors: '#64748b',
+                            fontSize: '12px'
+                        }
+                    }
+                },
+                grid: {
+                    borderColor: '#f1f5f9',
+                    strokeDashArray: 4,
+                    padding: {
+                        top: 0,
+                        right: 0,
+                        bottom: 0,
+                        left: 10
+                    }
+                },
+                legend: {
+                    position: 'top',
+                    horizontalAlign: 'right',
+                    markers: {
+                        radius: 12
+                    },
+                    fontSize: '13px',
+                    fontWeight: 500,
+                    labels: {
+                        colors: '#475569'
+                    }
+                },
+                tooltip: {
+                    theme: 'light',
+                    y: {
+                        formatter: function(val) {
+                            return val + " đơn vị"
+                        }
+                    }
                 }
-            },
-            xaxis: {
-                categories: ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'], // Nhãn trục X
-                axisBorder: { show: false },
-                axisTicks: { show: false }
-            },
-            yaxis: {
-                labels: { style: { colors: '#9ca3af' } }
-            },
-            grid: {
-                borderColor: '#f3f4f6',
-                strokeDashArray: 4,
-            },
-            legend: { position: 'top', horizontalAlign: 'right' }
-        };
+            };
 
-        var chart = new ApexCharts(document.querySelector("#inventoryChart"), options);
-        chart.render();
-    });
-</script>
+            var chart = new ApexCharts(document.querySelector("#inventoryChart"), options);
+            chart.render();
+        });
+    </script>
 @endsection
