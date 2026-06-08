@@ -196,10 +196,10 @@
                                 <td class="px-6 py-4 text-sm text-center">
                                     @if ($product->status_color === 'green')
                                         <span
-                                            class="inline-block bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-bold">{{ $product->status }}</span>
+                                            class="inline-block bg-green-100 text-green-800 px-3 py-1 rounded-lg text-xs font-bold">{{ $product->status }}</span>
                                     @else
                                         <span
-                                            class="inline-block bg-red-100 text-red-800 px-3 py-1 rounded-full text-xs font-bold">{{ $product->status }}</span>
+                                            class="inline-block bg-red-100 text-red-800 px-3 py-1 rounded-lg text-xs font-bold">{{ $product->status }}</span>
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 text-center">
@@ -231,46 +231,122 @@
     </div>
 
     <!-- Add to Cart Modal -->
-    <div id="addToCartModal"
-        class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-lg max-w-md w-full p-6 animate-fade-in">
-            <h2 class="text-2xl font-black text-gray-800 mb-4">Thêm Vào Giỏ Hàng</h2>
+    <div id="addToCartModal" class="fixed inset-0 z-9999 hidden items-center justify-center p-4">
 
-            <form action="{{ route('customer.cart.add') }}" method="POST" class="space-y-4">
+        <!-- Backdrop -->
+        <div id="modalBackdrop"
+            class="absolute inset-0 bg-black/50 backdrop-blur-sm opacity-0 transition-all duration-300">
+        </div>
+
+        <!-- Modal -->
+        <div id="modalPanel"
+            class="relative w-full max-w-lg bg-white/95 backdrop-blur-xl rounded-3xl shadow-[0_25px_80px_rgba(0,0,0,.25)]
+               border border-white/20
+               opacity-0 scale-95 translate-y-6
+               transition-all duration-300">
+
+            <!-- Header -->
+            <div class="relative p-6 border-b border-slate-100">
+
+                <button type="button" onclick="closeAddToCartModal()"
+                    class="absolute right-5 top-5 w-10 h-10 rounded-lg transition cursor-pointer">
+                </button>
+
+                <div class="flex items-center gap-4">
+                    <div>
+                        <span
+                            class="inline-flex items-center px-3 py-1 rounded-lg text-xs font-bold bg-indigo-100 text-indigo-700">
+                            Giỏ hàng
+                        </span>
+
+                        <h2 class="mt-2 text-xl font-black text-slate-900">
+                            Thêm sản phẩm
+                        </h2>
+
+                        <p class="text-sm text-slate-500">
+                            Chọn số lượng cần mua
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+            <form action="{{ route('customer.cart.add') }}" method="POST" class="p-6">
+
                 @csrf
 
-                <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-2">Sản Phẩm</label>
-                    <p id="modalProductName" class="text-lg font-bold text-gray-800 bg-gray-50 px-4 py-3 rounded-lg"></p>
-                    <input type="hidden" name="product_id" id="modalProductId">
-                </div>
+                <input type="hidden" name="product_id" id="modalProductId">
+                <!-- Product -->
+                <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100">
 
-                <div>
-                    <label for="modalQuantity" class="block text-sm font-bold text-gray-700 mb-2">Số Lượng</label>
-                    <div class="flex items-center gap-3">
-                        <button type="button" onclick="decreaseQuantity()"
-                            class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-2 rounded font-bold transition">−</button>
-                        <input type="number" name="quantity" id="modalQuantity" value="1" min="1"
-                            max="1000"
-                            class="flex-1 px-4 py-2 border-2 border-blue-500 rounded-lg text-center text-lg font-bold focus:outline-none"
-                            required>
-                        <button type="button" onclick="increaseQuantity()"
-                            class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-2 rounded font-bold transition">+</button>
+                    <div class="flex items-center gap-4">
+                        <div class="w-14 h-14 rounded-xl bg-white shadow-sm flex items-center justify-center">
+                            <i class="fa-solid fa-cube text-indigo-600 text-xl"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-xs uppercase tracking-wide text-slate-400">
+                                Sản phẩm
+                            </p>
+                            <h3 id="modalProductName" class="font-bold text-slate-900 text-lg">
+                            </h3>
+                        </div>
                     </div>
                 </div>
 
-                <div class="flex gap-3 pt-4">
+                <!-- Quantity -->
+                <div class="mt-6">
+
+                    <label class="block text-sm font-bold text-slate-700 mb-4">
+                        Số lượng
+                    </label>
+
+                    <div class="flex justify-center">
+
+                        <div class="inline-flex items-center gap-4 bg-slate-100 rounded-lg px-4 py-3">
+
+                            <button type="button" onclick="decreaseQuantity()"
+                                class="w-12 h-12 rounded-lg cursor-pointer bg-white shadow hover:scale-110 hover:bg-indigo-600 hover:text-white transition-all duration-200">
+
+                                <i class="fa-solid fa-minus"></i>
+
+                            </button>
+
+                            <input type="number" id="modalQuantity" name="quantity" value="1" min="1"
+                                max="1000"
+                                class="w-20 text-center text-2xl font-black bg-transparent border-none focus:ring-0"
+                                required>
+
+                            <button type="button" onclick="increaseQuantity()"
+                                class="w-12 h-12 rounded-lg cursor-pointer bg-white shadow hover:scale-110 hover:bg-indigo-600 hover:text-white transition-all duration-200">
+
+                                <i class="fa-solid fa-plus"></i>
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- Footer -->
+                <div class="mt-8 flex gap-3">
+
                     <button type="button" onclick="closeAddToCartModal()"
-                        class="flex-1 bg-gray-200 text-gray-800 px-4 py-2 rounded-lg font-bold hover:bg-gray-300 transition">
+                        class="flex-1 py-3 rounded-2xl border border-slate-300 font-bold hover:bg-slate-100 transition cursor-pointer">
                         Hủy
                     </button>
                     <button type="submit"
-                        class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-blue-700 transition">
-                        <i class="fa-solid fa-check mr-2"></i>Thêm Vào Giỏ
+                        class="flex-1 py-3 rounded-2xl border border-slate-300 font-bold hover:bg-slate-100 transition cursor-pointer">
+                        Thêm vào giỏ
                     </button>
+
                 </div>
+
             </form>
+
         </div>
+
     </div>
 
     <style>
@@ -297,40 +373,78 @@
 
     <script>
         function openAddToCartModal(productId, productName) {
+
             const modal = document.getElementById('addToCartModal');
+            const panel = document.getElementById('modalPanel');
+            const backdrop = document.getElementById('modalBackdrop');
+
             document.getElementById('modalProductId').value = productId;
             document.getElementById('modalProductName').textContent = productName;
             document.getElementById('modalQuantity').value = 1;
+
             modal.classList.remove('hidden');
+            modal.classList.add('flex');
+
+            requestAnimationFrame(() => {
+
+                backdrop.classList.remove('opacity-0');
+
+                panel.classList.remove(
+                    'opacity-0',
+                    'scale-95',
+                    'translate-y-6'
+                );
+            });
         }
 
         function closeAddToCartModal() {
+
             const modal = document.getElementById('addToCartModal');
-            modal.classList.add('hidden');
+            const panel = document.getElementById('modalPanel');
+            const backdrop = document.getElementById('modalBackdrop');
+
+            backdrop.classList.add('opacity-0');
+
+            panel.classList.add(
+                'opacity-0',
+                'scale-95',
+                'translate-y-6'
+            );
+
+            setTimeout(() => {
+                modal.classList.remove('flex');
+                modal.classList.add('hidden');
+            }, 300);
         }
 
         function increaseQuantity() {
+
             const input = document.getElementById('modalQuantity');
-            input.value = Math.min(parseInt(input.value) + 1, 1000);
+
+            input.value = Math.min(
+                parseInt(input.value || 1) + 1,
+                1000
+            );
         }
 
         function decreaseQuantity() {
+
             const input = document.getElementById('modalQuantity');
-            input.value = Math.max(parseInt(input.value) - 1, 1);
+
+            input.value = Math.max(
+                parseInt(input.value || 1) - 1,
+                1
+            );
         }
 
-        // Close modal when clicking outside
-        document.getElementById('addToCartModal')?.addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeAddToCartModal();
-            }
-        });
-
-        // Close modal with Escape key
         document.addEventListener('keydown', function(e) {
+
             if (e.key === 'Escape') {
                 closeAddToCartModal();
             }
         });
+
+        document.getElementById('modalBackdrop')
+            ?.addEventListener('click', closeAddToCartModal);
     </script>
 @endsection

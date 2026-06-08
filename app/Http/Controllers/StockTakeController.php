@@ -21,8 +21,14 @@ class StockTakeController extends Controller
     public function index(Request $request)
     {
         $stockTakes = StockTake::with(['warehouse', 'staff'])->latest('id')->paginate(15);
-        $warehouses = Warehouse::all(); 
+        $warehouses = Warehouse::all();
         return view('admin.stock_takes.index', compact('stockTakes', 'warehouses'));
+    }
+
+    public function create()
+    {
+        $warehouses = Warehouse::all();
+        return view('admin.stock_takes.create', compact('warehouses'));
     }
 
     public function store(Request $request)
@@ -44,17 +50,29 @@ class StockTakeController extends Controller
         }
     }
 
+    public function addUnexpected(Request $request, $id)
+    {
+        try {
+            $this->stockTakeService->addUnexpectedItemToStockTake($id, $request->all());
+            return back()->with('success', 'Đã thêm mặt hàng phát sinh vào phiếu đếm!');
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
     public function show($id)
     {
         $stockTake = StockTake::with([
-            'warehouse', 
-            'staff', 
-            'items.product', 
-            'items.location', 
+            'warehouse',
+            'staff',
+            'items.product',
+            'items.location',
             'items.batch'
         ])->findOrFail($id);
-
-        return view('admin.stock_takes.show', compact('stockTake'));
+        $products = \App\Models\Product::all();
+        $locations = \App\Models\Location::where('warehouse_id', $stockTake->warehouse_id and 'is_store', true)->get();
+        $batches = \App\Models\ProductBatch::all();
+        return view('admin.stock_takes.show', compact('stockTake', 'products', 'locations', 'batches'));
     }
 
     public function start($id)
@@ -70,7 +88,7 @@ class StockTakeController extends Controller
     public function updateBulk(Request $request, $id)
     {
         $request->validate([
-            'action' => 'required|in:save,complete', 
+            'action' => 'required|in:save,complete',
             'items' => 'required|array',
             'items.*.counted_quantity' => 'nullable|integer|min:0',
             'items.*.reason' => 'nullable|string'

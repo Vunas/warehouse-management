@@ -133,7 +133,8 @@ Route::middleware(['auth:web'])->prefix('admin')->group(function () {
     Route::put('stock_takes/{stock_take}/bulk', [StockTakeController::class, 'updateBulk'])->name('stock_takes.updateBulk');
     Route::post('stock_takes/{stock_take}/complete', [StockTakeController::class, 'complete'])->name('stock_takes.complete');
     Route::post('stock_takes/{stock_take}/cancel', [StockTakeController::class, 'cancel'])->name('stock_takes.cancel');
-
+    Route::post('stock_takes/{stock_take}/addUnexpected', [StockTakeController::class, 'addUnexpected'])->name('stock_takes.addUnexpected');
+    
     Route::get('/inventory-transactions', [\App\Http\Controllers\InventoryTransactionController::class, 'index'])->name('inventory_transactions.index');
 
     // Tài chính & Khách hàng

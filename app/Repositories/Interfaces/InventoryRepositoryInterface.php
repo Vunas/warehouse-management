@@ -15,7 +15,6 @@ interface InventoryRepositoryInterface
     public function delete($id);
     public function getAvailableStockByProduct(int $productId);
     public function getReservedStockByProduct(int $productId);
-    public function getFefoStockByProductAndWarehouse(int $productId, int $warehouseId);
+    public function getPrioritizedStock(int $productId);
     public function getLockedById($id);
-
 }

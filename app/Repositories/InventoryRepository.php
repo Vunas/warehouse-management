@@ -138,18 +138,17 @@ class InventoryRepository implements InventoryRepositoryInterface
     }
 
 
-    public function getFefoStockByProductAndWarehouse(int $productId, int $warehouseId)
+    public function getPrioritizedStock(int $productId)
     {
         return $this->model
             ->leftJoin('product_batches', 'inventory.batch_id', '=', 'product_batches.id')
             ->where('inventory.product_id', $productId)
-            ->whereHas('location', function ($q) use ($warehouseId) {
-                $q->where('warehouse_id', $warehouseId);
-            })
-            ->where('inventory.quantity', '>', 0)
+            ->whereRaw('inventory.quantity > 0')
+            // Ưu tiên 1: Hạn cận ngày nhất lên trước. Không có hạn (NULL) đẩy xuống cuối cùng
             ->orderByRaw('product_batches.expiry_date ASC NULLS LAST')
+            // Ưu tiên 2: Trùng hạn hoặc cùng không có hạn thì ông nào nhập kho trước (FIFO) đi trước
             ->orderBy('inventory.created_at', 'ASC')
-            ->select('inventory.*', 'product_batches.expiry_date')
+            ->select('inventory.*')
             ->get();
     }
 

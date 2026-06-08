@@ -53,15 +53,21 @@ class OutboundOrderService
         return $this->outboundRepo->findById($id, ['*'], ['items.product', 'items.location', 'items.batch', 'order', 'staff', 'warehouse']);
     }
 
-    public function getInventoryForDropdown($warehouseId)
+    public function getInventoryForDropdown($warehouseId, string $outboundType = 'sales')
     {
         return $this->inventoryRepo->all(['*'], ['product', 'location', 'batch'])
-            ->filter(function ($inv) use ($warehouseId) {
-                // FEFO: Lấy Tồn kho On Hand trừ đi Hàng đã giữ chỗ (Reserved)
-                return $inv->location->warehouse_id == $warehouseId && ($inv->quantity - $inv->reserved_quantity) > 0;
+            ->filter(function ($inv) use ($warehouseId, $outboundType) {
+                if ($inv->location->warehouse_id != $warehouseId) return false;
+
+                // Nếu là đơn bán hàng: Cho chọn tất cả kệ có tồn kho thực tế (bù trừ reserved sau)
+                if ($outboundType === 'sales') {
+                    return $inv->quantity > 0;
+                }
+
+                // Nếu là xuất nội bộ/khác: Chỉ cho phép chọn hàng khả dụng (không đụng vào hàng khách đã đặt)
+                return ($inv->quantity - $inv->reserved_quantity) > 0;
             })
-            ->sortBy(function($inventory) {
-                // Ưu tiên HSD gần nhất (FEFO)
+            ->sortBy(function ($inventory) {
                 return optional($inventory->batch)->expiry_date ?: '9999-12-31';
             })
             ->values();
@@ -69,7 +75,7 @@ class OutboundOrderService
 
     public function createOutboundOrder(array $data, array $items)
     {
-        $data['status'] = 'pending'; 
+        $data['status'] = 'pending';
 
         return DB::transaction(function () use ($data, $items) {
             $outbound = $this->outboundRepo->create($data);
@@ -77,10 +83,10 @@ class OutboundOrderService
             foreach ($items as $item) {
                 if (!empty($item['product_id']) && !empty($item['location_id']) && !empty($item['quantity'])) {
                     $batchId = $item['batch_id'] ?? null;
-                    
+
                     $inventory = $this->inventoryRepo->getStock($item['product_id'], $item['location_id'], $batchId);
                     $available = $inventory ? ($inventory->quantity - $inventory->reserved_quantity) : 0;
-                    
+
                     if ($item['quantity'] > $available) {
                         throw new Exception("Sản phẩm ID {$item['product_id']} tại vị trí ID {$item['location_id']} không đủ hàng tồn (Chỉ còn {$available}).");
                     }
@@ -93,7 +99,7 @@ class OutboundOrderService
                     ]);
                 }
             }
-            
+
             // Cập nhật Order thành đang xử lý kho
             if ($data['type'] === 'sales' && !empty($data['order_id'])) {
                 Order::where('id', $data['order_id'])->update(['status' => 'processing']);
@@ -112,7 +118,7 @@ class OutboundOrderService
 
         return DB::transaction(function () use ($outbound, $data, $items) {
             $this->outboundRepo->update($outbound->id, $data);
-            $outbound->items()->delete(); 
+            $outbound->items()->delete();
 
             foreach ($items as $item) {
                 if (!empty($item['product_id']) && !empty($item['location_id']) && !empty($item['quantity'])) {
@@ -141,7 +147,48 @@ class OutboundOrderService
             $isSales = ($outbound->type === 'sales');
 
             foreach ($outbound->items as $item) {
-                // Trừ kho thật
+                if ($isSales) {
+                    // Khóa dòng tồn kho tại vị trí mà nhân viên kho CHỌN TAY thực tế
+                    $actualInv = $this->inventoryRepo->getLockedStock($item->product_id, $item->location_id, $item->batch_id);
+
+                    // Nếu ô kệ chọn tay này không đủ lượng reserved, ta mới đi gom từ chỗ khác về
+                    if ($actualInv->reserved_quantity < $item->quantity) {
+                        $shortage = $item->quantity - $actualInv->reserved_quantity;
+
+                        // Đi tìm các ô kệ khác của sản phẩm này đang có reserved thừa
+                        $otherReservations = $this->inventoryRepo->getReservedStockByProduct($item->product_id);
+
+                        foreach ($otherReservations as $otherInv) {
+                            if ($shortage <= 0) break;
+                            if ($otherInv->id === $actualInv->id) continue;
+
+                            $currentOther = $this->inventoryRepo->getLockedById($otherInv->id);
+                            $takeReserved = min($currentOther->reserved_quantity, $shortage);
+
+                            // Nhả reserved ở kệ thừa
+                            $this->inventoryRepo->update($currentOther->id, [
+                                'reserved_quantity' => $currentOther->reserved_quantity - $takeReserved
+                            ]);
+
+                            // Đập cục reserved đó vào kệ thực tế đang xuất
+                            $actualInv->reserved_quantity += $takeReserved;
+                            $shortage -= $takeReserved;
+                        }
+
+                        // Cập nhật lại giá trị reserved_quantity sau khi đã gom (nếu có gom được)
+                        $this->inventoryRepo->update($actualInv->id, [
+                            'reserved_quantity' => $actualInv->reserved_quantity
+                        ]);
+
+                        if ($shortage > 0) {
+                            $this->inventoryRepo->update($actualInv->id, [
+                                'reserved_quantity' => $actualInv->reserved_quantity + $shortage
+                            ]);
+                        }
+                    }
+                }
+
+                // Gọi hàm trừ kho chuẩn chỉ
                 $this->inventoryService->deductExactStock(
                     $item->product_id,
                     $item->location_id,

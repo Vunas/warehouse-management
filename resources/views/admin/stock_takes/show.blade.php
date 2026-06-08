@@ -2,7 +2,6 @@
 
 @section('content')
     <div class="max-w-360 mx-auto space-y-6 pb-20">
-        <!-- Điều hướng -->
         <div class="mb-2">
             <a href="{{ route('stock_takes.index') }}"
                 class="inline-flex items-center text-slate-500 hover:text-indigo-600 font-bold transition text-sm">
@@ -32,7 +31,6 @@
                 {{ session('error') }}</div>
         @endif
 
-        <!-- Header Phiếu -->
         <div
             class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
@@ -67,14 +65,19 @@
             </div>
         </div>
 
-        <!-- Bảng Làm Việc -->
         @if ($stockTake->status != 'draft')
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                 <div class="p-4 bg-slate-50 border-b border-slate-200 flex justify-between items-center">
                     <h3 class="font-bold text-slate-700">Danh sách các mặt hàng trong Kho</h3>
                     @if ($stockTake->status == 'counting')
-                        <p class="text-xs text-rose-500 font-bold italic">* Nhập số lượng thực tế đếm được. Hệ thống tự tính
-                            độ lệch.</p>
+                        <div class="flex items-center gap-4">
+                            <p class="text-xs text-rose-500 font-bold italic">* Nhập số lượng thực tế đếm được.</p>
+                            <button type="button"
+                                onclick="document.getElementById('addUnexpectedModal').classList.remove('hidden')"
+                                class="bg-indigo-100 text-indigo-700 hover:bg-indigo-200 px-3 py-1.5 rounded-md text-sm font-bold border border-indigo-200 transition">
+                                + Thêm SP phát sinh
+                            </button>
+                        </div>
                     @endif
                 </div>
 
@@ -82,7 +85,6 @@
                     @csrf
                     @method('PUT')
 
-                    <!-- Input ẩn lưu trữ hành động (Lưu tạm hay Hoàn tất) -->
                     <input type="hidden" name="action" id="form-action" value="save">
 
                     <div class="overflow-x-auto">
@@ -112,6 +114,11 @@
                                             {{ $item->product->name ?? 'N/A' }}<br>
                                             <span
                                                 class="text-[10px] text-slate-400 font-mono font-normal">SP-{{ $item->product_id }}</span>
+                                            @if ($item->expected_quantity == 0)
+                                                <span
+                                                    class="ml-1 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-purple-100 text-purple-800">Phát
+                                                    sinh</span>
+                                            @endif
                                         </td>
                                         <td class="px-4 py-3 text-sm text-slate-700 font-bold">
                                             {{ $item->location->name ?? 'N/A' }}</td>
@@ -186,6 +193,68 @@
         @endif
     </div>
 
+    @if ($stockTake->status == 'counting')
+        <div id="addUnexpectedModal"
+            class="fixed inset-0 bg-slate-900 bg-opacity-50 hidden flex items-center justify-center z-50">
+            <div class="bg-white rounded-xl shadow-xl max-w-lg w-full p-6">
+                <h3 class="text-xl font-extrabold text-slate-800 mb-4 text-rose-600">Thêm Hàng Phát Sinh (Thừa)</h3>
+                <p class="text-sm text-slate-600 mb-4">Sử dụng tính năng này khi tìm thấy hàng hóa dưới kho nhưng hệ thống
+                    không có ghi nhận Tồn Hiện Tại (Expected = 0).</p>
+
+                <form action="{{ route('stock_takes.addUnexpected', $stockTake->id) }}" method="POST">
+                    @csrf
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Sản phẩm *</label>
+                            <select name="product_id" required
+                                class="block w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-indigo-500">
+                                <option value="">-- Chọn Sản Phẩm --</option>
+                                @foreach ($products as $p)
+                                    <option value="{{ $p->id }}">{{ $p->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Vị trí Kệ *</label>
+                            <select name="location_id" required
+                                class="block w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-indigo-500">
+                                <option value="">-- Chọn Vị trí --</option>
+                                @foreach ($locations as $l)
+                                    <option value="{{ $l->id }}">{{ $l->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Lô hàng (Tùy chọn)</label>
+                            <select name="batch_id"
+                                class="block w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-indigo-500">
+                                <option value="">-- Không có lô --</option>
+                                @foreach ($batches as $b)
+                                    <option value="{{ $b->id }}">Lô: {{ $b->batch_code }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Số lượng đếm được *</label>
+                            <input type="number" name="counted_quantity" min="1" required
+                                class="block w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-indigo-500"
+                                placeholder="Nhập số lượng thực tế...">
+                        </div>
+                        <input type="hidden" name="reason" value="Hàng phát sinh ngoài hệ thống">
+                    </div>
+                    <div class="mt-6 flex justify-end gap-3">
+                        <button type="button"
+                            onclick="document.getElementById('addUnexpectedModal').classList.add('hidden')"
+                            class="px-5 py-2 bg-slate-100 text-slate-700 font-bold rounded-lg hover:bg-slate-200 transition">Hủy</button>
+                        <button type="submit"
+                            class="px-5 py-2 bg-rose-600 text-white font-bold rounded-lg hover:bg-rose-700 transition">Thêm
+                            Vào Phiếu</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    @endif
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             document.querySelectorAll('.count-input').forEach(input => {
@@ -203,13 +272,12 @@
                     varianceTd.textContent = (variance > 0 ? '+' : '') + variance;
                     varianceTd.className = 'font-bold text-lg ' + (variance > 0 ?
                         'text-emerald-600' : (variance < 0 ? 'text-rose-600' : 'text-slate-400')
-                        );
+                    );
                 });
             });
         });
 
         function submitForm(actionType) {
-            // Đổi giá trị của thẻ input hidden 'action'
             document.getElementById('form-action').value = actionType;
 
             if (actionType === 'complete') {
@@ -221,17 +289,16 @@
 
                 if (hasEmpty) {
                     alert("Lỗi: Có mặt hàng chưa được nhập số lượng đếm thực tế. Vui lòng nhập số 0 nếu hết hàng.");
-                    return; // Chặn không cho submit
+                    return;
                 }
 
                 if (!confirm(
                         'Dữ liệu bạn vừa nhập sẽ được lưu lại, sau đó Lượng Tồn Kho Thực Tế sẽ bị ĐIỀU CHỈNH khớp với số này.\n\nBạn có chắc chắn muốn chốt sổ?'
                         )) {
-                    return; // Hủy submit
+                    return;
                 }
             }
 
-            // Tiến hành submit form
             document.getElementById('bulk-count-form').submit();
         }
     </script>

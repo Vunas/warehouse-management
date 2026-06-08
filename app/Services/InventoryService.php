@@ -35,26 +35,29 @@ class InventoryService
     public function reserveStock(int $productId, int $quantityToReserve)
     {
         return DB::transaction(function () use ($productId, $quantityToReserve) {
-            $inventories = $this->inventoryRepo->getAvailableStockByProduct($productId);
+            // Lấy tồn kho sắp xếp chuẩn FEFO -> FIFO
+            $inventories = $this->inventoryRepo->getPrioritizedStock($productId);
             $remaining = $quantityToReserve;
 
             foreach ($inventories as $inv) {
                 if ($remaining <= 0) break;
 
-                $available = $inv->quantity - $inv->reserved_quantity;
+                $currentInv = $this->inventoryRepo->getLockedById($inv->id);
+                $available = $currentInv->quantity - $currentInv->reserved_quantity;
+
                 if ($available <= 0) continue;
 
                 $reserveAmount = min($available, $remaining);
 
-                $this->inventoryRepo->update($inv->id, [
-                    'reserved_quantity' => $inv->reserved_quantity + $reserveAmount
+                $this->inventoryRepo->update($currentInv->id, [
+                    'reserved_quantity' => $currentInv->reserved_quantity + $reserveAmount
                 ]);
 
                 $remaining -= $reserveAmount;
             }
 
             if ($remaining > 0) {
-                throw new Exception("Sản phẩm ID {$productId} không đủ tồn kho thực tế khả dụng để giữ chỗ. Thiếu: {$remaining}");
+                throw new Exception("Sản phẩm ID {$productId} không đủ tồn kho khả dụng.");
             }
         });
     }
@@ -263,36 +266,31 @@ class InventoryService
         });
     }
 
-    //Xuất kho theo nguyên tắc FIFO (First In, First Out).
-    public function deductStockFifo(int $productId, int $quantityToDeduct, bool $isSales = true, ?int $referenceId = null)
+    public function deductStockForSales(int $productId, int $quantityToDeduct, ?int $referenceId = null)
     {
-        return DB::transaction(function () use ($productId, $quantityToDeduct, $isSales, $referenceId) {
-            $inventories = $isSales
-                ? $this->inventoryRepo->getReservedStockByProduct($productId)
-                : $this->inventoryRepo->getAvailableStockByProduct($productId);
-
+        return DB::transaction(function () use ($productId, $quantityToDeduct, $referenceId) {
+            $inventories = $this->inventoryRepo->getPrioritizedStock($productId);
             $remaining = $quantityToDeduct;
 
             foreach ($inventories as $inv) {
                 if ($remaining <= 0) break;
 
                 $currentInv = $this->inventoryRepo->getLockedById($inv->id);
+                if ($currentInv->quantity <= 0) continue;
 
-                $takeable = $isSales
-                    ? $currentInv->reserved_quantity
-                    : ($currentInv->quantity - $currentInv->reserved_quantity);
+                $take = min($currentInv->quantity, $remaining);
 
-                if ($takeable <= 0) continue;
+                $updateData = [
+                    'quantity' => $currentInv->quantity - $take
+                ];
 
-                $take = min($takeable, $remaining);
-
-                $updateData = ['quantity' => $currentInv->quantity - $take];
-                if ($isSales) {
-                    $updateData['reserved_quantity'] = $currentInv->reserved_quantity - $take;
+                if ($currentInv->reserved_quantity > 0) {
+                    $updateData['reserved_quantity'] = max(0, $currentInv->reserved_quantity - $take);
                 }
 
                 $this->inventoryRepo->update($currentInv->id, $updateData);
 
+                // Ghi nhận Thẻ kho (Audit Trail)
                 InventoryTransactionRecorded::dispatch([
                     'product_id'       => $currentInv->product_id,
                     'location_id'      => $currentInv->location_id,
@@ -302,14 +300,14 @@ class InventoryService
                     'quantity_change'  => -$take,
                     'balance_after'    => $updateData['quantity'],
                     'staff_id'         => Auth::id() ?? null,
-                    'note'             => $isSales ? 'Xuất kho bán hàng' : 'Xuất kho nội bộ/điều chỉnh'
+                    'note'             => 'Xuất kho bán hàng (Tự động FEFO/FIFO)'
                 ]);
 
                 $remaining -= $take;
             }
 
             if ($remaining > 0) {
-                throw new Exception("Sản phẩm (ID: $productId) không đủ lượng tồn kho trên kệ để xuất.");
+                throw new Exception("Trục trặc hệ thống: Tồn kho thực tế không đủ để trừ.");
             }
         });
     }

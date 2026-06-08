@@ -93,7 +93,7 @@ class StockTransferService
         $transfer = $this->transferRepo->findById($transferId);
 
         // Gọi repo để lấy danh sách tồn kho theo quy tắc FEFO (Hết hạn trước xuất trước)
-        $inventories = $this->inventoryRepo->getFefoStockByProductAndWarehouse($productId, $transfer->from_warehouse_id);
+        $inventories = $this->inventoryRepo->getPrioritizedStock($productId, $transfer->from_warehouse_id);
 
         $remaining = $quantityRequested;
 
