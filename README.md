@@ -17,7 +17,7 @@ A full-stack Laravel application designed to simulate real-world warehouse opera
 ---
 
 <p align="center">
-  <img src="docs/img/customer.png" width="100%">
+  <img src="docs/screenshots/customer.png" width="100%">
 </p>
 
 ---
