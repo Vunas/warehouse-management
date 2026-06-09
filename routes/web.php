@@ -198,3 +198,10 @@ Route::middleware(['auth:customer'])->prefix('customer')->name('customer.')->gro
 
     Route::post('/order/{order}/cancel', [CustomerOrderController::class, 'cancel'])->name('order.cancel')->middleware('throttle:15,1');
 });
+Route::get('/api/health-check', function () {
+    return response()->json([
+        'status' => 'healthy',
+        'timestamp' => now()->toIso8601String(),
+        'environment' => app()->environment()
+    ], 200);
+});
