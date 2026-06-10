@@ -22,8 +22,7 @@
         <!-- Left Banner (Branding) - Chỉ hiện trên màn hình lớn -->
         <div class="hidden lg:flex lg:w-1/2 relative bg-indigo-900 items-center justify-center overflow-hidden">
             <!-- Background Gradient / Pattern -->
-            <img src="https://static.vecteezy.com/system/resources/previews/002/951/088/large_2x/warehouse-isometric-illustration-illustration-vector.jpg"
-                class="w-full h-full object-cover">
+            <img src="{{ asset('images/login.jpg') }}" alt="Warehouse" class="w-full h-full object-cover">
         </div>
 
         <!-- Right Side (Form Đăng Nhập) -->
@@ -85,8 +84,8 @@
                                         d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                 </svg>
                             </div>
-                            <input type="email" name="email" id="email" value="{{ old('email', 'admin@gmail.com') }}" required
-                                autofocus
+                            <input type="email" name="email" id="email"
+                                value="{{ old('email', 'admin@gmail.com') }}" required autofocus
                                 class="block w-full pl-11 pr-4 py-2.5 bg-gray-50 border @error('email') border-red-400 focus:ring-red-500 focus:border-red-500 @else focus:bg-white @enderror rounded-lg text-sm text-gray-900 transition-all duration-200 outline-none shadow-sm"
                                 placeholder="admin@gmail.com">
                         </div>

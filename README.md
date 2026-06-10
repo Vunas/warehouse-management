@@ -2,14 +2,14 @@
 
 # Warehouse Management System (WMS)
 
-A full-stack Laravel application designed to simulate real-world warehouse operations, including inventory tracking, batch management, FIFO allocation, stock reservation, warehouse transfers, and inventory auditing.
+A full-stack Laravel application designed to simulate real-world warehouse operations, including inventory tracking, batch management, FEFO/FIFO allocation, stock reservation, warehouse transfers, and inventory auditing.
 
 <p>
-  <img src="https://img.shields.io/badge/Laravel-11-FF2D20?style=for-the-badge&logo=laravel&logoColor=white">
-  <img src="https://img.shields.io/badge/PHP-8.2-777BB4?style=for-the-badge&logo=php&logoColor=white">
-  <img src="https://img.shields.io/badge/PostgreSQL-16-336791?style=for-the-badge&logo=postgresql&logoColor=white">
-  <img src="https://img.shields.io/badge/TailwindCSS-3.0-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white">
-  <img src="https://img.shields.io/badge/Vite-5-646CFF?style=for-the-badge&logo=vite&logoColor=white">
+  <img src="./docs/img/Laravel-11.svg">
+  <img src="./docs/img/PHP-8.svg">
+  <img src="./docs/img/PostgreSQL-16.svg">
+  <img src="./docs/img/TailwindCSS-3.svg">
+  <img src="./docs/img/Vite-5.svg">
 </p>
 
 </div>
@@ -30,7 +30,7 @@ The platform manages the complete inventory lifecycle from inbound receiving to 
 
 Key warehouse concepts implemented in this project include:
 
-- FIFO Inventory Allocation
+- FEFO/FIFO Inventory Allocation
 - Batch / Lot Tracking
 - Stock Reservation
 - Multi-Warehouse Management
@@ -135,7 +135,7 @@ Process inventory fulfillment requests.
 - Picking workflow
 - Packing workflow
 - Inventory deduction
-- FIFO allocation
+- FEFO/FIFO allocation
 
 <p align="center">
   <img src="docs/screenshots/outbound.png" width="100%">

@@ -89,7 +89,7 @@ class InventoryService
     }
 
     /**
-     * BƯỚC 3: XÁC NHẬN XUẤT KHO (PICKING CONFIRMED) -> TRỪ KHO THỰC TẾ
+     * XÁC NHẬN XUẤT KHO (PICKING CONFIRMED) -> TRỪ KHO THỰC TẾ
      * Giảm CẢ quantity (on_hand) LẪN reserved_quantity
      */
     public function deductExactStock(int $productId, int $locationId, ?int $batchId, int $quantityToDeduct, bool $isSales = true, ?int $referenceId = null, string $note = '')
